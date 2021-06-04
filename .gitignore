@@ -1,0 +1,5 @@
+/scripts/
+/static/
+/.idea/
+/__pycache__/
+db.sqlite3

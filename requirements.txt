@@ -1,0 +1,8 @@
+Authlib==0.15.3
+Django
+django-cors-headers==3.7.0
+django-filter==2.4.0
+django-import-export==2.5.0
+djangorestframework==3.12.4
+requests==2.25.1
+gunicorn==20.1.0
