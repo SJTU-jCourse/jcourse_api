@@ -38,6 +38,8 @@ class CourseResource(resources.ModelResource):
 class CourseAdmin(ImportExportModelAdmin):
     list_display = ('id', 'code', 'name', 'credit', 'department', 'category', 'main_teacher')
     list_filter = ('department', 'category')
+    search_fields = ('id', 'code', 'name')
+    autocomplete_fields = ('main_teacher', 'teacher_group')
     resource_class = CourseResource
 
 
@@ -62,6 +64,7 @@ class TeacherAdmin(ImportExportModelAdmin):
     list_display = ('tid', 'name', 'department', 'title', 'pinyin', 'abbr_pinyin')
     list_filter = ('department__name',)
     inlines = [CourseInline]
+    search_fields = ('name', 'pinyin', 'abbr_pinyin')
 
 
 class FormerCodeAdmin(ImportExportModelAdmin):
@@ -70,6 +73,7 @@ class FormerCodeAdmin(ImportExportModelAdmin):
 
 class ReviewAdmin(ImportExportModelAdmin):
     list_display = ('user', 'course', 'comment_validity', 'created', 'approves', 'disapproves')
+    search_fields = ('user', 'course')
 
     def approves(self, obj):
         return Approve.objects.filter(review=obj, action=1).count()
@@ -97,7 +101,7 @@ class DepartmentResource(resources.ModelResource):
     class Meta:
         model = Department
         exclude = ('id',)
-        inport_id_fields = ('name',)
+        import_id_fields = ('name',)
 
     def save_instance(self, instance, using_transactions=True, dry_run=False):
         try:
