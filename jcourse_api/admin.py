@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db import IntegrityError
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
@@ -22,8 +23,16 @@ class CourseResource(resources.ModelResource):
 
     class Meta:
         model = Course
+        import_id_fields = ('code', 'main_teacher')
+        exclude = ('id',)
         export_order = (
-            'id', 'code', 'name', 'credit', 'department', 'category', 'language', 'main_teacher', 'teacher_group')
+            'code', 'name', 'credit', 'department', 'category', 'language', 'main_teacher', 'teacher_group')
+
+    def save_instance(self, instance, using_transactions=True, dry_run=False):
+        try:
+            super().save_instance(instance, using_transactions, dry_run)
+        except IntegrityError:
+            pass
 
 
 class CourseAdmin(ImportExportModelAdmin):
@@ -37,7 +46,15 @@ class TeacherResource(resources.ModelResource):
 
     class Meta:
         model = Teacher
-        export_order = ('id', 'tid', 'name', 'department', 'title')
+        import_id_fields = ('tid',)
+        exclude = ('id',)
+        export_order = ('tid', 'name', 'department', 'title')
+
+    def save_instance(self, instance, using_transactions=True, dry_run=False):
+        try:
+            super().save_instance(instance, using_transactions, dry_run)
+        except IntegrityError:
+            pass
 
 
 class TeacherAdmin(ImportExportModelAdmin):
@@ -76,11 +93,29 @@ class NoticeAdmin(ImportExportModelAdmin):
     list_display = ('available', 'title', 'message', 'created')
 
 
+class DepartmentResource(resources.ModelResource):
+    class Meta:
+        model = Department
+        exclude = ('id',)
+        inport_id_fields = ('name',)
+
+    def save_instance(self, instance, using_transactions=True, dry_run=False):
+        try:
+            super().save_instance(instance, using_transactions, dry_run)
+        except IntegrityError:
+            pass
+
+
+class DepartmentAdmin(ImportExportModelAdmin):
+    list_display = ('id', 'name')
+    resource_class = DepartmentResource
+
+
 class NameAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name')
 
 
-admin.site.register(Department, NameAdmin)
+admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Semester, NameAdmin)
 admin.site.register(Category, NameAdmin)
 admin.site.register(Language, NameAdmin)

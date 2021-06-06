@@ -149,10 +149,11 @@ class UserView(APIView):
 class FilterView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(cache_page(60 * 60 * 2))
     def get(self, request):
-        categories = Category.objects.all()
+        categories = Category.objects.annotate(count=Count('course')).filter(count__gt=0)
         category_serializer = CategorySerializer(categories, many=True)
-        departments = Department.objects.all()
+        departments = Department.objects.annotate(count=Count('course')).filter(count__gt=0)
         department_serializer = DepartmentSerializer(departments, many=True)
         return Response({'categories': category_serializer.data, 'departments': department_serializer.data},
                         status=status.HTTP_200_OK)
@@ -161,6 +162,7 @@ class FilterView(APIView):
 class StatisticView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(cache_page(60 * 5))
     def get(self, request):
         return Response({'courses': Course.objects.count(),
                          'reviews': Review.objects.filter(available=True).count()},

@@ -14,6 +14,7 @@ def constrain_text(text):
 class Department(models.Model):
     class Meta:
         verbose_name = '教学单位'
+        ordering = ['name']
         verbose_name_plural = verbose_name
 
     name = models.CharField(verbose_name='名称', max_length=64, null=False, blank=False, unique=True)
@@ -25,6 +26,7 @@ class Department(models.Model):
 class Category(models.Model):
     class Meta:
         verbose_name = '课程类别'
+        ordering = ['name']
         verbose_name_plural = verbose_name
 
     name = models.CharField(verbose_name='名称', max_length=64, null=False, blank=False, unique=True)
@@ -36,6 +38,7 @@ class Category(models.Model):
 class Language(models.Model):
     class Meta:
         verbose_name = '授课语言'
+        ordering = ['name']
         verbose_name_plural = verbose_name
 
     name = models.CharField(verbose_name='名称', max_length=64, null=False, blank=False, unique=True)
@@ -61,7 +64,7 @@ class Semester(models.Model):
     class Meta:
         verbose_name = '学期'
         verbose_name_plural = verbose_name
-        ordering = ('-name',)
+        ordering = ['-name']
 
     name = models.CharField(verbose_name='名称', max_length=64, null=False, blank=False, unique=True)
 
@@ -139,6 +142,7 @@ class Review(models.Model):
 class Notice(models.Model):
     class Meta:
         verbose_name = '通知'
+        ordering = ['-created']
         verbose_name_plural = verbose_name
 
     title = models.CharField(verbose_name='标题', max_length=256, null=False, blank=False)
@@ -153,6 +157,7 @@ class Notice(models.Model):
 class Report(models.Model):
     class Meta:
         verbose_name = '反馈'
+        ordering = ['-created']
         verbose_name_plural = verbose_name
 
     user = models.ForeignKey(User, verbose_name='用户', null=False, blank=False, on_delete=models.CASCADE)
