@@ -105,6 +105,7 @@ class Course(models.Model):
     main_teacher = models.ForeignKey(Teacher, verbose_name='主讲教师', on_delete=models.CASCADE, null=False, db_index=True)
     teacher_group = models.ManyToManyField(Teacher, verbose_name='教师组成', related_name='teacher_course')
     language = models.ForeignKey(Language, verbose_name='授课语言', null=True, blank=True, on_delete=models.SET_NULL)
+    moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
 
     def __str__(self):
         return f"{self.code} {self.name}（{self.main_teacher}）"
@@ -174,7 +175,7 @@ class Report(models.Model):
     comment_validity.short_description = '反馈'
 
 
-class Approve(models.Model):
+class Action(models.Model):
     ACTION_CHOICES = [(1, '赞同'), (-1, '反对'), (0, '重置')]
 
     class Meta:

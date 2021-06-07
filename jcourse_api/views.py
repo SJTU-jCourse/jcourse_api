@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from jcourse_api.models import Course, Review, Semester, Notice, Category, Department, Report, Approve
+from jcourse_api.models import Course, Review, Semester, Notice, Category, Department, Report, Action
 from jcourse_api.serializers import CourseSerializer, ReviewInCourseSerializer, CourseListSerializer, \
     ReviewSerializer, SemesterSerializer, CourseInReviewSerializer, UserSerializer, NoticeSerializer, \
     CategorySerializer, DepartmentSerializer, ReportSerializer, CreateReviewSerializer
@@ -86,12 +86,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'])
     def action(self, request, pk=None):
-        Approve.objects.update_or_create(user=request.user, review_id=pk,
-                                         defaults={'action': request.data.get('action')})
+        Action.objects.update_or_create(user=request.user, review_id=pk,
+                                        defaults={'action': request.data.get('action')})
         return Response({'id': pk,
                          'action': request.data.get('action'),
-                         'approves': Approve.objects.filter(review=pk, action=1).count(),
-                         'disapproves': Approve.objects.filter(review=pk, action=-1).count()},
+                         'approves': Action.objects.filter(review=pk, action=1).count(),
+                         'disapproves': Action.objects.filter(review=pk, action=-1).count()},
                         status=status.HTTP_200_OK)
 
 

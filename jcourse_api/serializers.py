@@ -5,7 +5,7 @@ from django.db import IntegrityError
 from django.db.models import Avg, Count, F, Q, Max
 from rest_framework import serializers
 
-from jcourse_api.models import Course, Teacher, Department, Review, Semester, Language, Category, Notice, Approve, \
+from jcourse_api.models import Course, Teacher, Department, Review, Semester, Language, Category, Notice, Action, \
     Report
 
 
@@ -161,12 +161,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
-            return Approve.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                                disapproves=Count('pk', filter=Q(action=-1)),
-                                                                action=Max('action', filter=Q(user=user)))
+            return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
+                                                               disapproves=Count('pk', filter=Q(action=-1)),
+                                                               action=Max('action', filter=Q(user=user)))
         else:
-            return Approve.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                                disapproves=Count('pk', filter=Q(action=-1)))
+            return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
+                                                               disapproves=Count('pk', filter=Q(action=-1)))
 
 
 class ReviewInCourseSerializer(serializers.ModelSerializer):
@@ -186,12 +186,12 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
-            return Approve.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                                disapproves=Count('pk', filter=Q(action=-1)),
-                                                                action=Max('action', filter=Q(user=user)))
+            return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
+                                                               disapproves=Count('pk', filter=Q(action=-1)),
+                                                               action=Max('action', filter=Q(user=user)))
         else:
-            return Approve.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                                disapproves=Count('pk', filter=Q(action=-1)))
+            return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
+                                                               disapproves=Count('pk', filter=Q(action=-1)))
 
 
 class SemesterSerializer(serializers.ModelSerializer):

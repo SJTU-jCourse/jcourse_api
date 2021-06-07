@@ -5,7 +5,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
 from jcourse_api.models import Course, Teacher, FormerCode, Department, Semester, Review, Category, Language, Report, \
-    Approve, Notice
+    Action, Notice
 
 
 class CourseInline(admin.StackedInline):
@@ -76,10 +76,10 @@ class ReviewAdmin(ImportExportModelAdmin):
     search_fields = ('user', 'course')
 
     def approves(self, obj):
-        return Approve.objects.filter(review=obj, action=1).count()
+        return Action.objects.filter(review=obj, action=1).count()
 
     def disapproves(self, obj):
-        return Approve.objects.filter(review=obj, action=-1).count()
+        return Action.objects.filter(review=obj, action=-1).count()
 
     approves.short_description = '赞同数'
     disapproves.short_description = '反对数'
@@ -123,7 +123,7 @@ admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Semester, NameAdmin)
 admin.site.register(Category, NameAdmin)
 admin.site.register(Language, NameAdmin)
-admin.site.register(Approve, ApproveAdmin)
+admin.site.register(Action, ApproveAdmin)
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(FormerCode, FormerCodeAdmin)
