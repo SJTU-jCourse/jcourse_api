@@ -103,7 +103,7 @@ class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class NoticeViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Notice.objects.all()
+    queryset = Notice.objects.filter(available=True)
     permission_classes = [IsAuthenticated]
     serializer_class = NoticeSerializer
     pagination_class = None

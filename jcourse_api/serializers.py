@@ -106,7 +106,7 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        exclude = ['teacher_group', 'language', 'main_teacher']
+        exclude = ['teacher_group', 'language', 'main_teacher', 'moderator_remark']
 
     @staticmethod
     def get_rating(obj):
