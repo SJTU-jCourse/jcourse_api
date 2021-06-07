@@ -1,3 +1,4 @@
+import hashlib
 from authlib.integrations.django_client import OAuth
 from authlib.jose import jwt
 from authlib.oidc.core import CodeIDToken
@@ -8,6 +9,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 from jcourse import settings
+from jcourse.settings import HASH_SALT
 
 oauth = OAuth()
 oauth.register(
@@ -48,5 +50,6 @@ def auth_jaccount(request):
     token = client.authorize_access_token(request)
     claims = jwt.decode(token.get('id_token'),
                         client.client_secret, claims_cls=CodeIDToken)
-    login_with(request, claims['sub'])
+    hashed_username = hashlib.blake2b((claims['sub'] + HASH_SALT).encode('ascii'), digest_size=16).hexdigest()
+    login_with(request, hashed_username)
     return redirect('/')
