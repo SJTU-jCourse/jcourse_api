@@ -60,8 +60,8 @@ class SearchViewSet(viewsets.ReadOnlyModelViewSet):
         if q == '':
             return Course.objects.none()
         queryset = Course.objects.filter(
-            Q(code__contains=q) | Q(name__contains=q) | Q(main_teacher__name__contains=q) |
-            Q(main_teacher__pinyin__contains=q) | Q(main_teacher__abbr_pinyin__contains=q))
+            Q(code__icontains=q) | Q(name__icontains=q) | Q(main_teacher__name__icontains=q) |
+            Q(main_teacher__pinyin__icontains=q) | Q(main_teacher__abbr_pinyin__icontains=q))
         return queryset
 
 
@@ -119,8 +119,8 @@ class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
         if q == '':
             return Course.objects.none()
         queryset = Course.objects.filter(
-            Q(code__contains=q) | Q(name__contains=q) | Q(main_teacher__name__contains=q) |
-            Q(main_teacher__pinyin__contains=q) | Q(main_teacher__abbr_pinyin__contains=q))
+            Q(code__icontains=q) | Q(name__icontains=q) | Q(main_teacher__name__icontains=q) |
+            Q(main_teacher__pinyin__icontains=q) | Q(main_teacher__abbr_pinyin__icontains=q))
         return queryset
 
 
