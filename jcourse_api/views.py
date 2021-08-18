@@ -3,20 +3,22 @@ from django.contrib.auth.models import User
 from django.db.models import Q, Count
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.vary import vary_on_cookie
 from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from jcourse_api.models import Course, Review, Semester, Notice, Category, Department, Report, Action
+from jcourse_api.models import Course, Review, Semester, Notice, Category, Department, Report, Action, ApiKey
 from jcourse_api.serializers import CourseSerializer, ReviewInCourseSerializer, CourseListSerializer, \
     ReviewSerializer, SemesterSerializer, CourseInReviewSerializer, UserSerializer, NoticeSerializer, \
     CategorySerializer, DepartmentSerializer, ReportSerializer, CreateReviewSerializer
+from oauth.views import hash_username
 
 
 class NumberInFilter(BaseInFilter, NumberFilter):
@@ -174,3 +176,21 @@ class StatisticView(APIView):
         return Response({'courses': Course.objects.count(),
                          'reviews': Review.objects.filter(available=True).count()},
                         status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@csrf_exempt
+def user_summary(request):
+    account = request.data.get('account', '')
+    apikey = request.data.get('api_key', '')
+    if account == '' or apikey == '':
+        return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        ApiKey.objects.get(key=apikey, is_enabled=True)
+    except ApiKey.DoesNotExist:
+        return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
+    hashed_account = hash_username(account)
+    reviews = Review.objects.filter(available=True).filter(user__username=hashed_account)
+    approve_count = Action.objects.filter(review__in=reviews).filter(action=1).count()
+    review_count = reviews.count()
+    return Response({'account': account, 'approves': approve_count, 'reviews': review_count})

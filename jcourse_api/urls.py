@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from jcourse_api.views import CourseViewSet, ReviewViewSet, SemesterViewSet, CourseInReviewViewSet, \
-    UserView, NoticeViewSet, SearchViewSet, FilterView, StatisticView, ReportView
+    UserView, NoticeViewSet, SearchViewSet, FilterView, StatisticView, ReportView, user_summary
 
 router = DefaultRouter()
 router.register('course', CourseViewSet, basename='course')
@@ -18,4 +18,5 @@ urlpatterns = [
     path('filter/', FilterView.as_view(), name='filter'),
     path('statistic/', StatisticView.as_view(), name='statistic'),
     path('report/', ReportView.as_view(), name='report'),
+    path('user-summary/', user_summary, name='user-summary'),
 ]

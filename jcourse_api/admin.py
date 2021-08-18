@@ -1,3 +1,5 @@
+import os
+
 from django.contrib import admin
 from django.db import IntegrityError
 from import_export import resources, fields
@@ -5,7 +7,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
 from jcourse_api.models import Course, Teacher, FormerCode, Department, Semester, Review, Category, Language, Report, \
-    Action, Notice
+    Action, Notice, ApiKey
 
 
 class CourseInline(admin.StackedInline):
@@ -117,6 +119,16 @@ class DepartmentAdmin(ImportExportModelAdmin):
 
 class NameAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name')
+
+
+@admin.register(ApiKey)
+class ApiKeyAdmin(admin.ModelAdmin):
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        field = super().formfield_for_dbfield(db_field, request, **kwargs)
+        if db_field.name == 'key':
+            field.initial = os.urandom(16).hex()
+        return field
 
 
 admin.site.register(Department, DepartmentAdmin)

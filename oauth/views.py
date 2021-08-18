@@ -45,11 +45,15 @@ def login_jaccount(request):
     return oauth.jaccount.authorize_redirect(request, redirect_uri)
 
 
+def hash_username(username):
+    return hashlib.blake2b((username + HASH_SALT).encode('ascii'), digest_size=16).hexdigest()
+
+
 def auth_jaccount(request):
     client = oauth.jaccount
     token = client.authorize_access_token(request)
     claims = jwt.decode(token.get('id_token'),
                         client.client_secret, claims_cls=CodeIDToken)
-    hashed_username = hashlib.blake2b((claims['sub'] + HASH_SALT).encode('ascii'), digest_size=16).hexdigest()
+    hashed_username = hash_username(claims['sub'])
     login_with(request, hashed_username)
     return redirect('/')

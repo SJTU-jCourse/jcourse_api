@@ -188,3 +188,17 @@ class Action(models.Model):
 
     def __str__(self):
         return f"{self.review}"
+
+
+class ApiKey(models.Model):
+    class Meta:
+        verbose_name = 'Api密钥'
+        verbose_name_plural = verbose_name
+
+    key = models.CharField(max_length=255)
+    description = models.CharField(verbose_name='描述', max_length=255)
+    is_enabled = models.BooleanField(verbose_name='启用', default=True)
+    last_modified = models.DateTimeField(verbose_name='修改时间', default=timezone.now)
+
+    def __str__(self):
+        return f"{self.description}：{self.key} - {self.last_modified}"
