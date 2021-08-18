@@ -85,7 +85,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
     @action(detail=True, methods=['POST'])
-    def action(self, request, pk=None):
+    def reaction(self, request, pk=None):
         Action.objects.update_or_create(user=request.user, review_id=pk,
                                         defaults={'action': request.data.get('action')})
         return Response({'id': pk,
@@ -93,6 +93,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
                          'approves': Action.objects.filter(review=pk, action=1).count(),
                          'disapproves': Action.objects.filter(review=pk, action=-1).count()},
                         status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'])
+    def mine(self, request):
+        reviews = self.queryset.filter(user=request.user)
+        serializer = self.get_serializer_class()
+        data = serializer(reviews, many=True).data
+        return Response(data)
 
 
 class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
