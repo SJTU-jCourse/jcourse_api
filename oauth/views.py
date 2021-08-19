@@ -54,6 +54,9 @@ def auth_jaccount(request):
     token = client.authorize_access_token(request)
     claims = jwt.decode(token.get('id_token'),
                         client.client_secret, claims_cls=CodeIDToken)
-    hashed_username = hash_username(claims['sub'])
+    jaccount = claims['sub']
+    hashed_username = hash_username(jaccount)
     login_with(request, hashed_username)
-    return redirect('/')
+    response = redirect('/')
+    response.set_cookie('account', jaccount)
+    return response
