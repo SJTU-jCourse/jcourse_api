@@ -6,7 +6,7 @@ from django.db.models import Avg, Count, F, Q, Max
 from rest_framework import serializers
 
 from jcourse_api.models import Course, Teacher, Department, Review, Semester, Language, Category, Notice, Action, \
-    Report
+    Report, FormerCode
 
 
 class ChoiceDisplayField(serializers.Field):
@@ -68,10 +68,18 @@ class CourseSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     related_teachers = serializers.SerializerMethodField()
     related_courses = serializers.SerializerMethodField()
+    former_code = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
         fields = '__all__'
+
+    @staticmethod
+    def get_former_code(obj):
+        try:
+            return FormerCode.objects.get(new_code=obj.code).old_code
+        except FormerCode.DoesNotExist:
+            return None
 
     @staticmethod
     def get_rating(obj):
