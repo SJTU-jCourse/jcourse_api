@@ -190,7 +190,11 @@ def user_summary(request):
     except ApiKey.DoesNotExist:
         return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
     hashed_account = hash_username(account)
-    reviews = Review.objects.filter(available=True).filter(user__username=hashed_account)
+    try:
+        user = User.objects.get(username=hashed_account)
+    except User.DoesNotExist:
+        return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
+    reviews = Review.objects.filter(available=True).filter(user=user)
     approve_count = Action.objects.filter(review__in=reviews).filter(action=1).count()
     review_count = reviews.count()
     return Response({'account': account, 'approves': approve_count, 'reviews': review_count})
