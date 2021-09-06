@@ -174,6 +174,7 @@ class StatisticView(APIView):
     @method_decorator(cache_page(60 * 5))
     def get(self, request):
         return Response({'courses': Course.objects.count(),
+                         'users': User.objects.count(),
                          'reviews': Review.objects.filter(available=True).count()},
                         status=status.HTTP_200_OK)
 
