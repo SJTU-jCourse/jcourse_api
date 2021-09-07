@@ -202,3 +202,17 @@ class ApiKey(models.Model):
 
     def __str__(self):
         return f"{self.description}：{self.key} - {self.last_modified}"
+
+
+class EnrollCourse(models.Model):
+    class Meta:
+        verbose_name = '选课记录'
+        verbose_name_plural = verbose_name
+        constraints = [models.UniqueConstraint(fields=['user', 'course', 'semester'], name='unique_enroll')]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=False, blank=False)
+    semester = models.ForeignKey(Semester, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} {self.course.name} {self.semester.name}"

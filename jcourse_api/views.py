@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from jcourse_api.serializers import *
-from oauth.views import hash_username
+from oauth.views import hash_username, jaccount
 
 
 class NumberInFilter(BaseInFilter, NumberFilter):
@@ -99,7 +99,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def mine(self, request):
         reviews = self.queryset.filter(user=request.user)
         serializer = self.get_serializer_class()
-        data = serializer(reviews, many=True).data
+        data = serializer(reviews, many=True, context={'request': request}).data
         return Response(data)
 
 
@@ -108,6 +108,10 @@ class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = SemesterSerializer
     pagination_class = None
+
+    @method_decorator(cache_page(60 * 60 * 2))
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
 
 class NoticeViewSet(viewsets.ReadOnlyModelViewSet):
@@ -192,3 +196,40 @@ def user_summary(request):
     approve_count = Action.objects.filter(review__in=reviews).filter(action=1).count()
     review_count = reviews.count()
     return Response({'account': account, 'approves': approve_count, 'reviews': review_count})
+
+
+@cache_page(60 * 60 * 2)
+@api_view(['POST'])
+def sync_lessons(request, term='2018-2019-2'):
+    token = request.session.get('token', None)
+    if token is None:
+        return Response({'detail': '未授权获取课表信息'}, status=status.HTTP_401_UNAUTHORIZED)
+    resp = jaccount.get(f'v1/me/lessons/{term}/', token=token, params={"classes": False}).json()
+    codes = []
+    teachers = []
+    for entity in resp['entities']:
+        codes.append(entity['course']['code'])
+        teachers.append(entity['teachers'][0]['name'])
+    former_codes = FormerCode.objects.filter(old_code__in=codes).values('new_code')
+    existed_courses = Course.objects.filter(Q(code__in=former_codes) | Q(code__in=codes)).filter(
+        Q(main_teacher__name__in=teachers)).values('id')
+    try:
+        semester = Semester.objects.get(name=term)
+    except Semester.DoesNotExist:
+        semester = None
+    enroll_courses = []
+    for course in existed_courses:
+        enroll_courses.append(EnrollCourse(user=request.user, course_id=course['id'], semester=semester))
+    EnrollCourse.objects.bulk_create(enroll_courses, ignore_conflicts=True)
+    courses = Course.objects.filter(enrollcourse__user=request.user)
+    serializer = CourseListSerializer(courses, many=True)
+    return Response(serializer.data)
+
+
+class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CourseListSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        return Course.objects.filter(enrollcourse__user=self.request.user)

@@ -29,6 +29,7 @@ oauth.register(
         "token_placement": "header"
     }
 )
+jaccount = oauth.jaccount
 
 
 def login_with(request, username):
@@ -54,16 +55,27 @@ def hash_username(username):
 
 
 def auth_jaccount(request):
-    client = oauth.jaccount
-    token = client.authorize_access_token(request)
+    token = jaccount.authorize_access_token(request)
     claims = jwt.decode(token.get('id_token'),
-                        client.client_secret, claims_cls=CodeIDToken)
-    jaccount = claims['sub']
-    hashed_username = hash_username(jaccount)
+                        jaccount.client_secret, claims_cls=CodeIDToken)
+    account = claims['sub']
+    hashed_username = hash_username(account)
     login_with(request, hashed_username)
     response = redirect('/')
     expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=SESSION_COOKIE_AGE), "%a, %d-%b-%Y %H:%M:%S GMT")
-    response.set_cookie('account', jaccount, expires=expires,
+    response.set_cookie('account', account, expires=expires,
                         samesite='lax',
                         secure=SESSION_COOKIE_SECURE)
+    return response
+
+
+def sync_lessons_login(request):
+    redirect_uri = request.build_absolute_uri(reverse('sync-lessons-auth'))
+    return oauth.jaccount.authorize_redirect(request, redirect_uri, scope="openid lessons")
+
+
+def sync_lessons_auth(request):
+    token = jaccount.authorize_access_token(request)
+    request.session['token'] = token
+    response = redirect(f'/sync')
     return response

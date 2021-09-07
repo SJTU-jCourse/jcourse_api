@@ -6,8 +6,7 @@ from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
-from jcourse_api.models import Course, Teacher, FormerCode, Department, Semester, Review, Category, Language, Report, \
-    Action, Notice, ApiKey
+from jcourse_api.models import *
 
 
 class CourseInline(admin.StackedInline):
@@ -121,6 +120,10 @@ class NameAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name')
 
 
+class EnrollCourseAdmin(ImportExportModelAdmin):
+    list_display = ('user', 'course', 'semester')
+
+
 @admin.register(ApiKey)
 class ApiKeyAdmin(admin.ModelAdmin):
 
@@ -142,3 +145,4 @@ admin.site.register(FormerCode, FormerCodeAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(Notice, NoticeAdmin)
+admin.site.register(EnrollCourse, EnrollCourseAdmin)
