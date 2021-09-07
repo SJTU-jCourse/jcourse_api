@@ -214,7 +214,7 @@ def sync_lessons(request, term='2018-2019-2'):
     former_codes_dict = {}
     for former_code in former_codes:
         former_codes_dict[former_code['old_code']] = former_code['new_code']
-    conditions = Q()
+    conditions = Q(pk=None)
     for code, teacher in zip(codes, teachers):
         if former_codes_dict.get(code, None):
             conditions = conditions | (
