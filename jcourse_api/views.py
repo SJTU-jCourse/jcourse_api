@@ -210,9 +210,18 @@ def sync_lessons(request, term='2018-2019-2'):
     for entity in resp['entities']:
         codes.append(entity['course']['code'])
         teachers.append(entity['teachers'][0]['name'])
-    former_codes = FormerCode.objects.filter(old_code__in=codes).values('new_code')
-    existed_courses = Course.objects.filter(Q(code__in=former_codes) | Q(code__in=codes)).filter(
-        Q(main_teacher__name__in=teachers)).values('id')
+    former_codes = FormerCode.objects.filter(old_code__in=codes).values('old_code', 'new_code')
+    former_codes_dict = {}
+    for former_code in former_codes:
+        former_codes_dict[former_code['old_code']] = former_code['new_code']
+    conditions = Q()
+    for code, teacher in zip(codes, teachers):
+        if former_codes_dict.get(code, None):
+            conditions = conditions | (
+                    (Q(code=former_codes_dict[code]) | Q(code=code)) & Q(main_teacher__name=teacher))
+        else:
+            conditions = conditions | (Q(code=code) & Q(main_teacher__name=teacher))
+    existed_courses = Course.objects.filter(conditions).values('id')
     try:
         semester = Semester.objects.get(name=term)
     except Semester.DoesNotExist:
