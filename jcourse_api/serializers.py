@@ -1,12 +1,10 @@
 from collections import OrderedDict
 
-from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.db.models import Avg, Count, F, Q, Max
 from rest_framework import serializers
 
-from jcourse_api.models import Course, Teacher, Department, Review, Semester, Language, Category, Notice, Action, \
-    Report, FormerCode
+from jcourse_api.models import *
 
 
 class ChoiceDisplayField(serializers.Field):
@@ -42,6 +40,10 @@ class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
         fields = ('tid', 'name', 'department', 'title')
+
+
+def get_course_rating(obj: Course):
+    return Review.objects.filter(course=obj.id, available=True).aggregate(avg=Avg('rating'), count=Count('rating'))
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -83,7 +85,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_rating(obj):
-        return Review.objects.filter(course=obj.id, available=True).aggregate(avg=Avg('rating'), count=Count('rating'))
+        return get_course_rating(obj)
 
     @staticmethod
     def get_related_teachers(obj):
@@ -94,6 +96,14 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_related_courses(obj):
         return Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code).values(
             'id', 'code', 'name')
+
+
+def is_course_reviewed(serializer: serializers.Serializer, obj: Course):
+    request = serializer.context.get("request")
+    if request and hasattr(request, "user"):
+        user = request.user
+        return Review.objects.filter(course=obj.id, user=user).exists()
+    return False
 
 
 class CourseListSerializer(serializers.ModelSerializer):
@@ -111,6 +121,7 @@ class CourseListSerializer(serializers.ModelSerializer):
     )
     teacher = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
+    is_reviewed = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -118,11 +129,14 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_rating(obj):
-        return Review.objects.filter(course=obj.id, available=True).aggregate(avg=Avg('rating'), count=Count('rating'))
+        return get_course_rating(obj)
 
     @staticmethod
     def get_teacher(obj):
         return obj.main_teacher.name
+
+    def get_is_reviewed(self, obj):
+        return is_course_reviewed(self, obj)
 
 
 class CourseInReviewSerializer(serializers.ModelSerializer):
@@ -151,6 +165,26 @@ class CreateReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(error_msg)
 
 
+def get_review_actions(serializer: serializers.Serializer, obj: Review):
+    request = serializer.context.get("request")
+    if request and hasattr(request, "user"):
+        user = request.user
+        return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
+                                                           disapproves=Count('pk', filter=Q(action=-1)),
+                                                           action=Max('action', filter=Q(user=user)))
+    else:
+        return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
+                                                           disapproves=Count('pk', filter=Q(action=-1)))
+
+
+def is_my_review(serializer: serializers.Serializer, obj: Review):
+    request = serializer.context.get("request")
+    if request and hasattr(request, "user"):
+        user = request.user
+        return obj.user == user
+    return False
+
+
 class ReviewSerializer(serializers.ModelSerializer):
     semester = serializers.SlugRelatedField(
         queryset=Semester.objects.all(),
@@ -160,21 +194,17 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
     course = CourseInReviewSerializer(read_only=True)
     actions = serializers.SerializerMethodField()
+    is_mine = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
         exclude = ['user', 'available']
 
+    def get_is_mine(self, obj):
+        return is_my_review(self, obj)
+
     def get_actions(self, obj):
-        request = self.context.get("request")
-        if request and hasattr(request, "user"):
-            user = request.user
-            return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                               disapproves=Count('pk', filter=Q(action=-1)),
-                                                               action=Max('action', filter=Q(user=user)))
-        else:
-            return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                               disapproves=Count('pk', filter=Q(action=-1)))
+        return get_review_actions(self, obj)
 
 
 class ReviewInCourseSerializer(serializers.ModelSerializer):
@@ -185,21 +215,17 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
         slug_field='name'
     )
     actions = serializers.SerializerMethodField()
+    is_mine = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
         exclude = ('user', 'available', 'course')
 
     def get_actions(self, obj):
-        request = self.context.get("request")
-        if request and hasattr(request, "user"):
-            user = request.user
-            return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                               disapproves=Count('pk', filter=Q(action=-1)),
-                                                               action=Max('action', filter=Q(user=user)))
-        else:
-            return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                               disapproves=Count('pk', filter=Q(action=-1)))
+        return get_review_actions(self, obj)
+
+    def get_is_mine(self, obj):
+        return is_my_review(self, obj)
 
 
 class SemesterSerializer(serializers.ModelSerializer):

@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils.datetime_safe import datetime
 
 from jcourse import settings
-from jcourse.settings import HASH_SALT, SESSION_COOKIE_SECURE, SESSION_COOKIE_HTTPONLY
+from jcourse.settings import HASH_SALT, SESSION_COOKIE_SECURE
 
 oauth = OAuth()
 oauth.register(

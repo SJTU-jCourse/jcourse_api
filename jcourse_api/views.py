@@ -1,6 +1,4 @@
 import django_filters
-from django.contrib.auth.models import User
-from django.db.models import Q, Count
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
@@ -14,10 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from jcourse_api.models import Course, Review, Semester, Notice, Category, Department, Report, Action, ApiKey
-from jcourse_api.serializers import CourseSerializer, ReviewInCourseSerializer, CourseListSerializer, \
-    ReviewSerializer, SemesterSerializer, CourseInReviewSerializer, UserSerializer, NoticeSerializer, \
-    CategorySerializer, DepartmentSerializer, ReportSerializer, CreateReviewSerializer
+from jcourse_api.serializers import *
 from oauth.views import hash_username
 
 
@@ -53,18 +48,22 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
+def get_search_course_queryset(viewset):
+    q = viewset.request.query_params.get('q', '')
+    if q == '':
+        return Course.objects.none()
+    queryset = Course.objects.filter(
+        Q(code__icontains=q) | Q(name__icontains=q) | Q(main_teacher__name__icontains=q) |
+        Q(main_teacher__pinyin__icontains=q) | Q(main_teacher__abbr_pinyin__icontains=q))
+    return queryset
+
+
 class SearchViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = CourseListSerializer
 
     def get_queryset(self):
-        q = self.request.query_params.get('q', '')
-        if q == '':
-            return Course.objects.none()
-        queryset = Course.objects.filter(
-            Q(code__icontains=q) | Q(name__icontains=q) | Q(main_teacher__name__icontains=q) |
-            Q(main_teacher__pinyin__icontains=q) | Q(main_teacher__abbr_pinyin__icontains=q))
-        return queryset
+        return get_search_course_queryset(self)
 
 
 class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -124,13 +123,7 @@ class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        q = self.request.query_params.get('q', '')
-        if q == '':
-            return Course.objects.none()
-        queryset = Course.objects.filter(
-            Q(code__icontains=q) | Q(name__icontains=q) | Q(main_teacher__name__icontains=q) |
-            Q(main_teacher__pinyin__icontains=q) | Q(main_teacher__abbr_pinyin__icontains=q))
-        return queryset
+        return get_search_course_queryset(self)
 
 
 class ReportView(CreateAPIView):
