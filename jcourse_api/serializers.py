@@ -71,6 +71,7 @@ class CourseSerializer(serializers.ModelSerializer):
     related_teachers = serializers.SerializerMethodField()
     related_courses = serializers.SerializerMethodField()
     former_code = serializers.SerializerMethodField()
+    semester = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -97,6 +98,22 @@ class CourseSerializer(serializers.ModelSerializer):
         return Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code).values(
             'id', 'code', 'name')
 
+    def get_semester(self, obj):
+        return get_enroll_semester(self, obj)
+
+
+def get_enroll_semester(serializer: serializers.Serializer, obj: Course):
+    request = serializer.context.get("request")
+    if request and hasattr(request, "user"):
+        user = request.user
+        try:
+            semester = EnrollCourse.objects.get(user=user, course=obj).semester
+            semester_serializer = SemesterSerializer(semester, many=False)
+            return semester_serializer.data
+        except EnrollCourse.DoesNotExist:
+            return None
+    return None
+
 
 def is_course_reviewed(serializer: serializers.Serializer, obj: Course):
     request = serializer.context.get("request")
@@ -122,6 +139,7 @@ class CourseListSerializer(serializers.ModelSerializer):
     teacher = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
     is_reviewed = serializers.SerializerMethodField()
+    semester = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -138,17 +156,24 @@ class CourseListSerializer(serializers.ModelSerializer):
     def get_is_reviewed(self, obj):
         return is_course_reviewed(self, obj)
 
+    def get_semester(self, obj):
+        return get_enroll_semester(self, obj)
+
 
 class CourseInReviewSerializer(serializers.ModelSerializer):
     teacher = serializers.SerializerMethodField()
+    semester = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['id', 'code', 'name', 'teacher']
+        fields = ['id', 'code', 'name', 'teacher', 'semester']
 
     @staticmethod
     def get_teacher(obj):
         return obj.main_teacher.name
+
+    def get_semester(self, obj):
+        return get_enroll_semester(self, obj)
 
 
 class CreateReviewSerializer(serializers.ModelSerializer):
