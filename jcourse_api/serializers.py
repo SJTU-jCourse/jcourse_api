@@ -108,6 +108,8 @@ def get_enroll_semester(serializer: serializers.Serializer, obj: Course):
         user = request.user
         try:
             semester = EnrollCourse.objects.get(user=user, course=obj).semester
+            if semester is None:
+                return None
             semester_serializer = SemesterSerializer(semester, many=False)
             return semester_serializer.data
         except EnrollCourse.DoesNotExist:
