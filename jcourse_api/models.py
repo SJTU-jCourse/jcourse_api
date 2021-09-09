@@ -165,6 +165,7 @@ class Report(models.Model):
     solved = models.BooleanField(verbose_name='是否解决', default=False, null=False, blank=False)
     comment = models.TextField(verbose_name='反馈', max_length=817, null=False, blank=False)
     created = models.DateTimeField(verbose_name='发布时间', null=False, blank=False, default=timezone.now)
+    reply = models.TextField(verbose_name='回复', max_length=817, null=True, blank=True)
 
     def __str__(self):
         return f"{self.comment}"
@@ -172,7 +173,11 @@ class Report(models.Model):
     def comment_validity(self):
         return constrain_text(self.comment)
 
+    def reply_validity(self):
+        return constrain_text(self.reply)
+
     comment_validity.short_description = '反馈'
+    reply_validity.short_description = '回复'
 
 
 class Action(models.Model):

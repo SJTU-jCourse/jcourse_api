@@ -11,13 +11,13 @@ router.register('course-in-review', CourseInReviewViewSet, basename='course-in-r
 router.register('notice', NoticeViewSet, basename='notice')
 router.register('search', SearchViewSet, basename='search')
 router.register('lesson', EnrollCourseViewSet, basename='lesson')
+router.register('report', ReportViewSet, basename='report')
 
 urlpatterns = [
     path('', include(router.urls)),
     path('me/', UserView.as_view(), name='me'),
     path('filter/', FilterView.as_view(), name='filter'),
     path('statistic/', StatisticView.as_view(), name='statistic'),
-    path('report/', ReportView.as_view(), name='report'),
     path('user-summary/', user_summary, name='user-summary'),
     path('sync-lessons/<str:term>/', sync_lessons, name='sync-lessons'),
     path('sync-lessons/', sync_lessons, name='sync-lessons'),

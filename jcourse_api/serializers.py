@@ -276,8 +276,8 @@ class NoticeSerializer(serializers.ModelSerializer):
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
-        fields = ('user', 'created', 'comment')
-        read_only_fields = ('user', 'created')
+        exclude = ('solved', )
+        read_only_fields = ('user', 'created', 'reply')
 
 
 class CategorySerializer(serializers.ModelSerializer):

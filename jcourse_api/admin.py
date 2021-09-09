@@ -87,7 +87,7 @@ class ReviewAdmin(ImportExportModelAdmin):
 
 
 class ReportAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'solved', 'comment_validity', 'created')
+    list_display = ('user', 'solved', 'reply_validity', 'comment_validity', 'created')
 
 
 class ApproveAdmin(ImportExportModelAdmin):

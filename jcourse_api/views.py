@@ -5,9 +5,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.vary import vary_on_cookie
 from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action, api_view
-from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -130,10 +129,16 @@ class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
         return get_search_course_queryset(self)
 
 
-class ReportView(CreateAPIView):
+class ReportViewSet(mixins.CreateModelMixin,
+                    mixins.ListModelMixin,
+                    viewsets.GenericViewSet):
     queryset = Report.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = ReportSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        return Report.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
