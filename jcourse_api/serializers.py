@@ -90,13 +90,15 @@ class CourseSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_related_teachers(obj):
-        return Course.objects.filter(code=obj.code).exclude(main_teacher=obj.main_teacher).values(
-            'id', tname=F('main_teacher__name'))
+        return Course.objects.filter(code=obj.code).exclude(main_teacher=obj.main_teacher) \
+            .annotate(avg=Avg('review__rating'), count=Count('review__rating')) \
+            .values('id', 'avg', 'count', tname=F('main_teacher__name')).order_by('-avg')
 
     @staticmethod
     def get_related_courses(obj):
-        return Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code).values(
-            'id', 'code', 'name')
+        return Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code) \
+            .annotate(avg=Avg('review__rating'), count=Count('review__rating')) \
+            .values('id', 'code', 'name', 'avg', 'count').order_by('-avg')
 
     def get_semester(self, obj):
         return get_enroll_semester(self, obj)
@@ -276,7 +278,7 @@ class NoticeSerializer(serializers.ModelSerializer):
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
-        exclude = ('solved', )
+        exclude = ('solved',)
         read_only_fields = ('user', 'created', 'reply')
 
 
