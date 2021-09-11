@@ -8,7 +8,7 @@ teachers = set()
 categories = set()
 courses = set()
 encoding = 'utf-8'
-f = open('../localdata/2021-2022-1-freshman.csv', mode='r', encoding='utf-8')
+f = open('../data/2021-2022-1-freshman.csv', mode='r', encoding='utf-8')
 reader = csv.DictReader(f)
 
 for row in reader:
@@ -42,31 +42,31 @@ f.close()
 
 print(len(teachers), len(departments), len(categories), len(languages), len(courses))
 
-f = open('../localdata/Teachers.csv', mode='w', encoding=encoding, newline='')
+f = open('../data/Teachers.csv', mode='w', encoding=encoding, newline='')
 writer = csv.writer(f)
 writer.writerow(['tid', 'name', 'title', 'department', 'pinyin', 'abbr_pinyin'])
 writer.writerows(teachers)
 f.close()
 
-f = open('../localdata/Categories.csv', mode='w', encoding=encoding, newline='')
+f = open('../data/Categories.csv', mode='w', encoding=encoding, newline='')
 writer = csv.writer(f)
 writer.writerow(['name'])
 writer.writerows([[category] for category in categories])
 f.close()
 
-f = open('../localdata/languages.csv', mode='w', encoding=encoding, newline='')
+f = open('../data/languages.csv', mode='w', encoding=encoding, newline='')
 writer = csv.writer(f)
 writer.writerow(['name'])
 writer.writerows([[language] for language in languages])
 f.close()
 
-f = open('../localdata/departments.csv', mode='w', encoding=encoding, newline='')
+f = open('../data/departments.csv', mode='w', encoding=encoding, newline='')
 writer = csv.writer(f)
 writer.writerow(['name'])
 writer.writerows([[department] for department in departments])
 f.close()
 
-f = open('../localdata/courses.csv', mode='w', encoding=encoding, newline='')
+f = open('../data/courses.csv', mode='w', encoding=encoding, newline='')
 writer = csv.writer(f)
 writer.writerow(['code', 'name', 'credit', 'department', 'category', 'language', 'main_teacher', 'teacher_group'])
 writer.writerows(courses)
