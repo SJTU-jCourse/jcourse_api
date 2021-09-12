@@ -29,10 +29,14 @@ class CourseFilter(django_filters.FilterSet):
 
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Course.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = CourseFilter
+
+    def get_queryset(self):
+        if 'onlyhasreviews' in self.request.query_params:
+            return Course.objects.filter(review__available=True)
+        return Course.objects.all()
 
     def get_serializer_class(self):
         if self.action == 'list':
