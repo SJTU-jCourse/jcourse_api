@@ -35,7 +35,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if 'onlyhasreviews' in self.request.query_params:
-            return Course.objects.filter(review__available=True)
+            return Course.objects.filter(review__available=True).distinct()
         return Course.objects.all()
 
     def get_serializer_class(self):
