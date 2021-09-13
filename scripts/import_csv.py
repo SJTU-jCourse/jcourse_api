@@ -8,7 +8,7 @@ teachers = set()
 categories = set()
 courses = set()
 encoding = 'utf-8'
-f = open('../data/2021-2022-1-freshman.csv', mode='r', encoding='utf-8')
+f = open('../data/2021-2022-1-0.csv', mode='r', encoding='utf-8-sig')
 reader = csv.DictReader(f)
 
 for row in reader:
@@ -31,12 +31,12 @@ for row in reader:
 
     category = row['通识课归属模块'].split(',')[0]
     if category == "" and row['年级'] == "0":
-        category = '通选'
+        category = '通选/新生研讨'
     categories.add(category)
     languages.add(row['授课语言'])
     # code	name	credit	department	category	language	main_teacher	teacher_group
     courses.add(
-        (row['\ufeff课程号'], row['课程名称'], row['学分'], row['开课院系'], category,
+        (row['课程号'], row['课程名称'], row['学分'], row['开课院系'], category,
          row['授课语言'], row['任课教师'].split('|')[0], ';'.join(tid_groups)))
 f.close()
 
