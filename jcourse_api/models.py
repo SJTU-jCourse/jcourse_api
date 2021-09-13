@@ -53,7 +53,7 @@ class FormerCode(models.Model):
         verbose_name_plural = verbose_name
         ordering = ['old_code']
 
-    old_code = models.CharField(verbose_name='旧课号', max_length=32, null=False, blank=False)
+    old_code = models.CharField(verbose_name='旧课号', max_length=32, null=False, blank=False, unique=True)
     new_code = models.CharField(verbose_name='新课号', max_length=32, null=False, blank=False)
 
     def __str__(self):
@@ -186,6 +186,7 @@ class Action(models.Model):
     class Meta:
         verbose_name = '赞同'
         verbose_name_plural = verbose_name
+        constraints = [models.UniqueConstraint(fields=['user', 'review'], name='unique_action')]
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, null=False, blank=False)
     review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.CASCADE, null=False, blank=False)
@@ -200,7 +201,7 @@ class ApiKey(models.Model):
         verbose_name = 'Api密钥'
         verbose_name_plural = verbose_name
 
-    key = models.CharField(max_length=255)
+    key = models.CharField(max_length=255, unique=True)
     description = models.CharField(verbose_name='描述', max_length=255)
     is_enabled = models.BooleanField(verbose_name='启用', default=True)
     last_modified = models.DateTimeField(verbose_name='修改时间', default=timezone.now)
