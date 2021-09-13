@@ -35,7 +35,10 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if 'onlyhasreviews' in self.request.query_params:
-            return Course.objects.filter(review__available=True).distinct()
+            return Course.objects.filter(review__available=True).distinct() \
+                .annotate(avg=Avg('review__rating', filter=Q(review__available=True)),
+                          count=Count('review__rating', filter=Q(review__available=True))) \
+                .order_by(F('avg').desc(nulls_last=True), F('count').desc(nulls_last=True))
         return Course.objects.all()
 
     def get_serializer_class(self):
