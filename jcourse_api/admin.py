@@ -70,24 +70,17 @@ class TeacherAdmin(ImportExportModelAdmin):
 
 class FormerCodeAdmin(ImportExportModelAdmin):
     list_display = ('old_code', 'new_code')
+    search_fields = ('old_code', 'new_code')
 
 
 class ReviewAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'course', 'comment_validity', 'created', 'approves', 'disapproves')
-    search_fields = ('user', 'course')
-
-    def approves(self, obj):
-        return Action.objects.filter(review=obj, action=1).count()
-
-    def disapproves(self, obj):
-        return Action.objects.filter(review=obj, action=-1).count()
-
-    approves.short_description = '赞同数'
-    disapproves.short_description = '反对数'
+    list_display = ('user', 'course', 'comment_validity', 'created', 'available')
+    search_fields = ('user__username', 'course__code')
 
 
 class ReportAdmin(ImportExportModelAdmin):
     list_display = ('user', 'solved', 'reply_validity', 'comment_validity', 'created')
+    search_fields = ('user__username',)
 
 
 class ApproveAdmin(ImportExportModelAdmin):
@@ -122,6 +115,7 @@ class NameAdmin(ImportExportModelAdmin):
 
 class EnrollCourseAdmin(ImportExportModelAdmin):
     list_display = ('user', 'course', 'semester')
+    search_fields = ('user__username', 'course__code')
 
 
 @admin.register(ApiKey)
