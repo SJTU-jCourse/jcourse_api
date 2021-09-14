@@ -70,7 +70,7 @@ class CourseSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     related_teachers = serializers.SerializerMethodField()
     related_courses = serializers.SerializerMethodField()
-    former_code = serializers.SerializerMethodField()
+    former_codes = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
 
     class Meta:
@@ -78,11 +78,8 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     @staticmethod
-    def get_former_code(obj):
-        try:
-            return FormerCode.objects.get(new_code=obj.code).old_code
-        except FormerCode.DoesNotExist:
-            return None
+    def get_former_codes(obj):
+        return [i[0] for i in FormerCode.objects.filter(new_code=obj.code).values_list('old_code')]
 
     @staticmethod
     def get_rating(obj):
