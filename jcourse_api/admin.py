@@ -76,11 +76,13 @@ class FormerCodeAdmin(ImportExportModelAdmin):
 class ReviewAdmin(ImportExportModelAdmin):
     list_display = ('user', 'course', 'comment_validity', 'created', 'available')
     search_fields = ('user__username', 'course__code')
+    list_filter = ('available',)
 
 
 class ReportAdmin(ImportExportModelAdmin):
     list_display = ('user', 'solved', 'reply_validity', 'comment_validity', 'created')
     search_fields = ('user__username',)
+    list_filter = ('solved',)
 
 
 class ApproveAdmin(ImportExportModelAdmin):
