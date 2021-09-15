@@ -1,9 +1,10 @@
-Authlib==0.15.3
-Django
-django-cors-headers==3.7.0
+Authlib==0.15.4
+Django==3.2.7
+django-cors-headers==3.8.0
 django-filter==2.4.0
 django-import-export==2.5.0
 djangorestframework==3.12.4
-requests==2.25.1
+requests==2.26.0
 gunicorn==20.1.0
-psycopg2-binary==2.8.6
+psycopg2-binary==2.9.1
+pymemcache==3.5.0
