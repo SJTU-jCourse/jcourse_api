@@ -36,6 +36,7 @@ class CourseResource(resources.ModelResource):
             pass
 
 
+@admin.register(Course)
 class CourseAdmin(ImportExportModelAdmin):
     list_display = ('id', 'code', 'name', 'credit', 'department', 'category', 'main_teacher')
     list_filter = ('department', 'category')
@@ -60,6 +61,7 @@ class TeacherResource(resources.ModelResource):
             pass
 
 
+@admin.register(Teacher)
 class TeacherAdmin(ImportExportModelAdmin):
     resource_class = TeacherResource
     list_display = ('tid', 'name', 'department', 'title', 'pinyin', 'abbr_pinyin')
@@ -68,27 +70,32 @@ class TeacherAdmin(ImportExportModelAdmin):
     search_fields = ('name', 'pinyin', 'abbr_pinyin')
 
 
+@admin.register(FormerCode)
 class FormerCodeAdmin(ImportExportModelAdmin):
     list_display = ('old_code', 'new_code')
     search_fields = ('old_code', 'new_code')
 
 
+@admin.register(Review)
 class ReviewAdmin(ImportExportModelAdmin):
     list_display = ('user', 'course', 'comment_validity', 'created', 'available')
     search_fields = ('user__username', 'course__code')
     list_filter = ('available',)
 
 
+@admin.register(Report)
 class ReportAdmin(ImportExportModelAdmin):
     list_display = ('user', 'solved', 'reply_validity', 'comment_validity', 'created')
     search_fields = ('user__username',)
     list_filter = ('solved',)
 
 
+@admin.register(Action)
 class ApproveAdmin(ImportExportModelAdmin):
     list_display = ('user', 'review', 'action')
 
 
+@admin.register(Notice)
 class NoticeAdmin(ImportExportModelAdmin):
     list_display = ('available', 'title', 'message', 'created')
 
@@ -106,15 +113,20 @@ class DepartmentResource(resources.ModelResource):
             pass
 
 
+@admin.register(Department)
 class DepartmentAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name')
     resource_class = DepartmentResource
 
 
+@admin.register(Semester)
+@admin.register(Category)
+@admin.register(Language)
 class NameAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name')
 
 
+@admin.register(EnrollCourse)
 class EnrollCourseAdmin(ImportExportModelAdmin):
     list_display = ('user', 'course', 'semester')
     search_fields = ('user__username', 'course__code')
@@ -128,17 +140,3 @@ class ApiKeyAdmin(admin.ModelAdmin):
         if db_field.name == 'key':
             field.initial = os.urandom(16).hex()
         return field
-
-
-admin.site.register(Department, DepartmentAdmin)
-admin.site.register(Semester, NameAdmin)
-admin.site.register(Category, NameAdmin)
-admin.site.register(Language, NameAdmin)
-admin.site.register(Action, ApproveAdmin)
-admin.site.register(Course, CourseAdmin)
-admin.site.register(Teacher, TeacherAdmin)
-admin.site.register(FormerCode, FormerCodeAdmin)
-admin.site.register(Review, ReviewAdmin)
-admin.site.register(Report, ReportAdmin)
-admin.site.register(Notice, NoticeAdmin)
-admin.site.register(EnrollCourse, EnrollCourseAdmin)

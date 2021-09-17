@@ -1,5 +1,6 @@
 /data/
 /static/
 /.idea/
-/__pycache__/
+/.vscode/
+__pycache__/
 db.sqlite3
