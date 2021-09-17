@@ -91,7 +91,7 @@ class ReportAdmin(ImportExportModelAdmin):
 
 
 @admin.register(Action)
-class ApproveAdmin(ImportExportModelAdmin):
+class ActionAdmin(ImportExportModelAdmin):
     list_display = ('user', 'review', 'action')
     search_fields = ('user__username', 'review__course__code')
 
@@ -120,9 +120,7 @@ class DepartmentAdmin(ImportExportModelAdmin):
     resource_class = DepartmentResource
 
 
-@admin.register(Semester)
-@admin.register(Category)
-@admin.register(Language)
+@admin.register(Semester, Category, Language)
 class NameAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name')
 

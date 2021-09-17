@@ -185,7 +185,7 @@ class Action(models.Model):
     ACTION_CHOICES = [(1, '赞同'), (-1, '反对'), (0, '重置')]
 
     class Meta:
-        verbose_name = '赞同'
+        verbose_name = '评论点赞'
         verbose_name_plural = verbose_name
         constraints = [models.UniqueConstraint(fields=['user', 'review'], name='unique_action')]
 
