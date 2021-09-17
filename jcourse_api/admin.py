@@ -93,6 +93,7 @@ class ReportAdmin(ImportExportModelAdmin):
 @admin.register(Action)
 class ApproveAdmin(ImportExportModelAdmin):
     list_display = ('user', 'review', 'action')
+    search_fields = ('user__username', 'review__course__code')
 
 
 @admin.register(Notice)
