@@ -7,6 +7,7 @@ from authlib.oidc.core import CodeIDToken
 from django.conf.global_settings import SESSION_COOKIE_AGE
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.shortcuts import redirect
 # Create your views here.
 from django.urls import reverse
@@ -14,6 +15,7 @@ from django.utils.datetime_safe import datetime
 
 from jcourse import settings
 from jcourse.settings import HASH_SALT, SESSION_COOKIE_SECURE
+from oauth.models import UserProfile
 
 oauth = OAuth()
 oauth.register(
@@ -32,11 +34,10 @@ oauth.register(
 jaccount = oauth.jaccount
 
 
-def login_with(request, username):
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        user = User.objects.create_user(username=username)
+def login_with(request, username, user_type):
+    with transaction.atomic():
+        user, _ = User.objects.get_or_create(username=username)
+        UserProfile.objects.update_or_create(user=user, user_type=user_type)
     login(request, user)
 
 
@@ -47,7 +48,7 @@ def logout_auth(request):
 
 def login_jaccount(request):
     redirect_uri = request.build_absolute_uri(reverse('auth_jaccount'))
-    return oauth.jaccount.authorize_redirect(request, redirect_uri)
+    return jaccount.authorize_redirect(request, redirect_uri)
 
 
 def hash_username(username):
@@ -58,9 +59,10 @@ def auth_jaccount(request):
     token = jaccount.authorize_access_token(request)
     claims = jwt.decode(token.get('id_token'),
                         jaccount.client_secret, claims_cls=CodeIDToken)
+    user_type = claims['type']
     account = claims['sub']
     hashed_username = hash_username(account)
-    login_with(request, hashed_username)
+    login_with(request, hashed_username, user_type)
     response = redirect('/')
     expires = datetime.strftime(datetime.utcnow() + timedelta(seconds=SESSION_COOKIE_AGE), "%a, %d-%b-%Y %H:%M:%S GMT")
     response.set_cookie('account', account, expires=expires,
