@@ -31,7 +31,10 @@ for row in reader:
 
     category = row['通识课归属模块'].split(',')[0]
     if category == "" and row['年级'] == "0":
-        category = '通选/新生研讨'
+        if row['课程号'].startswith('SP'):
+            category = '新生研讨'
+        else:
+            category = '通选'
     categories.add(category)
     languages.add(row['授课语言'])
     # code	name	credit	department	category	language	main_teacher	teacher_group
