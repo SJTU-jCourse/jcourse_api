@@ -159,7 +159,11 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'jcourse.paginations.GlobalPageNumberPagination',
     'PAGE_SIZE': 20,
-    'DATETIME_FORMAT': "%Y/%m/%d %H:%M"
+    'DATETIME_FORMAT': "%Y/%m/%d %H:%M",
+    'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.UserRateThrottle'],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '5/second'
+    }
 }
 
 CORS_ORIGIN_WHITELIST = [
