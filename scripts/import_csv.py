@@ -33,6 +33,8 @@ for row in reader:
     if category == "" and row['年级'] == "0":
         if row['课程号'].startswith('SP'):
             category = '新生研讨'
+        elif '重修班' in row['选课备注'] or '不及格' in row['选课备注']:
+            category = ''
         else:
             category = '通选'
     categories.add(category)
