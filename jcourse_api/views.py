@@ -190,26 +190,37 @@ class StatisticView(APIView):
                         status=status.HTTP_200_OK)
 
 
+def get_user_point(user: User):
+    reviews = Review.objects.filter(available=True).filter(user=user)
+    courses = reviews.values_list('course', flat=True)
+    approve_count = Action.objects.filter(review__in=reviews).filter(action=1).count()
+    review_count = reviews.count()
+
+    first_reviews = Review.objects.filter(course__in=courses).order_by('course_id', 'created').distinct(
+        'course_id').values_list('id', flat=True)
+    first_reviews = first_reviews.intersection(reviews)
+    first_reviews_count = first_reviews.count()
+    first_reviews_approve_count = Action.objects.filter(review__in=first_reviews).filter(action=1).count()
+    points = (approve_count + first_reviews_approve_count) * 2 + review_count + first_reviews_count
+    return {'points': points}
+
+
 @api_view(['POST'])
 @csrf_exempt
-def user_summary(request):
+def user_points(request):
     account = request.data.get('account', '')
-    apikey = request.data.get('api_key', '')
+    apikey = request.headers.get('Api-Key', '')
     if account == '' or apikey == '':
         return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
     try:
         ApiKey.objects.get(key=apikey, is_enabled=True)
     except ApiKey.DoesNotExist:
         return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
-    hashed_account = hash_username(account)
     try:
-        user = User.objects.get(username=hashed_account)
+        user = User.objects.get(username=hash_username(account))
     except User.DoesNotExist:
         return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
-    reviews = Review.objects.filter(available=True).filter(user=user)
-    approve_count = Action.objects.filter(review__in=reviews).filter(action=1).count()
-    review_count = reviews.count()
-    return Response({'account': account, 'approves': approve_count, 'reviews': review_count})
+    return Response(get_user_point(user))
 
 
 @cache_page(60 * 60 * 2)

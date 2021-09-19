@@ -78,32 +78,25 @@ WSGI_APPLICATION = 'jcourse.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
+MEMCACHED_HOST = os.environ.get('MEMCACHED_HOST', None)
+if MEMCACHED_HOST:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-            'LOCATION': 'cache:11211',
+            'LOCATION': f'{MEMCACHED_HOST}:11211',
         }
     }
 
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'jcourse',
-            'USER': 'jcourse',
-            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-            'HOST': 'db',
-            'PORT': 5432
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'jcourse',
+        'USER': 'jcourse',
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'jcourse'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'PORT': 5432
     }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
