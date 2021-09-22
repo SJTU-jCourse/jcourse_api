@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
-from django.db import IntegrityError, transaction
-from django.db.models import F, Avg
+from django.db import IntegrityError
+from django.db.models import F
 from rest_framework import serializers
 
 from jcourse_api.models import *
@@ -185,13 +185,7 @@ class CreateReviewSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
-            with transaction.atomic():
-                data = super().create(validated_data)
-                course = data.course
-                course.review_count = Review.objects.filter(course=course).count()
-                course.review_avg = Review.objects.filter(course=course).aggregate(avg=Avg('rating'))['avg']
-                course.save()
-            return data
+            return super().create(validated_data)
         except IntegrityError:
             error_msg = {'error': '已经点评过这门课，如需修改请联系管理员'}
             raise serializers.ValidationError(error_msg)
