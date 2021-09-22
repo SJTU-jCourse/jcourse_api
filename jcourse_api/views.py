@@ -36,7 +36,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if 'onlyhasreviews' in self.request.query_params:
-            courses = Course.objects.filter(review_count__gt=0)
+            courses = Course.objects.filter(review_count__gt=0).annotate(count=F('review_count'), avg=F('review_avg'))
             if self.request.query_params['onlyhasreviews'] == 'count':
                 return courses.order_by(F('count').desc(nulls_last=True), F('avg').desc(nulls_last=True))
             return courses.order_by(F('avg').desc(nulls_last=True), F('count').desc(nulls_last=True))
