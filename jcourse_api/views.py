@@ -1,5 +1,5 @@
 import django_filters
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
@@ -193,14 +193,15 @@ class StatisticView(APIView):
 def get_user_point(user: User):
     reviews = Review.objects.filter(user=user)
     courses = reviews.values_list('course', flat=True)
-    approve_count = Action.objects.filter(review__in=reviews).filter(action=1).count()
+    approve_count = reviews.aggregate(count=Sum('approve_count'))['count']
     review_count = reviews.count()
 
     first_reviews = Review.objects.filter(course__in=courses).order_by('course_id', 'created').distinct(
         'course_id').values_list('id', flat=True)
     first_reviews = first_reviews.intersection(reviews)
     first_reviews_count = first_reviews.count()
-    first_reviews_approve_count = Action.objects.filter(review__in=first_reviews).filter(action=1).count()
+    first_reviews_approve_count = Review.objects.filter(pk__in=first_reviews).aggregate(count=Sum('approve_count'))[
+        'count']
     points = (approve_count + first_reviews_approve_count) * 2 + review_count + first_reviews_count
     return {'points': points}
 
