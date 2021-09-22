@@ -79,7 +79,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_former_codes(obj):
-        return [i[0] for i in FormerCode.objects.filter(new_code=obj.code).values_list('old_code')]
+        return FormerCode.objects.filter(new_code=obj.code).values_list('old_code', flat=True)
 
     @staticmethod
     def get_rating(obj: Course):
