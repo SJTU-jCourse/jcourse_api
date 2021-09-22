@@ -1,4 +1,5 @@
 import django_filters
+from django.db.models import Q, Count
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
@@ -35,9 +36,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if 'onlyhasreviews' in self.request.query_params:
-            courses = Course.objects.filter(review__available=True).distinct() \
-                .annotate(avg=Avg('review__rating', filter=Q(review__available=True)),
-                          count=Count('review__rating', filter=Q(review__available=True)))
+            courses = Course.objects.filter(review_count__gt=0)
             if self.request.query_params['onlyhasreviews'] == 'count':
                 return courses.order_by(F('count').desc(nulls_last=True), F('avg').desc(nulls_last=True))
             return courses.order_by(F('avg').desc(nulls_last=True), F('count').desc(nulls_last=True))
@@ -51,7 +50,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True)
     def review(self, request, pk=None):
-        reviews = Review.objects.filter(course_id=pk, available=True)
+        reviews = Review.objects.filter(course_id=pk)
         serializer = ReviewInCourseSerializer(reviews, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -75,13 +74,13 @@ class SearchViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Review.objects.filter(available=True)
+    queryset = Review.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = ReviewInCourseSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.filter(available=True)
+    queryset = Review.objects.all()
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
@@ -95,12 +94,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'])
     def reaction(self, request, pk=None):
-        Action.objects.update_or_create(user=request.user, review_id=pk,
-                                        defaults={'action': request.data.get('action')})
+        review = Review.objects.get(pk=pk)
+        with transaction.atomic():
+            Action.objects.update_or_create(user=request.user, review_id=pk,
+                                            defaults={'action': request.data.get('action')})
+            review.approve_count = Action.objects.filter(review=review, action=1).count()
+            review.disapprove_count = Action.objects.filter(review=review, action=-1).count()
+            review.save()
         return Response({'id': pk,
                          'action': request.data.get('action'),
-                         'approves': Action.objects.filter(review=pk, action=1).count(),
-                         'disapproves': Action.objects.filter(review=pk, action=-1).count()},
+                         'approves': review.approve_count,
+                         'disapproves': review.disapprove_count},
                         status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'])
@@ -186,12 +190,12 @@ class StatisticView(APIView):
     def get(self, request):
         return Response({'courses': Course.objects.count(),
                          'users': User.objects.count(),
-                         'reviews': Review.objects.filter(available=True).count()},
+                         'reviews': Review.objects.count()},
                         status=status.HTTP_200_OK)
 
 
 def get_user_point(user: User):
-    reviews = Review.objects.filter(available=True).filter(user=user)
+    reviews = Review.objects.filter(user=user)
     courses = reviews.values_list('course', flat=True)
     approve_count = Action.objects.filter(review__in=reviews).filter(action=1).count()
     review_count = reviews.count()

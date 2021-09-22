@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
-from django.db import IntegrityError
-from django.db.models import Avg, Count, F, Q, Max
+from django.db import IntegrityError, transaction
+from django.db.models import F, Avg
 from rest_framework import serializers
 
 from jcourse_api.models import *
@@ -43,7 +43,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 
 def get_course_rating(obj: Course):
-    return Review.objects.filter(course=obj.id, available=True).aggregate(avg=Avg('rating'), count=Count('rating'))
+    return {'count': obj.review_count, 'avg': obj.review_avg}
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -82,22 +82,20 @@ class CourseSerializer(serializers.ModelSerializer):
         return [i[0] for i in FormerCode.objects.filter(new_code=obj.code).values_list('old_code')]
 
     @staticmethod
-    def get_rating(obj):
+    def get_rating(obj: Course):
         return get_course_rating(obj)
 
     @staticmethod
     def get_related_teachers(obj):
         return Course.objects.filter(code=obj.code).exclude(main_teacher=obj.main_teacher) \
-            .annotate(avg=Avg('review__rating', filter=Q(review__available=True)),
-                      count=Count('review__rating', filter=Q(review__available=True))) \
-            .values('id', 'avg', 'count', tname=F('main_teacher__name')).order_by(F('avg').desc(nulls_last=True))
+            .values('id', avg=F('review_avg'), count=F('review_count'),
+                    tname=F('main_teacher__name')).order_by(F('avg').desc(nulls_last=True))
 
     @staticmethod
     def get_related_courses(obj):
         return Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code) \
-            .annotate(avg=Avg('review__rating', filter=Q(review__available=True)),
-                      count=Count('review__rating', filter=Q(review__available=True))) \
-            .values('id', 'code', 'name', 'avg', 'count').order_by(F('avg').desc(nulls_last=True))
+            .values('id', 'code', 'name', avg=F('review_avg'),
+                    count=F('review_count')).order_by(F('avg').desc(nulls_last=True))
 
     def get_semester(self, obj):
         return get_enroll_semester(self, obj)
@@ -149,7 +147,7 @@ class CourseListSerializer(serializers.ModelSerializer):
         exclude = ['teacher_group', 'language', 'main_teacher', 'moderator_remark']
 
     @staticmethod
-    def get_rating(obj):
+    def get_rating(obj: Course):
         return get_course_rating(obj)
 
     @staticmethod
@@ -182,12 +180,18 @@ class CourseInReviewSerializer(serializers.ModelSerializer):
 class CreateReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        exclude = ['available', 'moderator_remark', ]
+        exclude = ['moderator_remark', 'approve_count', 'disapprove_count']
         read_only_fields = ['user', 'created']
 
     def create(self, validated_data):
         try:
-            return super().create(validated_data)
+            with transaction.atomic():
+                data = super().create(validated_data)
+                course = data.course
+                course.review_count = Review.objects.filter(course=course).count()
+                course.review_avg = Review.objects.filter(course=course).aggregate(avg=Avg('rating'))['avg']
+                course.save()
+            return data
         except IntegrityError:
             error_msg = {'error': '已经点评过这门课，如需修改请联系管理员'}
             raise serializers.ValidationError(error_msg)
@@ -196,13 +200,13 @@ class CreateReviewSerializer(serializers.ModelSerializer):
 def get_review_actions(serializer: serializers.Serializer, obj: Review):
     request = serializer.context.get("request")
     if request and hasattr(request, "user"):
-        user = request.user
-        return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                           disapproves=Count('pk', filter=Q(action=-1)),
-                                                           action=Max('action', filter=Q(user=user)))
+        try:
+            action = Action.objects.get(review=obj, user=request.user).action
+        except Action.DoesNotExist:
+            action = None
+        return {'approves': obj.approve_count, 'disapproves': obj.disapprove_count, 'action': action}
     else:
-        return Action.objects.filter(review=obj).aggregate(approves=Count('pk', filter=Q(action=1)),
-                                                           disapproves=Count('pk', filter=Q(action=-1)))
+        return {'approves': obj.approve_count, 'disapproves': obj.disapprove_count}
 
 
 def is_my_review(serializer: serializers.Serializer, obj: Review):
@@ -226,7 +230,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        exclude = ['user', 'available']
+        exclude = ['user']
 
     def get_is_mine(self, obj):
         return is_my_review(self, obj)
@@ -247,7 +251,7 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        exclude = ('user', 'available', 'course')
+        exclude = ('user', 'course')
 
     def get_actions(self, obj):
         return get_review_actions(self, obj)

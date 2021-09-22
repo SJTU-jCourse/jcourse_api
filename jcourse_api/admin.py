@@ -38,7 +38,8 @@ class CourseResource(resources.ModelResource):
 
 @admin.register(Course)
 class CourseAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'code', 'name', 'credit', 'department', 'category', 'main_teacher')
+    list_display = (
+        'id', 'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'review_count', 'review_avg')
     list_filter = ('department', 'category')
     search_fields = ('id', 'code', 'name')
     autocomplete_fields = ('main_teacher', 'teacher_group')
@@ -78,9 +79,8 @@ class FormerCodeAdmin(ImportExportModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'course', 'comment_validity', 'created', 'available')
+    list_display = ('user', 'course', 'created', 'approve_count', 'disapprove_count', 'comment_validity')
     search_fields = ('user__username', 'course__code')
-    list_filter = ('available',)
 
 
 @admin.register(Report)
@@ -92,7 +92,7 @@ class ReportAdmin(ImportExportModelAdmin):
 
 @admin.register(Action)
 class ActionAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'review', 'action')
+    list_display = ('user', 'action', 'review',)
     search_fields = ('user__username', 'review__course__code')
 
 
