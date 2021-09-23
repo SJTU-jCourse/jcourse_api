@@ -44,6 +44,7 @@ class CourseAdmin(ImportExportModelAdmin):
     search_fields = ('id', 'code', 'name')
     autocomplete_fields = ('main_teacher', 'teacher_group')
     resource_class = CourseResource
+    readonly_fields = ('review_count', 'review_avg')
 
 
 class TeacherResource(resources.ModelResource):
@@ -81,6 +82,7 @@ class FormerCodeAdmin(ImportExportModelAdmin):
 class ReviewAdmin(ImportExportModelAdmin):
     list_display = ('user', 'course', 'created', 'approve_count', 'disapprove_count', 'comment_validity')
     search_fields = ('user__username', 'course__code')
+    readonly_fields = ('approve_count', 'disapprove_count')
 
 
 @admin.register(Report)
