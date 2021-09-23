@@ -123,7 +123,7 @@ class Review(models.Model):
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     course = models.ForeignKey(Course, verbose_name='课程', on_delete=models.CASCADE, db_index=True)
     semester = models.ForeignKey(Semester, verbose_name='上课学期', on_delete=models.SET_NULL, null=True)
-    rating = models.IntegerField(verbose_name='推荐指数', validators=[MaxValueValidator(5), MinValueValidator(0)])
+    rating = models.IntegerField(verbose_name='推荐指数', validators=[MaxValueValidator(5), MinValueValidator(1)])
     comment = models.TextField(verbose_name='详细点评', default='', max_length=817)
     created = models.DateTimeField(verbose_name='发布时间', default=timezone.now)
     score = models.CharField(verbose_name='成绩', null=True, blank=True, max_length=10)
