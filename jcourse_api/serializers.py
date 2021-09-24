@@ -75,7 +75,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = '__all__'
+        exclude = ['review_count', 'review_avg']
 
     @staticmethod
     def get_former_codes(obj):
@@ -144,7 +144,7 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        exclude = ['teacher_group', 'language', 'main_teacher', 'moderator_remark']
+        exclude = ['teacher_group', 'language', 'main_teacher', 'moderator_remark', 'review_count', 'review_avg']
 
     @staticmethod
     def get_rating(obj: Course):
@@ -224,7 +224,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        exclude = ['user']
+        exclude = ['user', 'approve_count', 'disapprove_count']
 
     def get_is_mine(self, obj):
         return is_my_review(self, obj)
@@ -245,7 +245,7 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        exclude = ('user', 'course')
+        exclude = ('user', 'course', 'approve_count', 'disapprove_count')
 
     def get_actions(self, obj):
         return get_review_actions(self, obj)
