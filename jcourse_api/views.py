@@ -3,7 +3,6 @@ from django.db.models import Q, Count, Sum
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.vary import vary_on_cookie
 from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
@@ -156,20 +155,18 @@ class ReportViewSet(mixins.CreateModelMixin,
 class UserView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @method_decorator(cache_page(60 * 60 * 2))
-    @method_decorator(vary_on_cookie)
     def get(self, request):
         """
         获取当前用户信息
         """
-        serializer = UserSerializer(User.objects.get(username=request.user))
+        serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class FilterView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(cache_page(60 * 5))
     def get(self, request):
         categories = Category.objects.annotate(count=Count('course')).filter(count__gt=0)
         category_serializer = CategorySerializer(categories, many=True)
@@ -224,7 +221,6 @@ def user_points(request):
     return Response(get_user_point(user))
 
 
-@cache_page(60 * 60 * 2)
 @api_view(['POST'])
 def sync_lessons(request, term='2018-2019-2'):
     token = request.session.get('token', None)
