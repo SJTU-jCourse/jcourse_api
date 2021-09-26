@@ -43,7 +43,11 @@ def login_with(request, username, user_type):
 
 def logout_auth(request):
     logout(request)
-    return redirect('/login')
+    redirect_url = request.build_absolute_uri('/login')
+    return redirect(
+        f"https://jaccount.sjtu.edu.cn/oauth2/logout?"
+        f"client_id={settings.AUTHLIB_OAUTH_CLIENTS['jaccount']['client_id']}&"
+        f"post_logout_redirect_uri={redirect_url}")
 
 
 def login_jaccount(request):
