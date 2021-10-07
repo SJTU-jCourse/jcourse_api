@@ -79,7 +79,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_former_codes(obj):
-        return FormerCode.objects.filter(new_code=obj.code).values_list('old_code', flat=True)
+        return list(FormerCode.objects.filter(new_code=obj.code).values_list('old_code', flat=True))
 
     @staticmethod
     def get_rating(obj: Course):
@@ -87,15 +87,15 @@ class CourseSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_related_teachers(obj):
-        return Course.objects.filter(code=obj.code).exclude(main_teacher=obj.main_teacher) \
-            .values('id', avg=F('review_avg'), count=F('review_count'),
-                    tname=F('main_teacher__name')).order_by(F('avg').desc(nulls_last=True))
+        return list(Course.objects.filter(code=obj.code).exclude(main_teacher=obj.main_teacher) \
+                    .values('id', avg=F('review_avg'), count=F('review_count'),
+                            tname=F('main_teacher__name')).order_by(F('avg').desc(nulls_last=True)))
 
     @staticmethod
     def get_related_courses(obj):
-        return Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code) \
-            .values('id', 'code', 'name', avg=F('review_avg'),
-                    count=F('review_count')).order_by(F('avg').desc(nulls_last=True))
+        return list(Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code) \
+                    .values('id', 'code', 'name', avg=F('review_avg'),
+                            count=F('review_count')).order_by(F('avg').desc(nulls_last=True)))
 
     def get_semester(self, obj):
         return get_enroll_semester(self, obj)
