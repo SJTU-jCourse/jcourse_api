@@ -191,6 +191,8 @@ def get_user_point(user: User):
     reviews = Review.objects.filter(user=user)
     courses = reviews.values_list('course', flat=True)
     approve_count = reviews.aggregate(count=Sum('approve_count'))['count']
+    if approve_count is None:
+        approve_count = 0
     review_count = reviews.count()
 
     first_reviews = Review.objects.filter(course__in=courses).order_by('course_id', 'created').distinct(
@@ -199,6 +201,8 @@ def get_user_point(user: User):
     first_reviews_count = first_reviews.count()
     first_reviews_approve_count = Review.objects.filter(pk__in=first_reviews).aggregate(count=Sum('approve_count'))[
         'count']
+    if first_reviews_approve_count is None:
+        first_reviews_approve_count = 0
     points = (approve_count + first_reviews_approve_count) * 2 + review_count + first_reviews_count
     return {'points': points}
 
