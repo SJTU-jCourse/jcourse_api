@@ -93,9 +93,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'])
     def reaction(self, request, pk=None):
-        review = Review.objects.get(pk=pk)
+        if 'action' not in request.data:
+            return Response({'error': '未指定操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
+        if pk is None:
+            return Response({'error': '未指定点评id！'}, status=status.HTTP_400_BAD_REQUEST)
         Action.objects.update_or_create(user=request.user, review_id=pk,
                                         defaults={'action': request.data.get('action')})
+        review = Review.objects.get(pk=pk)
         return Response({'id': pk,
                          'action': request.data.get('action'),
                          'approves': review.approve_count,
