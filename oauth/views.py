@@ -37,7 +37,7 @@ jaccount = oauth.jaccount
 def login_with(request, username, user_type):
     with transaction.atomic():
         user, _ = User.objects.get_or_create(username=username)
-        UserProfile.objects.update_or_create(user=user, user_type=user_type)
+        UserProfile.objects.update_or_create(user=user, defaults={'user_type': user_type})
     login(request, user)
 
 
