@@ -1,7 +1,10 @@
+import json
+
 from django.test import TestCase
 from rest_framework.test import APIClient
 
 from jcourse_api.tests import *
+from oauth.views import hash_username
 
 
 class NoticeTest(TestCase):
@@ -32,3 +35,30 @@ class StatisticTest(TestCase):
         self.assertEqual(response['courses'], 4)
         self.assertEqual(response['users'], 1)
         self.assertEqual(response['reviews'], 1)
+
+
+class ApiKeyTest(TestCase):
+    def setUp(self) -> None:
+        create_test_env()
+        create_review()
+        self.client = APIClient()
+        self.endpoint = '/api/points/'
+        user = User.objects.get(username='test')
+        user.username = hash_username('test')
+        user.save()
+        self.apikey = ApiKey.objects.create(key='123456', description='TEST')
+
+    def test_normal(self):
+        data = {'account': 'test'}
+        response = self.client.post(self.endpoint, data, HTTP_API_KEY="123456").json()
+        self.assertEqual(response['points'], 6)
+
+    def test_wrong_apikey(self):
+        data = {'account': 'test'}
+        response = self.client.post(self.endpoint, data, HTTP_API_KEY="123457")
+        self.assertEqual(response.status_code, 400)
+
+    def test_wrong_account(self):
+        data = {'account': 'test2'}
+        response = self.client.post(self.endpoint, data, HTTP_API_KEY="123457")
+        self.assertEqual(response.status_code, 400)

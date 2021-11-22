@@ -97,9 +97,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return Response({'error': '未指定操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
         if pk is None:
             return Response({'error': '未指定点评id！'}, status=status.HTTP_400_BAD_REQUEST)
-        Action.objects.update_or_create(user=request.user, review_id=pk,
-                                        defaults={'action': request.data.get('action')})
-        review = Review.objects.get(pk=pk)
+        try:
+            Action.objects.update_or_create(user=request.user, review_id=pk,
+                                            defaults={'action': request.data.get('action')})
+            review = Review.objects.get(pk=pk)
+        except (Action.DoesNotExist, Review.DoesNotExist):
+            return Response({'error': '无指定点评！'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'id': pk,
                          'action': request.data.get('action'),
                          'approves': review.approve_count,
@@ -229,17 +232,16 @@ def user_points(request):
     return Response(get_user_point(user))
 
 
-@api_view(['POST'])
-def sync_lessons(request, term='2018-2019-2'):
-    token = request.session.get('token', None)
-    if token is None:
-        return Response({'detail': '未授权获取课表信息'}, status=status.HTTP_401_UNAUTHORIZED)
-    resp = jaccount.get(f'v1/me/lessons/{term}/', token=token, params={"classes": False}).json()
+def parse_jaccount_courses(response):
     codes = []
     teachers = []
-    for entity in resp['entities']:
+    for entity in response['entities']:
         codes.append(entity['course']['code'])
         teachers.append(entity['teachers'][0]['name'])
+    return codes, teachers
+
+
+def find_exist_course_ids(codes, teachers):
     former_codes = FormerCode.objects.filter(old_code__in=codes).values('old_code', 'new_code')
     former_codes_dict = {}
     for former_code in former_codes:
@@ -251,15 +253,35 @@ def sync_lessons(request, term='2018-2019-2'):
                     (Q(code=former_codes_dict[code]) | Q(code=code)) & Q(main_teacher__name=teacher))
         else:
             conditions = conditions | (Q(code=code) & Q(main_teacher__name=teacher))
-    existed_courses = Course.objects.filter(conditions).values('id')
+    return Course.objects.filter(conditions).values('id')
+
+
+def sync_enroll_course(user, courses, term):
     try:
         semester = Semester.objects.get(name=term)
     except Semester.DoesNotExist:
         semester = None
     enroll_courses = []
-    for course in existed_courses:
-        enroll_courses.append(EnrollCourse(user=request.user, course_id=course['id'], semester=semester))
+    for course in courses:
+        enroll_courses.append(EnrollCourse(user=user, course_id=course['id'], semester=semester))
     EnrollCourse.objects.bulk_create(enroll_courses, ignore_conflicts=True)
+
+
+def get_jaccount_lessons(token, term):
+    return jaccount.get(f'v1/me/lessons/{term}/', token=token, params={"classes": False}).json()
+
+
+@api_view(['POST'])
+def sync_lessons(request, term='2018-2019-2'):
+    token = request.session.get('token', None)
+    if token is None:
+        return Response({'detail': '未授权获取课表信息'}, status=status.HTTP_401_UNAUTHORIZED)
+    resp = get_jaccount_lessons(token, term)
+    if resp['errno'] == 0:
+        codes, teachers = parse_jaccount_courses(resp)
+        existed_courses = find_exist_course_ids(codes, teachers)
+        sync_enroll_course(request.user, existed_courses, term)
+
     courses = Course.objects.filter(enrollcourse__user=request.user)
     serializer = CourseListSerializer(courses, many=True)
     return Response(serializer.data)

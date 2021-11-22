@@ -101,6 +101,12 @@ class ActionTest(TestCase):
         self.client.force_login(self.user)
         self.endpoint = f'/api/review/{self.review.id}/reaction/'
 
+    def test_wrong_pk(self):
+        response = self.client.post('/api/review//reaction/', {'action': 1})
+        self.assertEqual(response.status_code, 404)
+        response = self.client.post('/api/review/0/reaction/', {'action': 1})
+        self.assertEqual(response.status_code, 404)
+
     def test_only_post(self):
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, 405)

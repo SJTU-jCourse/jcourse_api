@@ -72,6 +72,28 @@ class CourseTest(TestCase):
         self.assertEqual(courses[0]['code'], 'CS1500')
         self.assertEqual(courses[0]['credit'], 4.0)
 
+    def test_only_has_review(self):
+        response = self.client.get(self.endpoint, {'onlyhasreviews': ''})
+        courses = response.json()['results']
+        for course in courses:
+            self.assertGreater(course['rating']['count'], 0)
+
+    def test_sort_by_avg(self):
+        create_review('test', 'CS2500', 5)
+        create_review('test2', 'CS1500', 3)
+        response = self.client.get(self.endpoint, {'onlyhasreviews': 'avg'})
+        courses = response.json()['results']
+        self.assertEqual(courses[0]['code'], 'CS2500')
+        self.assertEqual(courses[1]['code'], 'CS1500')
+
+    def test_sort_by_count(self):
+        create_review('test', 'CS2500', 5)
+        create_review('test2', 'CS1500', 3)
+        response = self.client.get(self.endpoint, {'onlyhasreviews': 'count'})
+        courses = response.json()['results']
+        self.assertEqual(courses[0]['code'], 'CS1500')
+        self.assertEqual(courses[1]['code'], 'CS2500')
+
     def test_filter(self):
         response = self.client.get(self.endpoint, {'category': 1})
         courses = response.json()['results']
@@ -147,6 +169,10 @@ class SearchTest(TestCase):
         self.user = User.objects.get(username='test')
         self.client.force_login(self.user)
         self.endpoint = '/api/search/'
+
+    def test_none(self):
+        response = self.client.get(self.endpoint).json()
+        self.assertEqual(response['count'], 0)
 
     def test_code(self):
         response = self.client.get(self.endpoint, {'q': 'CS'}).json()

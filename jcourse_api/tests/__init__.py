@@ -39,9 +39,9 @@ def create_test_env():
     User.objects.create(username='test')
 
 
-def create_review():
-    user, _ = User.objects.get_or_create(username='test')
-    course = Course.objects.get(code='CS1500')
-    review = Review.objects.create(user=user, course=course, comment='TEST', rating=3, score='W', semester_id=1)
+def create_review(username='test', code='CS1500', rating=3):
+    user, _ = User.objects.get_or_create(username=username)
+    course = Course.objects.get(code=code)
+    review = Review.objects.create(user=user, course=course, comment='TEST', rating=rating, score='W', semester_id=1)
     Action.objects.create(review=review, user=user, action=1)
     return review
