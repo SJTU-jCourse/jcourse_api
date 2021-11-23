@@ -78,26 +78,26 @@ class CourseSerializer(serializers.ModelSerializer):
         exclude = ['review_count', 'review_avg']
 
     @staticmethod
-    def get_former_codes(obj):
-        return list(FormerCode.objects.filter(new_code=obj.code).values_list('old_code', flat=True))
+    def get_former_codes(obj: Course):
+        return FormerCode.objects.filter(new_code=obj.code).values_list('old_code', flat=True)
 
     @staticmethod
     def get_rating(obj: Course):
         return get_course_rating(obj)
 
     @staticmethod
-    def get_related_teachers(obj):
-        return list(Course.objects.filter(code=obj.code).exclude(main_teacher=obj.main_teacher) \
-                    .values('id', avg=F('review_avg'), count=F('review_count'),
-                            tname=F('main_teacher__name')).order_by(F('avg').desc(nulls_last=True)))
+    def get_related_teachers(obj: Course):
+        return Course.objects.filter(code=obj.code).exclude(main_teacher=obj.main_teacher) \
+            .values('id', avg=F('review_avg'), count=F('review_count'),
+                    tname=F('main_teacher__name')).order_by(F('avg').desc(nulls_last=True))
 
     @staticmethod
-    def get_related_courses(obj):
-        return list(Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code) \
-                    .values('id', 'code', 'name', avg=F('review_avg'),
-                            count=F('review_count')).order_by(F('avg').desc(nulls_last=True)))
+    def get_related_courses(obj: Course):
+        return Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code) \
+            .values('id', 'code', 'name', avg=F('review_avg'),
+                    count=F('review_count')).order_by(F('avg').desc(nulls_last=True))
 
-    def get_semester(self, obj):
+    def get_semester(self, obj: Course):
         return get_enroll_semester(self, obj)
 
 
@@ -151,13 +151,13 @@ class CourseListSerializer(serializers.ModelSerializer):
         return get_course_rating(obj)
 
     @staticmethod
-    def get_teacher(obj):
+    def get_teacher(obj: Course):
         return obj.main_teacher.name
 
-    def get_is_reviewed(self, obj):
+    def get_is_reviewed(self, obj: Course):
         return is_course_reviewed(self, obj)
 
-    def get_semester(self, obj):
+    def get_semester(self, obj: Course):
         return get_enroll_semester(self, obj)
 
 
@@ -170,10 +170,10 @@ class CourseInReviewSerializer(serializers.ModelSerializer):
         fields = ['id', 'code', 'name', 'teacher', 'semester']
 
     @staticmethod
-    def get_teacher(obj):
+    def get_teacher(obj: Course):
         return obj.main_teacher.name
 
-    def get_semester(self, obj):
+    def get_semester(self, obj: Course):
         return get_enroll_semester(self, obj)
 
 
@@ -226,10 +226,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         exclude = ['user', 'approve_count', 'disapprove_count']
 
-    def get_is_mine(self, obj):
+    def get_is_mine(self, obj: Review):
         return is_my_review(self, obj)
 
-    def get_actions(self, obj):
+    def get_actions(self, obj: Review):
         return get_review_actions(self, obj)
 
 
@@ -247,10 +247,10 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
         model = Review
         exclude = ('user', 'course', 'approve_count', 'disapprove_count')
 
-    def get_actions(self, obj):
+    def get_actions(self, obj: Review):
         return get_review_actions(self, obj)
 
-    def get_is_mine(self, obj):
+    def get_is_mine(self, obj: Review):
         return is_my_review(self, obj)
 
 
@@ -287,7 +287,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     @staticmethod
-    def get_count(obj):
+    def get_count(obj: Category):
         return Course.objects.filter(category=obj).count()
 
 
@@ -299,5 +299,5 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     @staticmethod
-    def get_count(obj):
+    def get_count(obj: Department):
         return Course.objects.filter(department=obj).count()

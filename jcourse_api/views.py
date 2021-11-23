@@ -8,6 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action, api_view
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -48,14 +49,13 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
             return CourseSerializer
 
     @action(detail=True)
-    def review(self, request, pk=None):
+    def review(self, request: Request, pk=None):
         reviews = Review.objects.filter(course_id=pk)
         serializer = ReviewInCourseSerializer(reviews, many=True, context={'request': request})
         return Response(serializer.data)
 
 
-def get_search_course_queryset(viewset):
-    q = viewset.request.query_params.get('q', '')
+def get_search_course_queryset(q: str):
     if q == '':
         return Course.objects.none()
     queryset = Course.objects.filter(
@@ -69,7 +69,8 @@ class SearchViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CourseListSerializer
 
     def get_queryset(self):
-        return get_search_course_queryset(self)
+        q = self.request.query_params.get('q', '')
+        return get_search_course_queryset(q)
 
 
 class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -92,7 +93,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
     @action(detail=True, methods=['POST'])
-    def reaction(self, request, pk=None):
+    def reaction(self, request: Request, pk=None):
         if 'action' not in request.data:
             return Response({'error': '未指定操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
         if pk is None:
@@ -110,7 +111,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'])
-    def mine(self, request):
+    def mine(self, request: Request):
         reviews = self.queryset.filter(user=request.user)
         serializer = self.get_serializer_class()
         data = serializer(reviews, many=True, context={'request': request}).data
@@ -124,7 +125,7 @@ class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
     @method_decorator(cache_page(60 * 60 * 2))
-    def dispatch(self, request, *args, **kwargs):
+    def dispatch(self, request: Request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -141,7 +142,8 @@ class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        return get_search_course_queryset(self)
+        q = self.request.query_params.get('q', '')
+        return get_search_course_queryset(q)
 
 
 class ReportViewSet(mixins.CreateModelMixin,
@@ -155,14 +157,14 @@ class ReportViewSet(mixins.CreateModelMixin,
     def get_queryset(self):
         return Report.objects.filter(user=self.request.user)
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: serializer_class):
         serializer.save(user=self.request.user)
 
 
 class UserView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request: Request):
         """
         获取当前用户信息
         """
@@ -174,7 +176,7 @@ class FilterView(APIView):
     permission_classes = [IsAuthenticated]
 
     @method_decorator(cache_page(60 * 5))
-    def get(self, request):
+    def get(self, request: Request):
         categories = Category.objects.annotate(count=Count('course')).filter(count__gt=0)
         category_serializer = CategorySerializer(categories, many=True)
         departments = Department.objects.annotate(count=Count('course')).filter(count__gt=0)
@@ -187,7 +189,7 @@ class StatisticView(APIView):
     permission_classes = [IsAuthenticated]
 
     @method_decorator(cache_page(60 * 5))
-    def get(self, request):
+    def get(self, request: Request):
         return Response({'courses': Course.objects.count(),
                          'users': User.objects.count(),
                          'reviews': Review.objects.count()},
@@ -216,7 +218,7 @@ def get_user_point(user: User):
 
 @api_view(['POST'])
 @csrf_exempt
-def user_points(request):
+def user_points(request: Request):
     account = request.data.get('account', '')
     apikey = request.headers.get('Api-Key', '')
     if account == '' or apikey == '':
@@ -232,7 +234,7 @@ def user_points(request):
     return Response(get_user_point(user))
 
 
-def parse_jaccount_courses(response):
+def parse_jaccount_courses(response: dict):
     codes = []
     teachers = []
     for entity in response['entities']:
@@ -241,7 +243,7 @@ def parse_jaccount_courses(response):
     return codes, teachers
 
 
-def find_exist_course_ids(codes, teachers):
+def find_exist_course_ids(codes: list, teachers: list):
     former_codes = FormerCode.objects.filter(old_code__in=codes).values('old_code', 'new_code')
     former_codes_dict = {}
     for former_code in former_codes:
@@ -256,7 +258,7 @@ def find_exist_course_ids(codes, teachers):
     return Course.objects.filter(conditions).values_list('id', flat=True)
 
 
-def sync_enroll_course(user, course_ids, term):
+def sync_enroll_course(user: User, course_ids: list, term: str):
     try:
         semester = Semester.objects.get(name=term)
     except Semester.DoesNotExist:
@@ -269,12 +271,12 @@ def sync_enroll_course(user, course_ids, term):
     EnrollCourse.objects.bulk_create(enroll_courses, ignore_conflicts=True)
 
 
-def get_jaccount_lessons(token, term):
+def get_jaccount_lessons(token: dict, term: str):
     return jaccount.get(f'v1/me/lessons/{term}/', token=token, params={"classes": False}).json()
 
 
 @api_view(['POST'])
-def sync_lessons(request, term='2018-2019-2'):
+def sync_lessons(request: Request, term: str = '2018-2019-2'):
     token = request.session.get('token', None)
     if token is None:
         return Response({'detail': '未授权获取课表信息'}, status=status.HTTP_401_UNAUTHORIZED)

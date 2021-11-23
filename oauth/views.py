@@ -34,7 +34,7 @@ oauth.register(
 jaccount = oauth.jaccount
 
 
-def login_with(request, username, user_type):
+def login_with(request, username: str, user_type: str):
     with transaction.atomic():
         user, _ = User.objects.get_or_create(username=username)
         UserProfile.objects.update_or_create(user=user, defaults={'user_type': user_type})
@@ -55,7 +55,7 @@ def login_jaccount(request):
     return jaccount.authorize_redirect(request, redirect_uri)
 
 
-def hash_username(username):
+def hash_username(username: str):
     return hashlib.blake2b((username + HASH_SALT).encode('ascii'), digest_size=16).hexdigest()
 
 

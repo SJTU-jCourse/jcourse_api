@@ -1,7 +1,7 @@
 from jcourse_api.models import *
 
 
-def create_test_env():
+def create_test_env() -> None:
     dept_seiee = Department.objects.create(pk=1, name='SEIEE')
     dept_phy = Department.objects.create(pk=2, name='PHYSICS')
     teacher_gao = Teacher.objects.create(tid=1, name='高女士', department=dept_seiee, title='教授', pinyin='gaoxiaofeng',
@@ -39,7 +39,7 @@ def create_test_env():
     User.objects.create(username='test')
 
 
-def create_review(username='test', code='CS1500', rating=3):
+def create_review(username: str = 'test', code: str = 'CS1500', rating: int = 3) -> Review:
     user, _ = User.objects.get_or_create(username=username)
     course = Course.objects.get(code=code)
     review = Review.objects.create(user=user, course=course, comment='TEST', rating=rating, score='W', semester_id=1)
