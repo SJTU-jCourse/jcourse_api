@@ -253,17 +253,17 @@ def find_exist_course_ids(codes, teachers):
                     (Q(code=former_codes_dict[code]) | Q(code=code)) & Q(main_teacher__name=teacher))
         else:
             conditions = conditions | (Q(code=code) & Q(main_teacher__name=teacher))
-    return Course.objects.filter(conditions).values('id')
+    return Course.objects.filter(conditions).values_list('id', flat=True)
 
 
-def sync_enroll_course(user, courses, term):
+def sync_enroll_course(user, course_ids, term):
     try:
         semester = Semester.objects.get(name=term)
     except Semester.DoesNotExist:
         semester = None
     enroll_courses = []
-    for course in courses:
-        enroll_courses.append(EnrollCourse(user=user, course_id=course['id'], semester=semester))
+    for course_id in course_ids:
+        enroll_courses.append(EnrollCourse(user=user, course_id=course_id, semester=semester))
     EnrollCourse.objects.bulk_create(enroll_courses, ignore_conflicts=True)
 
 
@@ -279,8 +279,8 @@ def sync_lessons(request, term='2018-2019-2'):
     resp = get_jaccount_lessons(token, term)
     if resp['errno'] == 0:
         codes, teachers = parse_jaccount_courses(resp)
-        existed_courses = find_exist_course_ids(codes, teachers)
-        sync_enroll_course(request.user, existed_courses, term)
+        existed_courses_ids = find_exist_course_ids(codes, teachers)
+        sync_enroll_course(request.user, existed_courses_ids, term)
 
     courses = Course.objects.filter(enrollcourse__user=request.user)
     serializer = CourseListSerializer(courses, many=True)

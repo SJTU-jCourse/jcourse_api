@@ -119,17 +119,17 @@ class SyncTest(TestCase):
     def test_find_exist(self):
         ids = find_exist_course_ids(['TH000'], ['梁女士'])
         target = Course.objects.get(code='MARX1001', main_teacher__name='梁女士')
-        self.assertEqual(target.id, ids[0]['id'])
+        self.assertEqual(target.id, ids[0])
 
     def test_sync(self):
-        courses = Course.objects.filter(code='MARX1001', main_teacher__name='梁女士').values('id')
+        courses = Course.objects.filter(code='MARX1001', main_teacher__name='梁女士').values_list('id', flat=True)
         sync_enroll_course(self.user, courses, '2021-2022-1')
         sync_enroll_course(self.user, courses, '2021-2022-1')  # test duplicated enroll
         enrolled = EnrollCourse.objects.filter(user=self.user)
         self.assertEqual(len(enrolled), 1)
-        self.assertEqual(enrolled[0].course_id, courses[0]['id'])
+        self.assertEqual(enrolled[0].course_id, courses[0])
         self.assertEqual(enrolled[0].semester.name, '2021-2022-1')
-        courses = Course.objects.filter(code='CS1500', main_teacher__name='高女士').values('id')
+        courses = Course.objects.filter(code='CS1500', main_teacher__name='高女士').values_list('id', flat=True)
         sync_enroll_course(self.user, courses, None)
         enrolled = EnrollCourse.objects.get(user=self.user, course__code='CS1500')
         self.assertEqual(enrolled.semester, None)
