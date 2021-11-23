@@ -264,6 +264,8 @@ def sync_enroll_course(user, course_ids, term):
     enroll_courses = []
     for course_id in course_ids:
         enroll_courses.append(EnrollCourse(user=user, course_id=course_id, semester=semester))
+    # remove withdrawn courses
+    EnrollCourse.objects.filter(user=user, semester=semester).exclude(course_id__in=course_ids).delete()
     EnrollCourse.objects.bulk_create(enroll_courses, ignore_conflicts=True)
 
 

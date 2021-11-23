@@ -121,18 +121,32 @@ class SyncTest(TestCase):
         target = Course.objects.get(code='MARX1001', main_teacher__name='梁女士')
         self.assertEqual(target.id, ids[0])
 
-    def test_sync(self):
-        courses = Course.objects.filter(code='MARX1001', main_teacher__name='梁女士').values_list('id', flat=True)
-        sync_enroll_course(self.user, courses, '2021-2022-1')
-        sync_enroll_course(self.user, courses, '2021-2022-1')  # test duplicated enroll
+    def create_former_enroll(self):
+        withdrawn_course = Course.objects.get(code='MARX1001', main_teacher__name='赵先生')
+        semester = Semester.objects.get(name='2021-2022-1')
+        EnrollCourse.objects.create(user=self.user, course=withdrawn_course, semester=semester)
+
+    def test_sync_add(self):
+        course_ids = Course.objects.filter(code='MARX1001', main_teacher__name='梁女士').values_list('id', flat=True)
+        sync_enroll_course(self.user, course_ids, '2021-2022-1')
+        sync_enroll_course(self.user, course_ids, '2021-2022-1')  # test duplicated enroll
         enrolled = EnrollCourse.objects.filter(user=self.user)
         self.assertEqual(len(enrolled), 1)
-        self.assertEqual(enrolled[0].course_id, courses[0])
+        self.assertEqual(enrolled[0].course_id, course_ids[0])
         self.assertEqual(enrolled[0].semester.name, '2021-2022-1')
-        courses = Course.objects.filter(code='CS1500', main_teacher__name='高女士').values_list('id', flat=True)
-        sync_enroll_course(self.user, courses, None)
+        course_ids = Course.objects.filter(code='CS1500', main_teacher__name='高女士').values_list('id', flat=True)
+        sync_enroll_course(self.user, course_ids, None)
         enrolled = EnrollCourse.objects.get(user=self.user, course__code='CS1500')
         self.assertEqual(enrolled.semester, None)
+
+    def test_sync_delete(self):
+        self.create_former_enroll()
+        course_ids = Course.objects.filter(code='CS1500', main_teacher__name='高女士').values_list('id', flat=True)
+        sync_enroll_course(self.user, course_ids, '2021-2022-1')
+        enrolled = EnrollCourse.objects.filter(user=self.user)
+        self.assertEqual(len(enrolled), 1)
+        self.assertEqual(enrolled[0].course_id, course_ids[0])
+        self.assertEqual(enrolled[0].semester.name, '2021-2022-1')
 
     @patch('jcourse_api.views.get_jaccount_lessons')
     def test_e2e(self, mock_jac):
@@ -143,6 +157,7 @@ class SyncTest(TestCase):
                             'id_token': '',
                             'access_token': '', 'expires_at': 0}
         session.save()
+        self.create_former_enroll()
         response = self.client.post(self.endpoint + '2021-2022-1/')
         self.assertEqual(response.status_code, 200)
         response = response.json()
