@@ -79,12 +79,15 @@ class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ReviewInCourseSerializer
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(mixins.CreateModelMixin,
+                    mixins.ListModelMixin,
+                    mixins.RetrieveModelMixin,
+                    viewsets.GenericViewSet):
     queryset = Review.objects.all()
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
-        if self.action == 'create' or self.action == 'update':
+        if self.action == 'create':
             return CreateReviewSerializer
         else:
             return ReviewSerializer
@@ -149,7 +152,6 @@ class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
 class ReportViewSet(mixins.CreateModelMixin,
                     mixins.ListModelMixin,
                     viewsets.GenericViewSet):
-    queryset = Report.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = ReportSerializer
     pagination_class = None

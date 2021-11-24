@@ -50,6 +50,16 @@ class ReviewTest(TestCase):
         response = self.client.post(self.endpoint, data)
         return response
 
+    def test_put_review(self):
+        data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
+                'comment': 'TEST2', 'rating': 3}
+        response = self.client.put(self.endpoint + f'{self.review.id}/', data)
+        self.assertEqual(response.status_code, 405)
+
+    def test_delete_review(self):
+        response = self.client.delete(self.endpoint + f'{self.review.id}/')
+        self.assertEqual(response.status_code, 405)
+
     def test_write(self):
         course = Course.objects.get(code='CS2500')
         semester = Semester.objects.get(name='2021-2022-2')
