@@ -145,8 +145,11 @@ class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        q = self.request.query_params.get('q', '')
-        return get_search_course_queryset(q)
+        if self.action == 'list':
+            q = self.request.query_params.get('q', '')
+            return get_search_course_queryset(q)
+        elif self.action == 'retrieve':
+            return Course.objects.all()
 
 
 class ReportViewSet(mixins.CreateModelMixin,

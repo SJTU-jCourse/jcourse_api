@@ -215,10 +215,18 @@ class CourseInReviewTest(TestCase):
         self.client.force_login(self.user)
         self.endpoint = '/api/course-in-review/'
 
-    def test_body(self):
+    def test_search(self):
         response = self.client.get(self.endpoint, {'q': 'CS1500'}).json()
         self.assertEqual(response[0]['id'], 2)
         self.assertEqual(response[0]['code'], 'CS1500')
         self.assertEqual(response[0]['name'], '计算机科学导论')
         self.assertEqual(response[0]['teacher'], '高女士')
         self.assertEqual(response[0]['semester'], None)
+
+    def test_retrieve(self):
+        response = self.client.get(self.endpoint + '2/').json()
+        self.assertEqual(response['id'], 2)
+        self.assertEqual(response['code'], 'CS1500')
+        self.assertEqual(response['name'], '计算机科学导论')
+        self.assertEqual(response['teacher'], '高女士')
+        self.assertEqual(response['semester'], None)
