@@ -12,6 +12,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from jcourse_api.permissions import IsOwnerOrReadOnly
 from jcourse_api.serializers import *
 from oauth.views import hash_username, jaccount
 
@@ -64,7 +65,7 @@ def get_search_course_queryset(q: str):
     return queryset
 
 
-class SearchViewSet(viewsets.ReadOnlyModelViewSet):
+class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = CourseListSerializer
 
@@ -79,15 +80,12 @@ class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ReviewInCourseSerializer
 
 
-class ReviewViewSet(mixins.CreateModelMixin,
-                    mixins.ListModelMixin,
-                    mixins.RetrieveModelMixin,
-                    viewsets.GenericViewSet):
+class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsOwnerOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action == 'create':
+        if self.action == 'create' or self.action == 'update':
             return CreateReviewSerializer
         else:
             return ReviewSerializer

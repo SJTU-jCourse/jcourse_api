@@ -17,7 +17,7 @@ class ReviewTest(TestCase):
         response = self.client.get(self.endpoint).json()
         self.assertEqual(response['count'], 1)
         review = response['results'][0]
-        self.assertEqual(review['semester'], '2021-2022-1')
+        self.assertEqual(review['semester']['name'], '2021-2022-1')
         course = review['course']
         self.assertEqual(course['id'], 2)
         self.assertEqual(course['code'], 'CS1500')
@@ -50,15 +50,27 @@ class ReviewTest(TestCase):
         response = self.client.post(self.endpoint, data)
         return response
 
-    def test_put_review(self):
+    def test_put_my_review(self):
         data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
                 'comment': 'TEST2', 'rating': 3}
         response = self.client.put(self.endpoint + f'{self.review.id}/', data)
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 200)
 
-    def test_delete_review(self):
+    def test_put_others_review(self):
+        review = create_review('test2', 'CS1500', 5)
+        data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
+                'comment': 'TEST2', 'rating': 3}
+        response = self.client.put(self.endpoint + f'{review.id}/', data)
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_my_review(self):
         response = self.client.delete(self.endpoint + f'{self.review.id}/')
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 204)
+
+    def test_delete_others_review(self):
+        review = create_review('test2', 'CS1500', 5)
+        response = self.client.delete(self.endpoint + f'{review.id}/')
+        self.assertEqual(response.status_code, 403)
 
     def test_write(self):
         course = Course.objects.get(code='CS2500')

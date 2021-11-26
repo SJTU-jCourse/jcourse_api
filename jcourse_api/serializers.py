@@ -42,6 +42,55 @@ class TeacherSerializer(serializers.ModelSerializer):
         fields = ('tid', 'name', 'department', 'title')
 
 
+class SemesterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Semester
+        fields = '__all__'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'is_staff')
+
+
+class NoticeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notice
+        fields = ('title', 'message', 'created')
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        exclude = ('solved',)
+        read_only_fields = ('user', 'created', 'reply')
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+    @staticmethod
+    def get_count(obj: Category):
+        return Course.objects.filter(category=obj).count()
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Department
+        fields = '__all__'
+
+    @staticmethod
+    def get_count(obj: Department):
+        return Course.objects.filter(department=obj).count()
+
+
 def get_course_rating(obj: Course):
     return {'count': obj.review_count, 'avg': obj.review_avg}
 
@@ -72,6 +121,7 @@ class CourseSerializer(serializers.ModelSerializer):
     related_courses = serializers.SerializerMethodField()
     former_codes = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
+    is_reviewed = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -100,6 +150,9 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_semester(self, obj: Course):
         return get_enroll_semester(self, obj)
 
+    def get_is_reviewed(self, obj: Course):
+        return is_course_reviewed(self, obj)
+
 
 def get_enroll_semester(serializer: serializers.Serializer, obj: Course):
     request = serializer.context.get("request")
@@ -120,8 +173,11 @@ def is_course_reviewed(serializer: serializers.Serializer, obj: Course):
     request = serializer.context.get("request")
     if request and hasattr(request, "user"):
         user = request.user
-        return Review.objects.filter(course=obj.id, user=user).exists()
-    return False
+        try:
+            return Review.objects.get(course=obj.id, user=user).id
+        except Review.DoesNotExist:
+            return None
+    return None
 
 
 class CourseListSerializer(serializers.ModelSerializer):
@@ -212,12 +268,7 @@ def is_my_review(serializer: serializers.Serializer, obj: Review):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    semester = serializers.SlugRelatedField(
-        queryset=Semester.objects.all(),
-        many=False,
-        required=False,
-        slug_field='name'
-    )
+    semester = SemesterSerializer()
     course = CourseInReviewSerializer(read_only=True)
     actions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
@@ -252,52 +303,3 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
 
     def get_is_mine(self, obj: Review):
         return is_my_review(self, obj)
-
-
-class SemesterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Semester
-        fields = '__all__'
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'is_staff')
-
-
-class NoticeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Notice
-        fields = ('title', 'message', 'created')
-
-
-class ReportSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Report
-        exclude = ('solved',)
-        read_only_fields = ('user', 'created', 'reply')
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Category
-        fields = '__all__'
-
-    @staticmethod
-    def get_count(obj: Category):
-        return Course.objects.filter(category=obj).count()
-
-
-class DepartmentSerializer(serializers.ModelSerializer):
-    count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Department
-        fields = '__all__'
-
-    @staticmethod
-    def get_count(obj: Department):
-        return Course.objects.filter(department=obj).count()
