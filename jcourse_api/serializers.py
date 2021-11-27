@@ -285,12 +285,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ReviewInCourseSerializer(serializers.ModelSerializer):
-    semester = serializers.SlugRelatedField(
-        queryset=Semester.objects.all(),
-        many=False,
-        required=False,
-        slug_field='name'
-    )
+    semester = SemesterSerializer()
     actions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
 

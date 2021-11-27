@@ -44,6 +44,17 @@ class ReviewTest(TestCase):
         response = self.client.get(f'/api/course/{course.id}/review/').json()
         self.assertEqual(len(response), 1)
         self.assertNotIn('course', response[0].keys())
+        review = response[0]
+        self.assertEqual(review['semester']['name'], '2021-2022-1')
+        actions = review['actions']
+        self.assertEqual(actions['approves'], 1)
+        self.assertEqual(actions['disapproves'], 0)
+        self.assertEqual(actions['action'], 1)
+        self.assertEqual(review['is_mine'], True)
+        self.assertEqual(review['rating'], 3)
+        self.assertEqual(review['comment'], 'TEST')
+        self.assertEqual(review['score'], 'W')
+        self.assertEqual(review['moderator_remark'], None)
 
     def write_review(self, course: Course, semester: Semester):
         data = {'course': course.id, 'semester': semester.id, 'score': '100', 'comment': 'TEST', 'rating': 5}
