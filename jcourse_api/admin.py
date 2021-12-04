@@ -25,7 +25,7 @@ class CourseResource(resources.ModelResource):
     class Meta:
         model = Course
         import_id_fields = ('code', 'main_teacher')
-        exclude = ('id',)
+        exclude = ('id', 'review_count', 'review_avg')
         export_order = (
             'code', 'name', 'credit', 'department', 'category', 'language', 'main_teacher', 'teacher_group')
 

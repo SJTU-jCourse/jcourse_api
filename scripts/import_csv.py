@@ -51,7 +51,7 @@ with open('../data/2021-2022-1.csv', mode='r', encoding='utf-8-sig') as f:
         # code	name	credit	department	category	language	main_teacher	teacher_group
         courses.add(
             (code, row['课程名称'], row['学分'], row['开课院系'], category,
-             row['授课语言'], row['任课教师'].split('|')[0], ';'.join(tid_groups)))
+             row['授课语言'], row['任课教师'].split('|')[0] if row['任课教师'] else tid_groups[0], ';'.join(tid_groups)))
 
 print(len(teachers), len(departments), len(categories), len(languages), len(courses))
 
