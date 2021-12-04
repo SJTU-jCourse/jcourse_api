@@ -170,3 +170,12 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = True
 
 HASH_SALT = os.environ.get('HASH_SALT', '')
+
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.qiye.aliyun.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 465))
+
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_SSL = True
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', EMAIL_HOST_USER)
+ADMIN_EMAIL = os.environ.get('EMAIL_HOST_USER', EMAIL_HOST_USER)
