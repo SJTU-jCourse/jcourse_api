@@ -26,6 +26,8 @@ class CourseResource(resources.ModelResource):
         model = Course
         import_id_fields = ('code', 'main_teacher')
         exclude = ('id', 'review_count', 'review_avg')
+        skip_unchanged = True
+        report_skipped = False
         export_order = (
             'code', 'name', 'credit', 'department', 'category', 'language', 'main_teacher', 'teacher_group')
 
@@ -53,6 +55,8 @@ class TeacherResource(resources.ModelResource):
     class Meta:
         model = Teacher
         import_id_fields = ('tid',)
+        skip_unchanged = True
+        report_skipped = False
         exclude = ('id',)
         export_order = ('tid', 'name', 'department', 'title')
 
@@ -107,6 +111,8 @@ class DepartmentResource(resources.ModelResource):
     class Meta:
         model = Department
         exclude = ('id',)
+        skip_unchanged = True
+        report_skipped = False
         import_id_fields = ('name',)
 
     def save_instance(self, instance, using_transactions=True, dry_run=False):
