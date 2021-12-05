@@ -4,7 +4,7 @@ from pypinyin import pinyin, lazy_pinyin, Style
 
 former_codes = dict()
 
-with open('../data/former_code.csv', mode='r', encoding='utf-8-sig') as f:
+with open('former_code.csv', mode='r', encoding='utf-8-sig') as f:
     reader = csv.DictReader(f)
     for row in reader:
         former_codes[row['old_code']] = row['new_code']
@@ -15,7 +15,8 @@ teachers = set()
 categories = set()
 courses = set()
 encoding = 'utf-8'
-with open('../data/2021-2022-1.csv', mode='r', encoding='utf-8-sig') as f:
+data_dir = '../data'
+with open(f'{data_dir}/2021-2022-1.csv', mode='r', encoding='utf-8-sig') as f:
     reader = csv.DictReader(f)
 
     for row in reader:
@@ -55,27 +56,27 @@ with open('../data/2021-2022-1.csv', mode='r', encoding='utf-8-sig') as f:
 
 print(len(teachers), len(departments), len(categories), len(languages), len(courses))
 
-with open('../data/Teachers.csv', mode='w', encoding=encoding, newline='') as f:
+with open(f'{data_dir}/Teachers.csv', mode='w', encoding=encoding, newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['tid', 'name', 'title', 'department', 'pinyin', 'abbr_pinyin'])
     writer.writerows(teachers)
 
-with open('../data/Categories.csv', mode='w', encoding=encoding, newline='') as f:
+with open(f'{data_dir}/Categories.csv', mode='w', encoding=encoding, newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['name'])
     writer.writerows([[category] for category in categories])
 
-with open('../data/Languages.csv', mode='w', encoding=encoding, newline='') as f:
+with open(f'{data_dir}/Languages.csv', mode='w', encoding=encoding, newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['name'])
     writer.writerows([[language] for language in languages])
 
-with open('../data/Departments.csv', mode='w', encoding=encoding, newline='') as f:
+with open(f'{data_dir}/Departments.csv', mode='w', encoding=encoding, newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['name'])
     writer.writerows([[department] for department in departments])
 
-with open('../data/Courses.csv', mode='w', encoding=encoding, newline='') as f:
+with open(f'{data_dir}/Courses.csv', mode='w', encoding=encoding, newline='') as f:
     writer = csv.writer(f)
     writer.writerow(['code', 'name', 'credit', 'department', 'category', 'language', 'main_teacher', 'teacher_group'])
     writer.writerows(courses)
