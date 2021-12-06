@@ -11,11 +11,13 @@ from rest_framework.decorators import action, api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 
 import jcourse.settings
 from jcourse_api.permissions import IsOwnerOrReadOnly
 from jcourse_api.serializers import *
+from jcourse_api.throttles import ActionRateThrottle
 from oauth.views import hash_username, jaccount
 
 
@@ -95,7 +97,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=True, methods=['POST'])
+    @action(detail=True, methods=['POST'], throttle_classes=[UserRateThrottle, ActionRateThrottle])
     def reaction(self, request: Request, pk=None):
         if 'action' not in request.data:
             return Response({'error': '未指定操作类型！'}, status=status.HTTP_400_BAD_REQUEST)

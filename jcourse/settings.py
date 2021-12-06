@@ -155,7 +155,8 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT': "%Y/%m/%d %H:%M",
     'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.UserRateThrottle'],
     'DEFAULT_THROTTLE_RATES': {
-        'user': '5/second'
+        'user': '5/second',
+        'review_action': '20/day'
     }
 }
 
