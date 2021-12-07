@@ -41,7 +41,7 @@ class CourseResource(resources.ModelResource):
 class CourseAdmin(ImportExportModelAdmin):
     list_display = (
         'id', 'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'review_count', 'review_avg')
-    list_filter = ('department', 'category')
+    list_filter = ('department', 'category', 'credit')
     search_fields = ('id', 'code', 'name')
     autocomplete_fields = ('main_teacher', 'teacher_group')
     resource_class = CourseResource
@@ -70,7 +70,7 @@ class TeacherResource(resources.ModelResource):
 class TeacherAdmin(ImportExportModelAdmin):
     resource_class = TeacherResource
     list_display = ('tid', 'name', 'department', 'title', 'pinyin', 'abbr_pinyin')
-    list_filter = ('department__name',)
+    list_filter = ('department__name', 'title')
     inlines = [CourseInline]
     search_fields = ('name', 'pinyin', 'abbr_pinyin')
 
