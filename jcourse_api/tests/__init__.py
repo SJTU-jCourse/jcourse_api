@@ -12,22 +12,18 @@ def create_test_env() -> None:
     teacher_zhao = Teacher.objects.create(tid=3, name='赵先生', department=dept_phy, title='讲师', pinyin='zhaohao',
                                           abbr_pinyin='zh')
     category = Category.objects.create(pk=1, name='通识')
-    chinese = Language.objects.create(pk=1, name='中文')
-    bilingual = Language.objects.create(pk=2, name='双语')
     c1 = Course.objects.create(pk=1, code='CS2500', name='算法与复杂性', credit=2, department=dept_seiee,
-                               main_teacher=teacher_gao,
-                               language=bilingual)
+                               main_teacher=teacher_gao)
     c1.teacher_group.add(teacher_gao)
     c2 = Course.objects.create(pk=2, code='CS1500', name='计算机科学导论', credit=4, department=dept_seiee,
-                               main_teacher=teacher_gao,
-                               language=bilingual)
+                               main_teacher=teacher_gao)
     c2.teacher_group.add(teacher_gao)
     c2.teacher_group.add(teacher_pan)
     c3 = Course.objects.create(pk=3, code='MARX1001', name='思想道德修养与法律基础', credit=3, department=dept_phy,
-                               main_teacher=teacher_liang, category=category, language=chinese)
+                               main_teacher=teacher_liang, category=category)
     c3.teacher_group.add(teacher_liang)
     c4 = Course.objects.create(pk=4, code='MARX1001', name='思想道德修养与法律基础', credit=3, department=dept_phy,
-                               main_teacher=teacher_zhao, category=category, language=chinese)
+                               main_teacher=teacher_zhao, category=category)
     c4.teacher_group.add(teacher_zhao)
     FormerCode.objects.create(old_code='CS250', new_code='CS2500')
     FormerCode.objects.create(old_code='CS251', new_code='CS2500')

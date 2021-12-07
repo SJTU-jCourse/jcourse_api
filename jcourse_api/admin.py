@@ -17,7 +17,6 @@ class CourseInline(admin.StackedInline):
 class CourseResource(resources.ModelResource):
     department = fields.Field(attribute='department', widget=ForeignKeyWidget(Department, 'name'))
     category = fields.Field(attribute='category', widget=ForeignKeyWidget(Category, 'name'))
-    language = fields.Field(attribute='language', widget=ForeignKeyWidget(Language, 'name'))
     main_teacher = fields.Field(attribute='main_teacher', widget=ForeignKeyWidget(Teacher, 'tid'))
     teacher_group = fields.Field(attribute='teacher_group',
                                  widget=ManyToManyWidget(Teacher, separator=';', field='tid'))
@@ -29,7 +28,7 @@ class CourseResource(resources.ModelResource):
         skip_unchanged = True
         report_skipped = False
         export_order = (
-            'code', 'name', 'credit', 'department', 'category', 'language', 'main_teacher', 'teacher_group')
+            'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'teacher_group')
 
     def save_instance(self, instance, using_transactions=True, dry_run=False):
         try:
@@ -128,7 +127,7 @@ class DepartmentAdmin(ImportExportModelAdmin):
     resource_class = DepartmentResource
 
 
-@admin.register(Semester, Category, Language)
+@admin.register(Semester, Category)
 class NameAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name')
 

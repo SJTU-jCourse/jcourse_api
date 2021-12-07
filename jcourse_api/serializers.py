@@ -110,12 +110,6 @@ class CourseSerializer(serializers.ModelSerializer):
     )
     main_teacher = TeacherSerializer(read_only=True)
     teacher_group = TeacherSerializer(many=True, read_only=True)
-    language = serializers.SlugRelatedField(
-        queryset=Language.objects.all(),
-        many=False,
-        required=False,
-        slug_field='name'
-    )
     rating = serializers.SerializerMethodField()
     related_teachers = serializers.SerializerMethodField()
     related_courses = serializers.SerializerMethodField()
@@ -200,7 +194,7 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        exclude = ['teacher_group', 'language', 'main_teacher', 'moderator_remark', 'review_count', 'review_avg']
+        exclude = ['teacher_group', 'main_teacher', 'moderator_remark', 'review_count', 'review_avg']
 
     @staticmethod
     def get_rating(obj: Course):

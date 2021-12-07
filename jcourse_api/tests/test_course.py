@@ -111,7 +111,6 @@ class CourseTest(TestCase):
         self.assertEqual(course['name'], '思想道德修养与法律基础')
         self.assertEqual(course['category'], '通识')
         self.assertEqual(course['department'], 'PHYSICS')
-        self.assertEqual(course['language'], '中文')
         main_teacher = course['main_teacher']
         teacher_group = course['teacher_group']
         self.assertEqual(main_teacher['name'], '梁女士')

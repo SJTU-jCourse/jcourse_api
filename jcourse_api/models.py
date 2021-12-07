@@ -35,18 +35,6 @@ class Category(models.Model):
         return self.name
 
 
-class Language(models.Model):
-    class Meta:
-        verbose_name = '授课语言'
-        ordering = ['name']
-        verbose_name_plural = verbose_name
-
-    name = models.CharField(verbose_name='名称', max_length=64, unique=True)
-
-    def __str__(self):
-        return self.name
-
-
 class FormerCode(models.Model):
     class Meta:
         verbose_name = '曾用课号'
@@ -104,7 +92,6 @@ class Course(models.Model):
     credit = models.FloatField(verbose_name='学分', default=0)
     main_teacher = models.ForeignKey(Teacher, verbose_name='主讲教师', on_delete=models.CASCADE, db_index=True)
     teacher_group = models.ManyToManyField(Teacher, verbose_name='教师组成', related_name='teacher_course')
-    language = models.ForeignKey(Language, verbose_name='授课语言', null=True, blank=True, on_delete=models.SET_NULL)
     moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
     review_count = models.IntegerField(verbose_name='点评数', null=True, blank=True, default=0)
     review_avg = models.FloatField(verbose_name='平均评分', null=True, blank=True, default=0)
