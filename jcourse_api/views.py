@@ -65,7 +65,7 @@ def get_search_course_queryset(q: str):
         return Course.objects.none()
     queryset = Course.objects.filter(
         Q(code__icontains=q) | Q(name__icontains=q) | Q(main_teacher__name__icontains=q) |
-        Q(main_teacher__pinyin__icontains=q) | Q(main_teacher__abbr_pinyin__icontains=q))
+        Q(main_teacher__pinyin__iexact=q) | Q(main_teacher__abbr_pinyin__icontains=q))
     return queryset
 
 
