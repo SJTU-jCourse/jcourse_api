@@ -18,7 +18,7 @@ urlpatterns = [
     path('me/', UserView.as_view(), name='me'),
     path('filter/', FilterView.as_view(), name='filter'),
     path('statistic/', StatisticView.as_view(), name='statistic'),
-    path('points/', user_points, name='user-points'),
+    path('points/', UserPointView.as_view(), name='user-points'),
     path('sync-lessons/<str:term>/', sync_lessons, name='sync-lessons'),
     path('sync-lessons/', sync_lessons, name='sync-lessons'),
 ]

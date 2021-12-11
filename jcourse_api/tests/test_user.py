@@ -23,9 +23,17 @@ class UserTest(TestCase):
 
     def test_points(self):
         result = get_user_point(self.user)
-        self.assertEqual(result['points'], 6)
+        self.assertEqual(result['points'], 4)
+        self.assertEqual(result['reviews'], 1)
+        self.assertEqual(result['first_reviews'], 1)
+        self.assertEqual(result['approves'], 1)
+        self.assertEqual(result['first_reviews_approves'], 1)
         result = get_user_point(User.objects.create(username='test2'))
         self.assertEqual(result['points'], 0)
+        self.assertEqual(result['reviews'], 0)
+        self.assertEqual(result['first_reviews'], 0)
+        self.assertEqual(result['approves'], 0)
+        self.assertEqual(result['first_reviews_approves'], 0)
 
 
 class EnrollLessonTest(TestCase):

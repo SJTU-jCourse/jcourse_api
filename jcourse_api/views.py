@@ -7,8 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
-from rest_framework.decorators import action, api_view
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
@@ -210,39 +210,50 @@ class StatisticView(APIView):
 def get_user_point(user: User):
     reviews = Review.objects.filter(user=user)
     courses = reviews.values_list('course', flat=True)
-    approve_count = reviews.aggregate(count=Sum('approve_count'))['count']
-    if approve_count is None:
-        approve_count = 0
-    review_count = reviews.count()
+    approves_count = reviews.aggregate(count=Sum('approve_count'))['count']
+    if approves_count is None:
+        approves_count = 0
+    reviews_count = reviews.count()
 
     first_reviews = Review.objects.filter(course__in=courses).order_by('course_id', 'created').distinct(
         'course_id').values_list('id', flat=True)
     first_reviews = first_reviews.intersection(reviews)
     first_reviews_count = first_reviews.count()
-    first_reviews_approve_count = Review.objects.filter(pk__in=first_reviews).aggregate(count=Sum('approve_count'))[
+    first_reviews_approves_count = Review.objects.filter(pk__in=first_reviews).aggregate(count=Sum('approve_count'))[
         'count']
-    if first_reviews_approve_count is None:
-        first_reviews_approve_count = 0
-    points = (approve_count + first_reviews_approve_count) * 2 + review_count + first_reviews_count
-    return {'points': points}
+    if first_reviews_approves_count is None:
+        first_reviews_approves_count = 0
+    points = approves_count + first_reviews_approves_count + reviews_count + first_reviews_count
+    return {'points': points, 'reviews': reviews_count, 'first_reviews': first_reviews_count,
+            'approves': approves_count, 'first_reviews_approves': first_reviews_approves_count}
 
 
-@api_view(['POST'])
-@csrf_exempt
-def user_points(request: Request):
-    account = request.data.get('account', '')
-    apikey = request.headers.get('Api-Key', '')
-    if account == '' or apikey == '':
-        return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
-    try:
-        ApiKey.objects.get(key=apikey, is_enabled=True)
-    except ApiKey.DoesNotExist:
-        return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
-    try:
-        user = User.objects.get(username=hash_username(account))
-    except User.DoesNotExist:
-        return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
-    return Response(get_user_point(user))
+class UserPointView(APIView):
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [IsAuthenticated()]
+        else:
+            return [AllowAny()]
+
+    def get(self, request: Request):
+        return Response(get_user_point(request.user))
+
+    @csrf_exempt
+    def post(self, request: Request):
+        account = request.data.get('account', '')
+        apikey = request.headers.get('Api-Key', '')
+        if account == '' or apikey == '':
+            return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            ApiKey.objects.get(key=apikey, is_enabled=True)
+        except ApiKey.DoesNotExist:
+            return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(username=hash_username(account))
+        except User.DoesNotExist:
+            return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(get_user_point(user))
 
 
 def parse_jaccount_courses(response: dict):

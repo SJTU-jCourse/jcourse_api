@@ -1,5 +1,3 @@
-import json
-
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -51,7 +49,11 @@ class ApiKeyTest(TestCase):
     def test_normal(self):
         data = {'account': 'test'}
         response = self.client.post(self.endpoint, data, HTTP_API_KEY="123456").json()
-        self.assertEqual(response['points'], 6)
+        self.assertEqual(response['points'], 4)
+        self.assertEqual(response['reviews'], 1)
+        self.assertEqual(response['first_reviews'], 1)
+        self.assertEqual(response['approves'], 1)
+        self.assertEqual(response['first_reviews_approves'], 1)
 
     def test_wrong_apikey(self):
         data = {'account': 'test'}
