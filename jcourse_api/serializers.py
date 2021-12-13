@@ -129,8 +129,9 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_semester(self, obj: Course):
         return get_enroll_semester(self, obj)
 
-    def get_is_reviewed(self, obj: Course):
-        return is_course_reviewed(self, obj)
+    @staticmethod
+    def get_is_reviewed(obj):
+        return obj.is_reviewed if obj.is_reviewed else None
 
 
 def get_enroll_semester(serializer: serializers.Serializer, obj: Course):
@@ -144,17 +145,6 @@ def get_enroll_semester(serializer: serializers.Serializer, obj: Course):
             semester_serializer = SemesterSerializer(semester, many=False)
             return semester_serializer.data
         except EnrollCourse.DoesNotExist:
-            return None
-    return None
-
-
-def is_course_reviewed(serializer: serializers.Serializer, obj: Course):
-    request = serializer.context.get("request")
-    if request and hasattr(request, "user"):
-        user = request.user
-        try:
-            return Review.objects.get(course=obj.id, user=user).id
-        except Review.DoesNotExist:
             return None
     return None
 
@@ -189,11 +179,16 @@ class CourseListSerializer(serializers.ModelSerializer):
     def get_teacher(obj: Course):
         return obj.main_teacher.name
 
-    def get_is_reviewed(self, obj: Course):
-        return is_course_reviewed(self, obj)
+    @staticmethod
+    def get_is_reviewed(obj):
+        return obj.is_reviewed if obj.is_reviewed else None
 
-    def get_semester(self, obj: Course):
-        return get_enroll_semester(self, obj)
+    @staticmethod
+    def get_semester(obj):
+        try:
+            return SemesterSerializer(instance=Semester.objects.get(pk=obj.semester)).data
+        except Semester.DoesNotExist:
+            return None
 
 
 class CourseInReviewSerializer(serializers.ModelSerializer):
@@ -226,16 +221,8 @@ class CreateReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(error_msg)
 
 
-def get_review_actions(serializer: serializers.Serializer, obj: Review):
-    request = serializer.context.get("request")
-    if request and hasattr(request, "user"):
-        try:
-            action = Action.objects.get(review=obj, user=request.user).action
-        except Action.DoesNotExist:
-            action = None
-        return {'approves': obj.approve_count, 'disapproves': obj.disapprove_count, 'action': action}
-    else:
-        return {'approves': obj.approve_count, 'disapproves': obj.disapprove_count}
+def get_review_actions(obj):
+    return {'approves': obj.approve_count, 'disapproves': obj.disapprove_count, 'action': obj.my_action}
 
 
 def is_my_review(serializer: serializers.Serializer, obj: Review):
@@ -259,8 +246,9 @@ class ReviewSerializer(serializers.ModelSerializer):
     def get_is_mine(self, obj: Review):
         return is_my_review(self, obj)
 
-    def get_actions(self, obj: Review):
-        return get_review_actions(self, obj)
+    @staticmethod
+    def get_actions(obj):
+        return get_review_actions(obj)
 
 
 class ReviewInCourseSerializer(serializers.ModelSerializer):
@@ -272,8 +260,9 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
         model = Review
         exclude = ('user', 'course', 'approve_count', 'disapprove_count')
 
-    def get_actions(self, obj: Review):
-        return get_review_actions(self, obj)
+    @staticmethod
+    def get_actions(obj):
+        return get_review_actions(obj)
 
     def get_is_mine(self, obj: Review):
         return is_my_review(self, obj)

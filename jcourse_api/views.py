@@ -1,6 +1,6 @@
 import django_filters
 from django.core.mail import send_mail
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, Sum, OuterRef, Subquery
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
@@ -34,20 +34,29 @@ class CourseFilter(django_filters.FilterSet):
         fields = ['category', 'department']
 
 
+def get_course_list_queryset(user: User):
+    my_reviews = Review.objects.filter(user=user, course_id=OuterRef('pk')).values('pk')
+    my_enroll_semester = EnrollCourse.objects.select_related('semester'). \
+        filter(user=user, course_id=OuterRef('pk')).values('semester')
+
+    return Course.objects.select_related('main_teacher', 'category', 'department').annotate(
+        semester=Subquery(my_enroll_semester[:1]), is_reviewed=Subquery(my_reviews[:1]))
+
+
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = CourseFilter
 
     def get_queryset(self):
+        courses = get_course_list_queryset(self.request.user)
         if 'onlyhasreviews' in self.request.query_params:
-            courses = Course.objects.filter(review_count__gt=0). \
-                annotate(count=F('review_count'), avg=F('review_avg')). \
-                select_related('main_teacher', 'category', 'department')
+            courses = courses.filter(review_count__gt=0). \
+                annotate(count=F('review_count'), avg=F('review_avg'))
             if self.request.query_params['onlyhasreviews'] == 'count':
                 return courses.order_by(F('count').desc(nulls_last=True), F('avg').desc(nulls_last=True))
             return courses.order_by(F('avg').desc(nulls_last=True), F('count').desc(nulls_last=True))
-        return Course.objects.all().select_related('main_teacher', 'category', 'department')
+        return courses.all()
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -57,18 +66,19 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True)
     def review(self, request: Request, pk=None):
-        reviews = Review.objects.filter(course_id=pk).select_related('semester')
+        reviews = get_reviews(request.user).filter(course_id=pk)
         serializer = ReviewInCourseSerializer(reviews, many=True, context={'request': request})
         return Response(serializer.data)
 
 
-def get_search_course_queryset(q: str):
+def get_search_course_queryset(q: str, user: User):
+    courses = get_course_list_queryset(user)
     if q == '':
-        return Course.objects.none()
-    queryset = Course.objects.filter(
+        return courses.none()
+    courses = courses.filter(
         Q(code__icontains=q) | Q(name__icontains=q) | Q(main_teacher__name__icontains=q) |
         Q(main_teacher__pinyin__iexact=q) | Q(main_teacher__abbr_pinyin__icontains=q))
-    return queryset
+    return courses
 
 
 class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
@@ -77,7 +87,7 @@ class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def get_queryset(self):
         q = self.request.query_params.get('q', '')
-        return get_search_course_queryset(q).select_related('main_teacher', 'category', 'department')
+        return get_search_course_queryset(q, self.request.user)
 
 
 class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -86,10 +96,18 @@ class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ReviewInCourseSerializer
 
 
+def get_reviews(user: User):
+    my_actions = Action.objects.filter(user=user, review_id=OuterRef('pk')).values('action')
+    return Review.objects. \
+        select_related('course', 'course__main_teacher', 'semester'). \
+        annotate(my_action=Subquery(my_actions[:1]))
+
+
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all(). \
-        select_related('course', 'course__category', 'course__department', 'course__main_teacher', 'semester')
     permission_classes = [IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        return get_reviews(self.request.user)
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
@@ -120,8 +138,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def mine(self, request: Request):
-        reviews = self.queryset.filter(user=request.user). \
-            select_related('course', 'course__category', 'course__department', 'course__main_teacher', 'semester')
+        reviews = get_reviews(self.request.user).filter(user=request.user)
         serializer = self.get_serializer_class()
         data = serializer(reviews, many=True, context={'request': request}).data
         return Response(data)
@@ -153,9 +170,9 @@ class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         if self.action == 'list':
             q = self.request.query_params.get('q', '')
-            return get_search_course_queryset(q).select_related('main_teacher')
+            return get_search_course_queryset(q, self.request.user)
         elif self.action == 'retrieve':
-            return Course.objects.all()
+            return get_course_list_queryset(self.request.user)
 
 
 class ReportViewSet(mixins.CreateModelMixin,
@@ -312,7 +329,8 @@ def sync_lessons(request: Request, term: str = '2018-2019-2'):
         existed_courses_ids = find_exist_course_ids(codes, teachers)
         sync_enroll_course(request.user, existed_courses_ids, term)
 
-    courses = Course.objects.filter(enrollcourse__user=request.user)
+    courses = get_course_list_queryset(request.user)
+    courses = courses.filter(enrollcourse__user=request.user)
     serializer = CourseListSerializer(courses, many=True)
     return Response(serializer.data)
 
@@ -323,5 +341,6 @@ class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        return Course.objects.filter(enrollcourse__user=self.request.user). \
+        courses = get_course_list_queryset(self.request.user)
+        return courses.filter(enrollcourse__user=self.request.user). \
             select_related('main_teacher', 'category', 'department')
