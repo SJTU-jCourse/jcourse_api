@@ -115,8 +115,6 @@ class CourseTest(TestCase):
         teacher_group = course['teacher_group']
         self.assertEqual(main_teacher['name'], '梁女士')
         self.assertEqual(main_teacher['tid'], '2')
-        self.assertEqual(main_teacher['department'], 'PHYSICS')
-        self.assertEqual(main_teacher['title'], None)
         self.assertEqual(len(teacher_group), 1)
         self.assertEqual(course['rating'], {'count': 0, 'avg': 0.0})
         self.assertEqual(course['code'], 'MARX1001')

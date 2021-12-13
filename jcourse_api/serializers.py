@@ -30,16 +30,9 @@ class ChoiceDisplayField(serializers.Field):
 
 
 class TeacherSerializer(serializers.ModelSerializer):
-    department = serializers.SlugRelatedField(
-        queryset=Department.objects.all(),
-        many=False,
-        required=False,
-        slug_field='name'
-    )
-
     class Meta:
         model = Teacher
-        fields = ('tid', 'name', 'department', 'title')
+        fields = ('tid', 'name')
 
 
 class SemesterSerializer(serializers.ModelSerializer):
