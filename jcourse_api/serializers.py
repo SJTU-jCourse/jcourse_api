@@ -61,27 +61,19 @@ class ReportSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    count = serializers.SerializerMethodField()
+    count = serializers.IntegerField()
 
     class Meta:
         model = Category
         fields = '__all__'
 
-    @staticmethod
-    def get_count(obj: Category):
-        return Course.objects.filter(category=obj).count()
-
 
 class DepartmentSerializer(serializers.ModelSerializer):
-    count = serializers.SerializerMethodField()
+    count = serializers.IntegerField()
 
     class Meta:
         model = Department
         fields = '__all__'
-
-    @staticmethod
-    def get_count(obj: Department):
-        return Course.objects.filter(department=obj).count()
 
 
 def get_course_rating(obj: Course):

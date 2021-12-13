@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action, api_view
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -41,11 +41,13 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if 'onlyhasreviews' in self.request.query_params:
-            courses = Course.objects.filter(review_count__gt=0).annotate(count=F('review_count'), avg=F('review_avg'))
+            courses = Course.objects.filter(review_count__gt=0). \
+                annotate(count=F('review_count'), avg=F('review_avg')). \
+                select_related('main_teacher', 'category', 'department')
             if self.request.query_params['onlyhasreviews'] == 'count':
                 return courses.order_by(F('count').desc(nulls_last=True), F('avg').desc(nulls_last=True))
             return courses.order_by(F('avg').desc(nulls_last=True), F('count').desc(nulls_last=True))
-        return Course.objects.all()
+        return Course.objects.all().select_related('main_teacher', 'category', 'department')
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -55,7 +57,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True)
     def review(self, request: Request, pk=None):
-        reviews = Review.objects.filter(course_id=pk)
+        reviews = Review.objects.filter(course_id=pk).select_related('semester')
         serializer = ReviewInCourseSerializer(reviews, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -75,17 +77,18 @@ class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     def get_queryset(self):
         q = self.request.query_params.get('q', '')
-        return get_search_course_queryset(q)
+        return get_search_course_queryset(q).select_related('main_teacher', 'category', 'department')
 
 
 class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Review.objects.all()
+    queryset = Review.objects.all().select_related('semester')
     permission_classes = [IsAuthenticated]
     serializer_class = ReviewInCourseSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
+    queryset = Review.objects.all(). \
+        select_related('course', 'course__category', 'course__department', 'course__main_teacher', 'semester')
     permission_classes = [IsOwnerOrReadOnly]
 
     def get_serializer_class(self):
@@ -117,7 +120,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def mine(self, request: Request):
-        reviews = self.queryset.filter(user=request.user)
+        reviews = self.queryset.filter(user=request.user). \
+            select_related('course', 'course__category', 'course__department', 'course__main_teacher', 'semester')
         serializer = self.get_serializer_class()
         data = serializer(reviews, many=True, context={'request': request}).data
         return Response(data)
@@ -149,7 +153,7 @@ class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         if self.action == 'list':
             q = self.request.query_params.get('q', '')
-            return get_search_course_queryset(q)
+            return get_search_course_queryset(q).select_related('main_teacher')
         elif self.action == 'retrieve':
             return Course.objects.all()
 
@@ -319,4 +323,5 @@ class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        return Course.objects.filter(enrollcourse__user=self.request.user)
+        return Course.objects.filter(enrollcourse__user=self.request.user). \
+            select_related('main_teacher', 'category', 'department')
