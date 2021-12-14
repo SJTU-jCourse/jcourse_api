@@ -4,6 +4,7 @@ from django.db.models import Q, Count, Sum, OuterRef, Subquery
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.vary import vary_on_cookie
 from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
@@ -98,9 +99,9 @@ class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
 
 def get_reviews(user: User):
     my_actions = Action.objects.filter(user=user, review_id=OuterRef('pk')).values('action')
-    return Review.objects. \
-        select_related('course', 'course__main_teacher', 'semester'). \
-        annotate(my_action=Subquery(my_actions[:1]))
+    course_semesters = EnrollCourse.objects.filter(user=user, course_id=OuterRef('course')).values('semester')
+    return Review.objects.select_related('course', 'course__main_teacher', 'semester'). \
+        annotate(my_action=Subquery(my_actions[:1]), course_semesters=Subquery(course_semesters[:1]))
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -257,6 +258,8 @@ class UserPointView(APIView):
         else:
             return [AllowAny()]
 
+    @method_decorator(cache_page(60 * 5))
+    @method_decorator(vary_on_cookie)
     def get(self, request: Request):
         return Response(get_user_point(request.user))
 

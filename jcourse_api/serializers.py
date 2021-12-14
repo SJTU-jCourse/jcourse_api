@@ -80,6 +80,13 @@ def get_course_rating(obj: Course):
     return {'count': obj.review_count, 'avg': obj.review_avg}
 
 
+def get_serialized_semester(semester):
+    try:
+        return SemesterSerializer(instance=Semester.objects.get(pk=semester)).data
+    except Semester.DoesNotExist:
+        return None
+
+
 class CourseSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
@@ -126,27 +133,13 @@ class CourseSerializer(serializers.ModelSerializer):
             .values('id', 'code', 'name', avg=F('review_avg'),
                     count=F('review_count')).order_by(F('avg').desc(nulls_last=True))
 
-    def get_semester(self, obj: Course):
-        return get_enroll_semester(self, obj)
+    @staticmethod
+    def get_semester(obj):
+        return get_serialized_semester(obj.semester)
 
     @staticmethod
     def get_is_reviewed(obj):
         return obj.is_reviewed if obj.is_reviewed else None
-
-
-def get_enroll_semester(serializer: serializers.Serializer, obj: Course):
-    request = serializer.context.get("request")
-    if request and hasattr(request, "user"):
-        user = request.user
-        try:
-            semester = EnrollCourse.objects.get(user=user, course=obj).semester
-            if semester is None:
-                return None
-            semester_serializer = SemesterSerializer(semester, many=False)
-            return semester_serializer.data
-        except EnrollCourse.DoesNotExist:
-            return None
-    return None
 
 
 class CourseListSerializer(serializers.ModelSerializer):
@@ -185,10 +178,7 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_semester(obj):
-        try:
-            return SemesterSerializer(instance=Semester.objects.get(pk=obj.semester)).data
-        except Semester.DoesNotExist:
-            return None
+        return get_serialized_semester(obj.semester)
 
 
 class CourseInReviewSerializer(serializers.ModelSerializer):
@@ -203,8 +193,13 @@ class CourseInReviewSerializer(serializers.ModelSerializer):
     def get_teacher(obj: Course):
         return obj.main_teacher.name
 
-    def get_semester(self, obj: Course):
-        return get_enroll_semester(self, obj)
+    def get_semester(self, obj):
+        semester = None
+        if hasattr(obj, 'semester'):
+            semester = obj.semester
+        elif hasattr(self.context, 'semester'):
+            semester = self.context.get('semester')
+        return get_serialized_semester(semester)
 
 
 class CreateReviewSerializer(serializers.ModelSerializer):
@@ -235,7 +230,7 @@ def is_my_review(serializer: serializers.Serializer, obj: Review):
 
 class ReviewSerializer(serializers.ModelSerializer):
     semester = SemesterSerializer()
-    course = CourseInReviewSerializer(read_only=True)
+    course = serializers.SerializerMethodField(read_only=True)
     actions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
 
@@ -249,6 +244,11 @@ class ReviewSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_actions(obj):
         return get_review_actions(obj)
+
+    @staticmethod
+    def get_course(obj):
+        serializer = CourseInReviewSerializer(obj.course, context={'semester': obj.course_semesters})
+        return serializer.data
 
 
 class ReviewInCourseSerializer(serializers.ModelSerializer):
