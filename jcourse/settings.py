@@ -86,6 +86,7 @@ if MEMCACHED_HOST:
             'LOCATION': f'{MEMCACHED_HOST}:11211',
         }
     }
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 DATABASES = {
     'default': {
