@@ -68,6 +68,10 @@ class EnrollLessonTest(TestCase):
         for course in response:
             self.assertEqual(course['semester']['name'], '2021-2022-3')
 
+    def test_retrieve_my_review(self):
+        response = self.client.get(f'/api/review/{self.review.id}/').json()
+        self.assertEqual(response['course']['semester']['name'], '2021-2022-3')
+
 
 class ReportTest(TestCase):
     def setUp(self) -> None:

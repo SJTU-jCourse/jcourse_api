@@ -194,11 +194,10 @@ class CourseInReviewSerializer(serializers.ModelSerializer):
         return obj.main_teacher.name
 
     def get_semester(self, obj):
-        semester = None
         if hasattr(obj, 'semester'):
             semester = obj.semester
-        elif hasattr(self.context, 'semester'):
-            semester = self.context.get('semester')
+        else:
+            semester = self.context.get('semester', None)
         return get_serialized_semester(semester)
 
 
