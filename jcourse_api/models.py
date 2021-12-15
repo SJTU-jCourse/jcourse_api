@@ -41,8 +41,8 @@ class FormerCode(models.Model):
         verbose_name_plural = verbose_name
         ordering = ['old_code']
 
-    old_code = models.CharField(verbose_name='旧课号', max_length=32, unique=True)
-    new_code = models.CharField(verbose_name='新课号', max_length=32)
+    old_code = models.CharField(verbose_name='旧课号', max_length=32, unique=True, db_index=True)
+    new_code = models.CharField(verbose_name='新课号', max_length=32, db_index=True)
 
     def __str__(self):
         return self.old_code
@@ -87,13 +87,15 @@ class Course(models.Model):
 
     code = models.CharField(verbose_name='课号', max_length=32, db_index=True)
     name = models.CharField(verbose_name='名称', max_length=255, db_index=True)
-    category = models.ForeignKey(Category, verbose_name='类别', null=True, blank=True, on_delete=models.SET_NULL)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, verbose_name='开课单位', null=True, blank=True)
+    category = models.ForeignKey(Category, verbose_name='类别', null=True, blank=True, on_delete=models.SET_NULL,
+                                 db_index=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, verbose_name='开课单位', null=True, blank=True,
+                                   db_index=True)
     credit = models.FloatField(verbose_name='学分', default=0)
     main_teacher = models.ForeignKey(Teacher, verbose_name='主讲教师', on_delete=models.CASCADE, db_index=True)
     teacher_group = models.ManyToManyField(Teacher, verbose_name='教师组成', related_name='teacher_course')
     moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
-    review_count = models.IntegerField(verbose_name='点评数', null=True, blank=True, default=0)
+    review_count = models.IntegerField(verbose_name='点评数', null=True, blank=True, default=0, db_index=True)
     review_avg = models.FloatField(verbose_name='平均评分', null=True, blank=True, default=0)
 
     def __str__(self):
@@ -112,7 +114,7 @@ class Review(models.Model):
     semester = models.ForeignKey(Semester, verbose_name='上课学期', on_delete=models.SET_NULL, null=True)
     rating = models.IntegerField(verbose_name='推荐指数', validators=[MaxValueValidator(5), MinValueValidator(1)])
     comment = models.TextField(verbose_name='详细点评', max_length=817)
-    created = models.DateTimeField(verbose_name='发布时间', default=timezone.now)
+    created = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
     score = models.CharField(verbose_name='成绩', null=True, blank=True, max_length=10)
     moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
     approve_count = models.IntegerField(verbose_name='获赞数', null=True, blank=True, default=0)
@@ -149,9 +151,9 @@ class Report(models.Model):
         verbose_name_plural = verbose_name
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
-    solved = models.BooleanField(verbose_name='是否解决', default=False)
+    solved = models.BooleanField(verbose_name='是否解决', default=False, db_index=True)
     comment = models.TextField(verbose_name='反馈', max_length=817)
-    created = models.DateTimeField(verbose_name='发布时间', default=timezone.now)
+    created = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
     reply = models.TextField(verbose_name='回复', max_length=817, null=True, blank=True)
 
     def __str__(self):
@@ -175,9 +177,9 @@ class Action(models.Model):
         verbose_name_plural = verbose_name
         constraints = [models.UniqueConstraint(fields=['user', 'review'], name='unique_action')]
 
-    user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.CASCADE, db_index=True)
-    action = models.IntegerField(choices=ACTION_CHOICES, verbose_name='操作', default=0)
+    action = models.IntegerField(choices=ACTION_CHOICES, verbose_name='操作', default=0, db_index=True)
 
     def __str__(self):
         return f"{self.review}"
@@ -188,7 +190,7 @@ class ApiKey(models.Model):
         verbose_name = 'Api密钥'
         verbose_name_plural = verbose_name
 
-    key = models.CharField(max_length=255, unique=True)
+    key = models.CharField(max_length=255, unique=True, db_index=True)
     description = models.CharField(verbose_name='描述', max_length=255)
     is_enabled = models.BooleanField(verbose_name='启用', default=True)
     last_modified = models.DateTimeField(verbose_name='修改时间', default=timezone.now)
@@ -204,7 +206,7 @@ class EnrollCourse(models.Model):
         constraints = [models.UniqueConstraint(fields=['user', 'course', 'semester'], name='unique_enroll')]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, db_index=True)
     semester = models.ForeignKey(Semester, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
