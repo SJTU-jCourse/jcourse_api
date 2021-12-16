@@ -9,3 +9,4 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'user_type')
     search_fields = ('user__username',)
     list_filter = ('user_type',)
+    readonly_fields = ('user', 'user_type')

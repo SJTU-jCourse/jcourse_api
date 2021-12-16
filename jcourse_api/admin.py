@@ -93,12 +93,14 @@ class ReportAdmin(ImportExportModelAdmin):
     list_display = ('user', 'solved', 'reply_validity', 'comment_validity', 'created')
     search_fields = ('user__username',)
     list_filter = ('solved',)
+    readonly_fields = ('user', 'comment', 'created')
 
 
 @admin.register(Action)
 class ActionAdmin(ImportExportModelAdmin):
     list_display = ('user', 'action', 'review',)
     search_fields = ('user__username', 'review__course__code')
+    readonly_fields = ('user', 'review',)
 
 
 @admin.register(Notice)
@@ -136,6 +138,7 @@ class NameAdmin(ImportExportModelAdmin):
 class EnrollCourseAdmin(ImportExportModelAdmin):
     list_display = ('user', 'course', 'semester')
     search_fields = ('user__username', 'course__code')
+    readonly_fields = ('user', 'course', 'semester')
 
 
 @admin.register(ApiKey)
