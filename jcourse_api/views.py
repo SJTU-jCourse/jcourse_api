@@ -208,11 +208,10 @@ class UserView(APIView):
 class FilterView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @method_decorator(cache_page(60 * 5))
     def get(self, request: Request):
-        categories = Category.objects.annotate(count=Count('course')).filter(count__gt=0)
+        categories = Category.objects.filter(count__gt=0)
         category_serializer = CategorySerializer(categories, many=True)
-        departments = Department.objects.annotate(count=Count('course')).filter(count__gt=0)
+        departments = Department.objects.filter(count__gt=0)
         department_serializer = DepartmentSerializer(departments, many=True)
         return Response({'categories': category_serializer.data, 'departments': department_serializer.data},
                         status=status.HTTP_200_OK)

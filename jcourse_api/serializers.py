@@ -61,16 +61,12 @@ class ReportSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    count = serializers.IntegerField()
-
     class Meta:
         model = Category
         fields = '__all__'
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
-    count = serializers.IntegerField()
-
     class Meta:
         model = Department
         fields = '__all__'

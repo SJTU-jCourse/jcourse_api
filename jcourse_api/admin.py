@@ -111,7 +111,7 @@ class NoticeAdmin(ImportExportModelAdmin):
 class DepartmentResource(resources.ModelResource):
     class Meta:
         model = Department
-        exclude = ('id',)
+        exclude = ('id', 'count')
         skip_unchanged = True
         report_skipped = False
         import_id_fields = ('name',)
@@ -125,11 +125,16 @@ class DepartmentResource(resources.ModelResource):
 
 @admin.register(Department)
 class DepartmentAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'name')
+    list_display = ('id', 'name', 'count')
     resource_class = DepartmentResource
 
 
-@admin.register(Semester, Category)
+@admin.register(Category)
+class CategoryAdmin(ImportExportModelAdmin):
+    list_display = ('id', 'name', 'count')
+
+
+@admin.register(Semester)
 class NameAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name')
 

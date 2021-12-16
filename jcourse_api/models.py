@@ -18,6 +18,7 @@ class Department(models.Model):
         verbose_name_plural = verbose_name
 
     name = models.CharField(verbose_name='名称', max_length=64, unique=True)
+    count = models.IntegerField(verbose_name='课程数量', default=0)
 
     def __str__(self):
         return self.name
@@ -30,6 +31,7 @@ class Category(models.Model):
         verbose_name_plural = verbose_name
 
     name = models.CharField(verbose_name='名称', max_length=64, unique=True)
+    count = models.IntegerField(verbose_name='课程数量', default=0)
 
     def __str__(self):
         return self.name
