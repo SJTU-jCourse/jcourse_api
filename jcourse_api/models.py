@@ -107,6 +107,8 @@ class Course(models.Model):
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         need_to_update_department = False
         need_to_update_category = False
+        old_category = None
+        old_department = None
         if self.pk is None:
             need_to_update_department = True
             need_to_update_category = True
@@ -114,13 +116,19 @@ class Course(models.Model):
             previous = Course.objects.get(pk=self.pk)
             if previous.category_id != self.category_id:
                 need_to_update_category = True
+                old_category = previous.category
             if previous.department_id != self.department_id:
                 need_to_update_department = True
+                old_department = previous.department_id
         super().save(force_insert, force_update, using, update_fields)
         if need_to_update_department:
-            update_department_count(self)
+            update_department_count(self.department)
+            if old_department:
+                update_department_count(old_department)
         if need_to_update_category:
-            update_category_count(self)
+            update_category_count(self.category)
+            if old_category:
+                update_category_count(old_category)
 
 
 class Review(models.Model):
@@ -151,15 +159,19 @@ class Review(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         need_to_update = False
+        old_course = None
         if self.pk is None:
             need_to_update = True
         else:
             previous = Review.objects.get(pk=self.pk)
             if previous.course_id != self.course_id:
                 need_to_update = True
+                old_course = previous.course
         super().save(force_insert, force_update, using, update_fields)
         if need_to_update:
-            update_course_reviews(self)
+            update_course_reviews(self.course)
+            if old_course:
+                update_course_reviews(old_course)
 
 
 class Notice(models.Model):
@@ -219,15 +231,19 @@ class Action(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         need_to_update = False
+        old_review = None
         if self.pk is None:
             need_to_update = True
         else:
             previous = Action.objects.get(pk=self.pk)
             if previous.review_id != self.review_id or previous.action != self.action:
                 need_to_update = True
+                old_review = previous.review
         super().save(force_insert, force_update, using, update_fields)
         if need_to_update:
-            update_review_actions(self)
+            update_review_actions(self.review)
+            if old_review and old_review != self.review:
+                update_review_actions(old_review)
 
 
 class ApiKey(models.Model):
@@ -258,8 +274,7 @@ class EnrollCourse(models.Model):
         return f"{self.user.username} {self.course.name} {self.semester.name}"
 
 
-def update_review_actions(action: Action):
-    review = action.review
+def update_review_actions(review: Review):
     actions = Action.objects.filter(review=review).aggregate(approves=Count('action', filter=Q(action=1)),
                                                              disapproves=Count('action', filter=Q(action=-1)))
     review.approve_count = actions['approves']
@@ -267,23 +282,20 @@ def update_review_actions(action: Action):
     review.save(update_fields=['approve_count', 'disapprove_count'])
 
 
-def update_course_reviews(review: Review):
-    course = review.course
+def update_course_reviews(course: Course):
     review = Review.objects.filter(course=course).aggregate(avg=Avg('rating'), count=Count('*'))
     course.review_count = review['count']
     course.review_avg = review['avg']
     course.save(update_fields=['review_count', 'review_avg'])
 
 
-def update_department_count(course: Course):
-    department = course.department
+def update_department_count(department: Department):
     if department:
         department.count = Course.objects.filter(department=department).count()
         department.save(update_fields=['count'])
 
 
-def update_category_count(course: Course):
-    category = course.category
+def update_category_count(category: Category):
     if category:
         category.count = Course.objects.filter(category=category).count()
         category.save(update_fields=['count'])
