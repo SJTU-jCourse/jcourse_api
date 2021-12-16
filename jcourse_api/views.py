@@ -1,6 +1,6 @@
 import django_filters
 from django.core.mail import send_mail
-from django.db.models import Q, Count, Sum, OuterRef, Subquery
+from django.db.models import Sum, OuterRef, Subquery
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt

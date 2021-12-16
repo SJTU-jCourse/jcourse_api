@@ -1,34 +1,16 @@
-from django.db.models import Count, Avg, Q
-
-from jcourse_api.models import Action, Review, Course
+from jcourse_api.models import *
 
 
-def update_review_actions(sender, **kwargs):
-    action = kwargs['instance']
-    review = action.review
-    actions = Action.objects.filter(review=review).aggregate(approves=Count('action', filter=Q(action=1)),
-                                                             disapproves=Count('action', filter=Q(action=-1)))
-    review.approve_count = actions['approves']
-    review.disapprove_count = actions['disapproves']
-    review.save()
+def signal_delete_review_actions(sender, instance, **kwargs):
+    update_review_actions(instance)
 
 
-def update_course_reviews(sender, **kwargs):
-    review = kwargs['instance']
-    course = review.course
-    review = Review.objects.filter(course=course).aggregate(avg=Avg('rating'), count=Count('*'))
-    course.review_count = review['count']
-    course.review_avg = review['avg']
-    course.save()
+def signal_delete_course_reviews(sender, instance, **kwargs):
+    update_course_reviews(instance)
 
 
-def update_filter_count(sender, **kwargs):
-    course = kwargs['instance']
-    department = course.department
-    if department:
-        department.count = Course.objects.filter(department=department).count()
-        department.save()
-    category = course.category
-    if category:
-        category.count = Course.objects.filter(category=category).count()
-        category.save()
+def signal_delete_filter_count(sender, instance, **kwargs):
+    if instance.category_id is not None:
+        update_category_count(instance)
+    if instance.department_id is not None:
+        update_department_count(instance)

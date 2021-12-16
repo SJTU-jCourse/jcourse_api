@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Count, Avg, Q
 from django.utils import timezone
 
 
@@ -103,6 +104,24 @@ class Course(models.Model):
     def __str__(self):
         return f"{self.code} {self.name}（{self.main_teacher}）"
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        need_to_update_department = False
+        need_to_update_category = False
+        if self.pk is None:
+            need_to_update_department = True
+            need_to_update_category = True
+        else:
+            previous = Course.objects.get(pk=self.pk)
+            if previous.category_id != self.category_id:
+                need_to_update_category = True
+            if previous.department_id != self.department_id:
+                need_to_update_department = True
+        super().save(force_insert, force_update, using, update_fields)
+        if need_to_update_department:
+            update_department_count(self)
+        if need_to_update_category:
+            update_category_count(self)
+
 
 class Review(models.Model):
     class Meta:
@@ -129,6 +148,18 @@ class Review(models.Model):
         return constrain_text(self.comment)
 
     comment_validity.short_description = '详细点评'
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        need_to_update = False
+        if self.pk is None:
+            need_to_update = True
+        else:
+            previous = Review.objects.get(pk=self.pk)
+            if previous.course_id != self.course_id:
+                need_to_update = True
+        super().save(force_insert, force_update, using, update_fields)
+        if need_to_update:
+            update_course_reviews(self)
 
 
 class Notice(models.Model):
@@ -186,6 +217,18 @@ class Action(models.Model):
     def __str__(self):
         return f"{self.review}"
 
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        need_to_update = False
+        if self.pk is None:
+            need_to_update = True
+        else:
+            previous = Action.objects.get(pk=self.pk)
+            if previous.review_id != self.review_id or previous.action != self.action:
+                need_to_update = True
+        super().save(force_insert, force_update, using, update_fields)
+        if need_to_update:
+            update_review_actions(self)
+
 
 class ApiKey(models.Model):
     class Meta:
@@ -213,3 +256,34 @@ class EnrollCourse(models.Model):
 
     def __str__(self):
         return f"{self.user.username} {self.course.name} {self.semester.name}"
+
+
+def update_review_actions(action: Action):
+    review = action.review
+    actions = Action.objects.filter(review=review).aggregate(approves=Count('action', filter=Q(action=1)),
+                                                             disapproves=Count('action', filter=Q(action=-1)))
+    review.approve_count = actions['approves']
+    review.disapprove_count = actions['disapproves']
+    review.save(update_fields=['approve_count', 'disapprove_count'])
+
+
+def update_course_reviews(review: Review):
+    course = review.course
+    review = Review.objects.filter(course=course).aggregate(avg=Avg('rating'), count=Count('*'))
+    course.review_count = review['count']
+    course.review_avg = review['avg']
+    course.save(update_fields=['review_count', 'review_avg'])
+
+
+def update_department_count(course: Course):
+    department = course.department
+    if department:
+        department.count = Course.objects.filter(department=department).count()
+        department.save(update_fields=['count'])
+
+
+def update_category_count(course: Course):
+    category = course.category
+    if category:
+        category.count = Course.objects.filter(category=category).count()
+        category.save(update_fields=['count'])
