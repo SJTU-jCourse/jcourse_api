@@ -234,7 +234,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_course(obj):
-        serializer = CourseInReviewSerializer(obj.course, context={'semester': obj.course_semesters})
+        serializer = CourseInReviewSerializer(obj.course, context={'semester': obj.my_enroll_semester})
         return serializer.data
 
 

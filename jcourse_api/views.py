@@ -36,12 +36,12 @@ class CourseFilter(django_filters.FilterSet):
 
 
 def get_course_list_queryset(user: User):
-    my_reviews = Review.objects.filter(user=user, course_id=OuterRef('pk')).values('pk')
-    my_enroll_semester = EnrollCourse.objects.select_related('semester'). \
-        filter(user=user, course_id=OuterRef('pk')).values('semester')
+    my_review = Review.objects.filter(user=user, course_id=OuterRef('pk')).values('pk')
+    my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('pk')).values('semester')
 
     return Course.objects.select_related('main_teacher', 'category', 'department').annotate(
-        semester=Subquery(my_enroll_semester[:1]), is_reviewed=Subquery(my_reviews[:1]))
+        semester=Subquery(my_enroll_semester[:1]),
+        is_reviewed=Subquery(my_review[:1]))
 
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -92,16 +92,16 @@ class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Review.objects.all().select_related('semester')
+    queryset = Review.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = ReviewInCourseSerializer
 
 
 def get_reviews(user: User):
-    my_actions = Action.objects.filter(user=user, review_id=OuterRef('pk')).values('action')
-    course_semesters = EnrollCourse.objects.filter(user=user, course_id=OuterRef('course')).values('semester')
-    return Review.objects.select_related('course', 'course__main_teacher', 'semester'). \
-        annotate(my_action=Subquery(my_actions[:1]), course_semesters=Subquery(course_semesters[:1]))
+    my_action = Action.objects.filter(user=user, review_id=OuterRef('pk')).values('action')
+    my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('course_id')).values('semester')
+    return Review.objects.annotate(my_action=Subquery(my_action[:1]),
+                                   my_enroll_semester=Subquery(my_enroll_semester[:1]))
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -344,5 +344,4 @@ class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         courses = get_course_list_queryset(self.request.user)
-        return courses.filter(enrollcourse__user=self.request.user). \
-            select_related('main_teacher', 'category', 'department')
+        return courses.filter(enrollcourse__user=self.request.user)
