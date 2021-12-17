@@ -10,3 +10,4 @@ psycopg2-binary==2.9.2
 pymemcache==3.5.0
 pypinyin==0.44.0
 coverage==6.2
+django-debug-toolbar==3.2.4

@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'oauth',
     'django_filters',
     'import_export',
-    'corsheaders'
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -181,3 +181,16 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_SSL = True
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', EMAIL_HOST_USER)
 ADMIN_EMAIL = os.environ.get('EMAIL_HOST_USER', EMAIL_HOST_USER)
+
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]
+    import mimetypes
+
+    mimetypes.add_type("application/javascript", ".js", True)
+    DEBUG_TOOLBAR_CONFIG = {
+        'INTERCEPT_REDIRECTS': False,
+    }
