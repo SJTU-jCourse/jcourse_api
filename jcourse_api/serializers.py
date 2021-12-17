@@ -76,13 +76,6 @@ def get_course_rating(obj: Course):
     return {'count': obj.review_count, 'avg': obj.review_avg}
 
 
-def get_serialized_semester(semester):
-    try:
-        return SemesterSerializer(instance=Semester.objects.get(pk=semester)).data
-    except Semester.DoesNotExist:
-        return None
-
-
 class CourseSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
@@ -131,7 +124,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_semester(obj):
-        return get_serialized_semester(obj.semester)
+        return obj.semester
 
     @staticmethod
     def get_is_reviewed(obj):
@@ -174,7 +167,7 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_semester(obj):
-        return get_serialized_semester(obj.semester)
+        return obj.semester
 
 
 class CourseInReviewSerializer(serializers.ModelSerializer):
@@ -194,7 +187,7 @@ class CourseInReviewSerializer(serializers.ModelSerializer):
             semester = obj.semester
         else:
             semester = self.context.get('semester', None)
-        return get_serialized_semester(semester)
+        return semester
 
 
 class CreateReviewSerializer(serializers.ModelSerializer):
@@ -224,7 +217,6 @@ def is_my_review(serializer: serializers.Serializer, obj: Review):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    semester = SemesterSerializer()
     course = serializers.SerializerMethodField(read_only=True)
     actions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
@@ -247,7 +239,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ReviewInCourseSerializer(serializers.ModelSerializer):
-    semester = SemesterSerializer()
     actions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
 
