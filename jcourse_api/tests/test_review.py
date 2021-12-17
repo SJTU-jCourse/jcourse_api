@@ -12,12 +12,13 @@ class ReviewTest(TestCase):
         self.user = User.objects.get(username='test')
         self.client.force_login(self.user)
         self.endpoint = '/api/review/'
+        self.semester = Semester.objects.get(name='2021-2022-1')
 
     def test_list(self):
         response = self.client.get(self.endpoint).json()
         self.assertEqual(response['count'], 1)
         review = response['results'][0]
-        self.assertEqual(review['semester']['name'], '2021-2022-1')
+        self.assertEqual(review['semester'], self.semester.pk)
         course = review['course']
         # self.assertEqual(course['id'], 2)
         self.assertEqual(course['code'], 'CS1500')
@@ -45,7 +46,7 @@ class ReviewTest(TestCase):
         self.assertEqual(len(response), 1)
         self.assertNotIn('course', response[0].keys())
         review = response[0]
-        self.assertEqual(review['semester']['name'], '2021-2022-1')
+        self.assertEqual(review['semester'], self.semester.pk)
         actions = review['actions']
         self.assertEqual(actions['approves'], 1)
         self.assertEqual(actions['disapproves'], 0)

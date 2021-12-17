@@ -45,32 +45,33 @@ class EnrollLessonTest(TestCase):
         self.client.force_login(self.user)
         self.endpoint = '/api/lesson/'
         courses = Course.objects.all()
+        self.semester = Semester.objects.first()
         for course in courses:
-            EnrollCourse.objects.create(user=self.user, course=course, semester=Semester.objects.first())
+            EnrollCourse.objects.create(user=self.user, course=course, semester=self.semester)
 
     def test_list(self):
         response = self.client.get(self.endpoint).json()
         self.assertEqual(len(response), 4)
         for course in response:
-            self.assertEqual(course['semester']['name'], '2021-2022-3')
+            self.assertEqual(course['semester'], self.semester.pk)
 
     def test_course_list_status(self):
         response = self.client.get(f'/api/course/').json()
         for course in response['results']:
-            self.assertEqual(course['semester']['name'], '2021-2022-3')
+            self.assertEqual(course['semester'], self.semester.pk)
 
     def test_course_detail_status(self):
         response = self.client.get(f'/api/course/{Course.objects.first().id}/').json()
-        self.assertEqual(response['semester']['name'], '2021-2022-3')
+        self.assertEqual(response['semester'], self.semester.pk)
 
     def test_course_in_review_status(self):
         response = self.client.get(f'/api/course-in-review/', {'q': 'cs'}).json()
         for course in response:
-            self.assertEqual(course['semester']['name'], '2021-2022-3')
+            self.assertEqual(course['semester'], self.semester.pk)
 
     def test_retrieve_my_review(self):
         response = self.client.get(f'/api/review/{self.review.id}/').json()
-        self.assertEqual(response['course']['semester']['name'], '2021-2022-3')
+        self.assertEqual(response['course']['semester'], self.semester.pk)
 
 
 class ReportTest(TestCase):
