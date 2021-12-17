@@ -212,7 +212,7 @@ def is_my_review(serializer: serializers.Serializer, obj: Review):
     request = serializer.context.get("request")
     if request and hasattr(request, "user"):
         user = request.user
-        return obj.user == user
+        return obj.user_id == user.id
     return False
 
 
