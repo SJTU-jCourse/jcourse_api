@@ -96,12 +96,12 @@ class CourseTest(TestCase):
         self.assertEqual(courses[1]['code'], 'CS2500')
 
     def test_filter(self):
-        response = self.client.get(self.endpoint, {'category': 1})
+        response = self.client.get(self.endpoint, {'category': Category.objects.get(name='通识').pk})
         courses = response.json()['results']
         for course in courses:
             self.assertEqual(course['category'], '通识')
 
-        response = self.client.get(self.endpoint, {'department': 1})
+        response = self.client.get(self.endpoint, {'department': Department.objects.get(name='SEIEE').pk})
         courses = response.json()['results']
         for course in courses:
             self.assertEqual(course['department'], 'SEIEE')
