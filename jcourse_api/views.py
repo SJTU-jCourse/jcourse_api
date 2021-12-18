@@ -67,7 +67,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True)
     def review(self, request: Request, pk=None):
-        reviews = get_reviews(request.user).filter(course_id=pk)
+        reviews = get_reviews(request.user).select_related().filter(course_id=pk)
         serializer = ReviewInCourseSerializer(reviews, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -91,17 +91,11 @@ class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         return get_search_course_queryset(q, self.request.user)
 
 
-class ReviewInCourseViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Review.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = ReviewInCourseSerializer
-
-
 def get_reviews(user: User):
     my_action = Action.objects.filter(user=user, review_id=OuterRef('pk')).values('action')
     my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('course_id')).values('semester')
-    return Review.objects.annotate(my_action=Subquery(my_action[:1]),
-                                   my_enroll_semester=Subquery(my_enroll_semester[:1]))
+    return Review.objects.select_related('course', 'course__main_teacher').annotate(
+        my_action=Subquery(my_action[:1]), my_enroll_semester=Subquery(my_enroll_semester[:1]))
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
