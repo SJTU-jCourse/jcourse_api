@@ -274,6 +274,17 @@ class EnrollCourse(models.Model):
         return f"{self.user.username} {self.course.name} {self.semester.name}"
 
 
+class UserPoint(models.Model):
+    class Meta:
+        verbose_name = '积分'
+        verbose_name_plural = verbose_name
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    value = models.IntegerField(verbose_name='数值', default=0, null=False)
+    description = models.CharField(verbose_name='原因', max_length=255, null=True)
+    time = models.DateTimeField(verbose_name='时间', default=timezone.now, db_index=True)
+
+
 def update_review_actions(review: Review):
     actions = Action.objects.filter(review=review).aggregate(approves=Count('action', filter=Q(action=1)),
                                                              disapproves=Count('action', filter=Q(action=-1)))

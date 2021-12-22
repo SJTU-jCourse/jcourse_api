@@ -139,6 +139,11 @@ class NameAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name')
 
 
+@admin.register(UserPoint)
+class CategoryAdmin(ImportExportModelAdmin):
+    list_display = ('user', 'value', 'description', 'time')
+
+
 @admin.register(EnrollCourse)
 class EnrollCourseAdmin(ImportExportModelAdmin):
     list_display = ('user', 'course', 'semester')
