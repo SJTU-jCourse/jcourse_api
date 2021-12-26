@@ -24,8 +24,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-chd73zi=3zn63gqmmczye
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.environ.get('DEBUG', False))
 
-ALLOWED_HOSTS = ['course.sjtu.plus', 'localhost', '127.0.0.1']
-
+ALLOWED_HOSTS = ['course.sjtu.plus']
+CSRF_TRUSTED_ORIGINS = ['https://course.sjtu.plus']
 # Application definition
 
 INSTALLED_APPS = [
@@ -194,6 +194,8 @@ if DEBUG:
     DEBUG_TOOLBAR_CONFIG = {
         'INTERCEPT_REDIRECTS': False,
     }
+    ALLOWED_HOSTS += ['localhost', '127.0.0.1']
+    CSRF_TRUSTED_ORIGINS += ['http://localhost:3000']
 
 LOGGING = {
     'version': 1,
