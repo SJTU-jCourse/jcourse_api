@@ -16,27 +16,27 @@ jobs:
         python-version: [3.9]
 
     services:
-      memcached:
-        image: memcached
-        ports: 
-          - 11211:11211
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
       postgres:
         image: postgres
         env:
           POSTGRES_PASSWORD: jcourse
           POSTGRES_DB: jcourse
           POSTGRES_USER: jcourse
-        ports: 
+        ports:
           - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    env: 
-        POSTGRES_PASSWORD: jcourse
-        POSTGRES_HOST: localhost
-        MEMCACHED_HOST: localhost
+    env:
+      POSTGRES_PASSWORD: jcourse
+      POSTGRES_HOST: localhost
+      REDIS_HOST: localhost
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
