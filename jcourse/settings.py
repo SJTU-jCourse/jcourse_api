@@ -78,12 +78,12 @@ WSGI_APPLICATION = 'jcourse.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-MEMCACHED_HOST = os.environ.get('MEMCACHED_HOST', None)
-if MEMCACHED_HOST:
+REDIS_HOST = os.environ.get('REDIS_HOST', None)
+if REDIS_HOST:
     CACHES = {
         'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-            'LOCATION': f'{MEMCACHED_HOST}:11211',
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': f'redis://{REDIS_HOST}:6379',
         }
     }
     SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
