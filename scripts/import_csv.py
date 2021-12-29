@@ -21,7 +21,11 @@ with open(f'{data_dir}/2021-2022-2.csv', mode='r', encoding='utf-8-sig') as f:
     reader = csv.DictReader(f)
 
     for row in reader:
-        teacher_groups = row['合上教师'].split(';')
+        teacher_groups = row['合上教师']
+        if teacher_groups == 'QT2002231068/THIERRY; Fine; VAN CHUNG/无[外国语学院]':
+            teacher_groups = 'QT2002231068/THIERRY, Fine, VAN CHUNG/无[外国语学院]'
+
+        teacher_groups = teacher_groups.split(';')
         tid_groups = []
         for teacher in teacher_groups:
             try:
@@ -40,14 +44,13 @@ with open(f'{data_dir}/2021-2022-2.csv', mode='r', encoding='utf-8-sig') as f:
         if any(department == x for x in ['软件学院', '微电子学院', '计算机科学与工程系']):
             department = '电子信息与电气工程学院'
         departments.add(department)
-
+        name = row['课程名称']
         code = row['课程号']
-        if code in former_codes:
-            code = former_codes[code]
-        main_teacher = row['任课教师'].split('|')[0] if row['任课教师'] else tid_groups[0]
-        if department != '致远学院':
-            course_department[(code, main_teacher)] = department
+
         category = row['通识课归属模块'].split(',')[0]
+        if category == "" and department == '研究生院':
+            category = '研究生'
+            name = name.removesuffix('（研）')
         if category == "" and row['年级'] == "0":
             if row['课程号'].startswith('SP'):
                 category = '新生研讨'
@@ -55,10 +58,20 @@ with open(f'{data_dir}/2021-2022-2.csv', mode='r', encoding='utf-8-sig') as f:
                 category = ''
             else:
                 category = '通选'
+        if category == "" and any(code.startswith(x) for x in ['PE001C', 'PE002C', 'PE003C', 'PE004C']):
+            category = '体育'
+        if category.find('（致远）') != -1:
+            category = category.removesuffix('（致远）')
         categories.add(category)
+        if category == "" and code in former_codes:
+            code = former_codes[code]
+        main_teacher = row['任课教师'].split('|')[0] if row['任课教师'] else tid_groups[0]
+        if department != '致远学院':
+            course_department[(code, main_teacher)] = department
+
         # code	name	credit	department	category    main_teacher	teacher_group
         courses.add(
-            (code, row['课程名称'], row['学分'], department, category,
+            (code, name, row['学分'], department, category,
              main_teacher, ';'.join(tid_groups)))
 
 unique_courses = set()
