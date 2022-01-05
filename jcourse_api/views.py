@@ -238,13 +238,15 @@ def get_user_point(user: User):
         'count']
     if first_reviews_approves_count is None:
         first_reviews_approves_count = 0
-    additional_point = UserPoint.objects.filter(user=user).aggregate(sum=Sum('value'))['sum']
+    additional = UserPoint.objects.filter(user=user)
+    additional_point = additional.aggregate(sum=Sum('value'))['sum']
     if additional_point is None:
         additional_point = 0
+    addition_details = UserPointSerializer(additional, many=True).data
     points = additional_point + approves_count + first_reviews_approves_count + reviews_count + first_reviews_count
     return {'points': points, 'reviews': reviews_count, 'first_reviews': first_reviews_count,
             'approves': approves_count, 'first_reviews_approves': first_reviews_approves_count,
-            'addition': additional_point}
+            'addition': additional_point, 'details': addition_details}
 
 
 class UserPointView(APIView):

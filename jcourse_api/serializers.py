@@ -252,3 +252,9 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
 
     def get_is_mine(self, obj: Review):
         return is_my_review(self, obj)
+
+
+class UserPointSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserPoint
+        exclude = ('user', 'id')
