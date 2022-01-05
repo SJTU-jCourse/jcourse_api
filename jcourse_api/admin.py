@@ -9,11 +9,6 @@ from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from jcourse_api.models import *
 
 
-class CourseInline(admin.StackedInline):
-    model = Course
-    extra = 1
-
-
 class CourseResource(resources.ModelResource):
     department = fields.Field(attribute='department', widget=ForeignKeyWidget(Department, 'name'))
     category = fields.Field(attribute='category', widget=ForeignKeyWidget(Category, 'name'))
@@ -71,7 +66,6 @@ class TeacherAdmin(ImportExportModelAdmin):
     resource_class = TeacherResource
     list_display = ('tid', 'name', 'department', 'title', 'pinyin', 'abbr_pinyin')
     list_filter = ('department__name', 'title')
-    inlines = [CourseInline]
     search_fields = ('name', 'pinyin', 'abbr_pinyin')
 
 
@@ -83,6 +77,7 @@ class FormerCodeAdmin(ImportExportModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(ImportExportModelAdmin):
+    autocomplete_fields = ('user', 'course')
     list_display = ('user', 'course', 'created', 'approve_count', 'disapprove_count', 'comment_validity')
     search_fields = ('user__username', 'course__code')
     readonly_fields = ('approve_count', 'disapprove_count')
@@ -140,7 +135,8 @@ class NameAdmin(ImportExportModelAdmin):
 
 
 @admin.register(UserPoint)
-class CategoryAdmin(ImportExportModelAdmin):
+class UserPointAdmin(ImportExportModelAdmin):
+    autocomplete_fields = ('user',)
     list_display = ('user', 'value', 'description', 'time')
     search_fields = ('user__username', 'description')
 

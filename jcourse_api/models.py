@@ -202,7 +202,7 @@ class Report(models.Model):
     reply = models.TextField(verbose_name='回复', max_length=817, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.username}：{constrain_text(self.comment)}"
+        return f"{self.user}：{constrain_text(self.comment)}"
 
     def comment_validity(self):
         return constrain_text(self.comment)
@@ -227,7 +227,7 @@ class Action(models.Model):
     action = models.IntegerField(choices=ACTION_CHOICES, verbose_name='操作', default=0, db_index=True)
 
     def __str__(self):
-        return f"{self.review}"
+        return f"{self.user} {self.get_action_display()} {self.review}"
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         need_to_update = False
@@ -266,12 +266,12 @@ class EnrollCourse(models.Model):
         verbose_name_plural = verbose_name
         constraints = [models.UniqueConstraint(fields=['user', 'course', 'semester'], name='unique_enroll')]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, db_index=True)
     semester = models.ForeignKey(Semester, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.username} {self.course.name} {self.semester.name}"
+        return f"{self.user} {self.course.name} {self.semester.name}"
 
 
 class UserPoint(models.Model):
@@ -279,10 +279,13 @@ class UserPoint(models.Model):
         verbose_name = '积分'
         verbose_name_plural = verbose_name
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     value = models.IntegerField(verbose_name='数值', default=0, null=False)
     description = models.CharField(verbose_name='原因', max_length=255, null=True)
     time = models.DateTimeField(verbose_name='时间', default=timezone.now, db_index=True)
+
+    def __str__(self):
+        return f"{self.user} 积分：{self.value} 原因：{constrain_text(self.description)}"
 
 
 def update_review_actions(review: Review):
