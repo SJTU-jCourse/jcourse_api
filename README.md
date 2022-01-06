@@ -45,9 +45,12 @@ services:
             SECRET_KEY: 
             POSTGRES_PASSWORD: jcourse
             POSTGRES_HOST: db
-            MEMCACHED_HOST: cache
+            REDIS_HOST: cache
             JACCOUNT_CLIENT_ID: 
             JACCOUNT_CLIENT_SECRET: 
+            EMAIL_HOST_USER: 
+            EMAIL_HOST_PASSWORD: 
+            LOGGING_FILE: ./data/django.log
         volumes:
             - ./static:/django/static
             - ./django-data:/django/data
@@ -65,6 +68,6 @@ services:
             POSTGRES_PASSWORD: jcourse
         restart: always
     cache:
-        image: memcached:latest
+        image: redis:latest
         restart: always
 ```
