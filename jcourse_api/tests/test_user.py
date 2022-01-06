@@ -21,19 +21,40 @@ class UserTest(TestCase):
         self.assertEqual(response['username'], 'test')
         self.assertEqual(response['is_staff'], False)
 
+
+class UserPointTest(TestCase):
+    def setUp(self) -> None:
+        create_test_env()
+        create_review()
+        self.client = APIClient()
+        self.user = User.objects.get(username='test')
+        UserPoint.objects.create(user=self.user, value=100, description='test')
+        self.client.force_login(self.user)
+        self.endpoint = '/api/points/'
+
+    def test_empty_points(self):
+        user = User.objects.create(username='test2')
+        self.client.force_login(user)
+        response = self.client.get(self.endpoint).json()
+        self.assertEqual(response['points'], 0)
+        self.assertEqual(response['reviews'], 0)
+        self.assertEqual(response['first_reviews'], 0)
+        self.assertEqual(response['approves'], 0)
+        self.assertEqual(response['first_reviews_approves'], 0)
+        self.assertEqual(response['addition'], 0)
+        self.assertEqual(response['details'], [])
+
     def test_points(self):
-        result = get_user_point(self.user)
-        self.assertEqual(result['points'], 4)
-        self.assertEqual(result['reviews'], 1)
-        self.assertEqual(result['first_reviews'], 1)
-        self.assertEqual(result['approves'], 1)
-        self.assertEqual(result['first_reviews_approves'], 1)
-        result = get_user_point(User.objects.create(username='test2'))
-        self.assertEqual(result['points'], 0)
-        self.assertEqual(result['reviews'], 0)
-        self.assertEqual(result['first_reviews'], 0)
-        self.assertEqual(result['approves'], 0)
-        self.assertEqual(result['first_reviews_approves'], 0)
+        response = self.client.get(self.endpoint).json()
+        self.assertEqual(response['points'], 104)
+        self.assertEqual(response['reviews'], 1)
+        self.assertEqual(response['first_reviews'], 1)
+        self.assertEqual(response['approves'], 1)
+        self.assertEqual(response['first_reviews_approves'], 1)
+        self.assertEqual(response['addition'], 100)
+        details = response['details']
+        self.assertEqual(len(details), 1)
+        self.assertEqual(details[0]['value'], 100)
 
 
 class EnrollLessonTest(TestCase):
