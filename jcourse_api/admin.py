@@ -15,6 +15,7 @@ class CourseResource(resources.ModelResource):
     main_teacher = fields.Field(attribute='main_teacher', widget=ForeignKeyWidget(Teacher, 'tid'))
     teacher_group = fields.Field(attribute='teacher_group',
                                  widget=ManyToManyWidget(Teacher, separator=';', field='tid'))
+    last_semester = fields.Field(attribute='last_semester', widget=ForeignKeyWidget(Semester, 'name'))
 
     class Meta:
         model = Course
@@ -23,7 +24,7 @@ class CourseResource(resources.ModelResource):
         skip_unchanged = True
         report_skipped = False
         export_order = (
-            'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'teacher_group')
+            'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'teacher_group', 'last_semester')
 
     def save_instance(self, instance, using_transactions=True, dry_run=False):
         try:
@@ -36,7 +37,7 @@ class CourseResource(resources.ModelResource):
 class CourseAdmin(ImportExportModelAdmin):
     list_display = (
         'id', 'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'review_count', 'review_avg')
-    list_filter = ('department', 'category', 'credit')
+    list_filter = ('department', 'category', 'credit', 'last_semester')
     search_fields = ('id', 'code', 'name')
     autocomplete_fields = ('main_teacher', 'teacher_group')
     resource_class = CourseResource
@@ -45,6 +46,7 @@ class CourseAdmin(ImportExportModelAdmin):
 
 class TeacherResource(resources.ModelResource):
     department = fields.Field(attribute='department', widget=ForeignKeyWidget(Department, 'name'))
+    last_semester = fields.Field(attribute='last_semester', widget=ForeignKeyWidget(Semester, 'name'))
 
     class Meta:
         model = Teacher
@@ -52,7 +54,7 @@ class TeacherResource(resources.ModelResource):
         skip_unchanged = True
         report_skipped = False
         exclude = ('id',)
-        export_order = ('tid', 'name', 'department', 'title')
+        export_order = ('tid', 'name', 'department', 'title', 'last_semester')
 
     def save_instance(self, instance, using_transactions=True, dry_run=False):
         try:
@@ -64,8 +66,8 @@ class TeacherResource(resources.ModelResource):
 @admin.register(Teacher)
 class TeacherAdmin(ImportExportModelAdmin):
     resource_class = TeacherResource
-    list_display = ('tid', 'name', 'department', 'title', 'pinyin', 'abbr_pinyin')
-    list_filter = ('department__name', 'title')
+    list_display = ('tid', 'name', 'department', 'title', 'pinyin', 'abbr_pinyin', 'last_semester')
+    list_filter = ('department', 'title', 'last_semester')
     search_fields = ('name', 'pinyin', 'abbr_pinyin')
 
 

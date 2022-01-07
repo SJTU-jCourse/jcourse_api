@@ -15,9 +15,9 @@ categories = set()
 courses = set()
 encoding = 'utf-8'
 data_dir = '../data'
-
+semester = '2021-2022-2'
 course_department = dict()
-with open(f'{data_dir}/2021-2022-2.csv', mode='r', encoding='utf-8-sig') as f:
+with open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig') as f:
     reader = csv.DictReader(f)
 
     for row in reader:
@@ -37,7 +37,7 @@ with open(f'{data_dir}/2021-2022-2.csv', mode='r', encoding='utf-8-sig') as f:
             title = title[0:title.find('[')]
             my_pinyin = ''.join(lazy_pinyin(name))
             abbr_pinyin = ''.join([i[0] for i in pinyin(name, style=Style.FIRST_LETTER)])
-            teachers.add((tid, name, title, department, my_pinyin, abbr_pinyin))
+            teachers.add((tid, name, title, department, my_pinyin, abbr_pinyin, semester))
             tid_groups.append(tid)
             departments.add(department)
         department = row['开课院系']
@@ -72,7 +72,7 @@ with open(f'{data_dir}/2021-2022-2.csv', mode='r', encoding='utf-8-sig') as f:
         # code	name	credit	department	category    main_teacher	teacher_group
         courses.add(
             (code, name, row['学分'], department, category,
-             main_teacher, ';'.join(tid_groups)))
+             main_teacher, ';'.join(tid_groups), semester))
 
 unique_courses = set()
 for course in courses:
@@ -84,7 +84,7 @@ print(len(teachers), len(departments), len(categories), len(courses))
 
 with open(f'{data_dir}/Teachers.csv', mode='w', encoding=encoding, newline='') as f:
     writer = csv.writer(f)
-    writer.writerow(['tid', 'name', 'title', 'department', 'pinyin', 'abbr_pinyin'])
+    writer.writerow(['tid', 'name', 'title', 'department', 'pinyin', 'abbr_pinyin', 'last_semester'])
     writer.writerows(teachers)
 
 with open(f'{data_dir}/Categories.csv', mode='w', encoding=encoding, newline='') as f:
@@ -99,5 +99,6 @@ with open(f'{data_dir}/Departments.csv', mode='w', encoding=encoding, newline=''
 
 with open(f'{data_dir}/Courses.csv', mode='w', encoding=encoding, newline='') as f:
     writer = csv.writer(f)
-    writer.writerow(['code', 'name', 'credit', 'department', 'category', 'main_teacher', 'teacher_group'])
+    writer.writerow(
+        ['code', 'name', 'credit', 'department', 'category', 'main_teacher', 'teacher_group', 'last_semester'])
     writer.writerows(unique_courses)

@@ -76,6 +76,8 @@ class Teacher(models.Model):
     title = models.CharField(verbose_name='职称', max_length=64, null=True, blank=True)
     pinyin = models.CharField(verbose_name='拼音', max_length=64, null=True, blank=True, db_index=True)
     abbr_pinyin = models.CharField(verbose_name='拼音缩写', max_length=64, null=True, blank=True, db_index=True)
+    # 仅用于后台维护，不对外显示
+    last_semester = models.ForeignKey(Semester, verbose_name='最后更新学期', null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
@@ -100,6 +102,8 @@ class Course(models.Model):
     moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
     review_count = models.IntegerField(verbose_name='点评数', null=True, blank=True, default=0, db_index=True)
     review_avg = models.FloatField(verbose_name='平均评分', null=True, blank=True, default=0)
+    # 仅用于后台维护，不对外显示
+    last_semester = models.ForeignKey(Semester, verbose_name='最后更新学期', null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"{self.code} {self.name}（{self.main_teacher}）"

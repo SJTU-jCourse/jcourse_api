@@ -100,7 +100,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        exclude = ['review_count', 'review_avg']
+        exclude = ['review_count', 'review_avg', 'last_semester']
 
     @staticmethod
     def get_former_codes(obj: Course):
@@ -151,7 +151,7 @@ class CourseListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        exclude = ['teacher_group', 'main_teacher', 'moderator_remark', 'review_count', 'review_avg']
+        exclude = ['teacher_group', 'main_teacher', 'moderator_remark', 'review_count', 'review_avg', 'last_semester']
 
     @staticmethod
     def get_rating(obj: Course):
