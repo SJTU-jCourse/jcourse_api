@@ -78,7 +78,7 @@ class FormerCodeAdmin(ImportExportModelAdmin):
 @admin.register(Review)
 class ReviewAdmin(ImportExportModelAdmin):
     autocomplete_fields = ('user', 'course')
-    list_display = ('user', 'course', 'created', 'approve_count', 'disapprove_count', 'comment_validity')
+    list_display = ('user', 'course', 'created', 'modified', 'approve_count', 'disapprove_count', 'comment_validity')
     search_fields = ('user__username', 'course__code')
     readonly_fields = ('approve_count', 'disapprove_count')
 

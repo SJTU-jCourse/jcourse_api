@@ -113,6 +113,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def perform_update(self, serializer):
+        serializer.save(modified=timezone.now())
+
     @action(detail=True, methods=['POST'], throttle_classes=[UserRateThrottle, ActionRateThrottle])
     def reaction(self, request: Request, pk=None):
         if 'action' not in request.data:

@@ -144,6 +144,7 @@ class Review(models.Model):
     rating = models.IntegerField(verbose_name='推荐指数', validators=[MaxValueValidator(5), MinValueValidator(1)])
     comment = models.TextField(verbose_name='详细点评', max_length=817)
     created = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
+    modified = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True)
     score = models.CharField(verbose_name='成绩', null=True, blank=True, max_length=10)
     moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
     approve_count = models.IntegerField(verbose_name='获赞数', null=True, blank=True, default=0)

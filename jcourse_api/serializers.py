@@ -194,7 +194,7 @@ class CreateReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         exclude = ['moderator_remark', 'approve_count', 'disapprove_count']
-        read_only_fields = ['user', 'created']
+        read_only_fields = ['user', 'created', 'modified']
 
     def create(self, validated_data):
         try:
