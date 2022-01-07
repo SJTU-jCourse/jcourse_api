@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('-f', '--file', type=str, help='filename')
-        parser.add_argument('-y', '--yes', action="store_true", help='dry run')
+        parser.add_argument('-y', '--yes', action="store_true", help='no dry run')
         group = parser.add_mutually_exclusive_group()
         group.add_argument('-c', '--course', action="store_true", help='import courses')
         group.add_argument('-t', '--teacher', action="store_true", help='import teachers')
@@ -31,8 +31,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options['file']:
             if options['course']:
-                self.import_course(options['file'], options['yes'])
+                self.import_course(options['file'], not options['yes'])
             elif options['teacher']:
-                self.import_teacher(options['file'], options['yes'])
+                self.import_teacher(options['file'], not options['yes'])
         else:
             self.stdout.write(f'No filename provided!')
