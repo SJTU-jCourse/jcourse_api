@@ -36,7 +36,8 @@ class CourseResource(resources.ModelResource):
 @admin.register(Course)
 class CourseAdmin(ImportExportModelAdmin):
     list_display = (
-        'id', 'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'review_count', 'review_avg')
+        'id', 'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'review_count', 'review_avg',
+        'last_semester')
     list_filter = ('department', 'category', 'credit', 'last_semester')
     search_fields = ('id', 'code', 'name')
     autocomplete_fields = ('main_teacher', 'teacher_group')
