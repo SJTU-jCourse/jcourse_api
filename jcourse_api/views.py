@@ -185,10 +185,11 @@ class ReportViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer: serializer_class):
         serializer.save(user=self.request.user)
-        data = serializer.data
-        email_body = f"内容：\n{data['comment']}\n时间：{data['created']}"
-        send_mail('选课社区反馈', email_body, from_email=jcourse.settings.DEFAULT_FROM_EMAIL,
-                  recipient_list=[jcourse.settings.ADMIN_EMAIL])
+        if not jcourse.settings.DEBUG:
+            data = serializer.data
+            email_body = f"内容：\n{data['comment']}\n时间：{data['created']}"
+            send_mail('选课社区反馈', email_body, from_email=jcourse.settings.DEFAULT_FROM_EMAIL,
+                      recipient_list=[jcourse.settings.ADMIN_EMAIL])
 
 
 class UserView(APIView):
