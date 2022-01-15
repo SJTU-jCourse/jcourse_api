@@ -67,7 +67,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True)
     def review(self, request: Request, pk=None):
-        reviews = get_reviews(request.user).select_related().filter(course_id=pk)
+        reviews = get_reviews(request.user, 'list').select_related('semester').filter(course_id=pk)
         serializer = ReviewInCourseSerializer(reviews, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -91,24 +91,29 @@ class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         return get_search_course_queryset(q, self.request.user)
 
 
-def get_reviews(user: User):
+def get_reviews(user: User, action: str):
     my_action = Action.objects.filter(user=user, review_id=OuterRef('pk')).values('action')
-    my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('course_id')).values('semester')
-    return Review.objects.select_related('course', 'course__main_teacher').annotate(
-        my_action=Subquery(my_action[:1]), my_enroll_semester=Subquery(my_enroll_semester[:1]))
+    reviews = Review.objects.select_related('course', 'course__main_teacher', 'semester')
+    if action == 'retrieve':
+        my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('course_id')).values('semester')
+        return reviews.annotate(
+            my_action=Subquery(my_action[:1]), my_enroll_semester=Subquery(my_enroll_semester[:1]))
+    return reviews.annotate(my_action=Subquery(my_action[:1]))
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrReadOnly]
 
     def get_queryset(self):
-        return get_reviews(self.request.user)
+        return get_reviews(self.request.user, self.action)
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
             return CreateReviewSerializer
+        elif self.action == 'retrieve':
+            return ReviewItemSerializer
         else:
-            return ReviewSerializer
+            return ReviewListSerializer
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -136,7 +141,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def mine(self, request: Request):
-        reviews = get_reviews(self.request.user).filter(user=request.user)
+        reviews = get_reviews(self.request.user, 'list').filter(user=request.user)
         serializer = self.get_serializer_class()
         data = serializer(reviews, many=True, context={'request': request}).data
         return Response(data)
@@ -162,7 +167,7 @@ class NoticeViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = CourseInReviewSerializer
+    serializer_class = CourseInWriteReviewSerializer
     pagination_class = None
 
     def get_queryset(self):

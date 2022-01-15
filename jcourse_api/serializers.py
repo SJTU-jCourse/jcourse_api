@@ -170,7 +170,19 @@ class CourseListSerializer(serializers.ModelSerializer):
         return obj.semester
 
 
-class CourseInReviewSerializer(serializers.ModelSerializer):
+class CourseInReviewListSerializer(serializers.ModelSerializer):
+    teacher = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Course
+        fields = ['id', 'code', 'name', 'teacher']
+
+    @staticmethod
+    def get_teacher(obj: Course):
+        return obj.main_teacher.name
+
+
+class CourseInWriteReviewSerializer(serializers.ModelSerializer):
     teacher = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
 
@@ -216,10 +228,33 @@ def is_my_review(serializer: serializers.Serializer, obj: Review):
     return False
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    course = serializers.SerializerMethodField(read_only=True)
+class ReviewListSerializer(serializers.ModelSerializer):
+    course = CourseInReviewListSerializer(read_only=True)
     actions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
+    semester = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Review
+        exclude = ['user', 'approve_count', 'disapprove_count']
+
+    @staticmethod
+    def get_semester(obj):
+        return obj.semester.name
+
+    def get_is_mine(self, obj: Review):
+        return is_my_review(self, obj)
+
+    @staticmethod
+    def get_actions(obj):
+        return get_review_actions(obj)
+
+
+class ReviewItemSerializer(serializers.ModelSerializer):
+    course = serializers.SerializerMethodField()
+    actions = serializers.SerializerMethodField()
+    is_mine = serializers.SerializerMethodField()
+    semester = SemesterSerializer()
 
     class Meta:
         model = Review
@@ -234,17 +269,22 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_course(obj):
-        serializer = CourseInReviewSerializer(obj.course, context={'semester': obj.my_enroll_semester})
+        serializer = CourseInWriteReviewSerializer(obj.course, context={'semester': obj.my_enroll_semester})
         return serializer.data
 
 
 class ReviewInCourseSerializer(serializers.ModelSerializer):
     actions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
+    semester = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
         exclude = ('user', 'course', 'approve_count', 'disapprove_count')
+
+    @staticmethod
+    def get_semester(obj):
+        return obj.semester.name
 
     @staticmethod
     def get_actions(obj):
