@@ -105,7 +105,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrReadOnly]
 
     def get_queryset(self):
-        return get_reviews(self.request.user, self.action)
+        reviews = get_reviews(self.request.user, self.action)
+        if 'order' in self.request.query_params:
+            if self.request.query_params['order'] == 'approves':
+                return reviews.order_by(F('approve_count').desc(nulls_last=True), F('created').desc(nulls_last=True))
+        return reviews
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
