@@ -87,7 +87,7 @@ class EnrollLessonTest(TestCase):
 
     def test_course_in_review_status(self):
         response = self.client.get(f'/api/course-in-review/', {'q': 'cs'}).json()
-        for course in response:
+        for course in response['results']:
             self.assertEqual(course['semester'], self.semester.pk)
 
     def test_retrieve_my_review(self):

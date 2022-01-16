@@ -168,7 +168,6 @@ class NoticeViewSet(viewsets.ReadOnlyModelViewSet):
 class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = CourseInWriteReviewSerializer
-    pagination_class = None
 
     def get_queryset(self):
         if self.action == 'list':
