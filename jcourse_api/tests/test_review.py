@@ -43,6 +43,7 @@ class ReviewTest(TestCase):
     def test_get_course_review(self):
         course = Course.objects.get(code='CS1500')
         response = self.client.get(f'/api/course/{course.id}/review/').json()
+        response = response['results']
         self.assertEqual(len(response), 1)
         self.assertNotIn('course', response[0].keys())
         review = response[0]

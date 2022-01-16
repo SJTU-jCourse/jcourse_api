@@ -68,6 +68,10 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True)
     def review(self, request: Request, pk=None):
         reviews = get_reviews(request.user, 'list').select_related('semester').filter(course_id=pk)
+        page = self.paginate_queryset(reviews)
+        if page is not None:
+            serializer = ReviewInCourseSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
         serializer = ReviewInCourseSerializer(reviews, many=True, context={'request': request})
         return Response(serializer.data)
 
