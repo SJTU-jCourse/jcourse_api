@@ -101,7 +101,7 @@ class Course(models.Model):
     teacher_group = models.ManyToManyField(Teacher, verbose_name='教师组成', related_name='teacher_course')
     moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
     review_count = models.IntegerField(verbose_name='点评数', null=True, blank=True, default=0, db_index=True)
-    review_avg = models.FloatField(verbose_name='平均评分', null=True, blank=True, default=0)
+    review_avg = models.FloatField(verbose_name='平均评分', null=True, blank=True, default=0, db_index=True)
     # 仅用于后台维护，不对外显示
     last_semester = models.ForeignKey(Semester, verbose_name='最后更新学期', null=True, blank=True, on_delete=models.SET_NULL)
 
@@ -151,8 +151,8 @@ class Review(models.Model):
     modified = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True)
     score = models.CharField(verbose_name='成绩', null=True, blank=True, max_length=10)
     moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
-    approve_count = models.IntegerField(verbose_name='获赞数', null=True, blank=True, default=0)
-    disapprove_count = models.IntegerField(verbose_name='获踩数', null=True, blank=True, default=0)
+    approve_count = models.IntegerField(verbose_name='获赞数', null=True, blank=True, default=0, db_index=True)
+    disapprove_count = models.IntegerField(verbose_name='获踩数', null=True, blank=True, default=0, db_index=True)
 
     def __str__(self):
         return f"{self.user} 点评 {self.course}：{constrain_text(self.comment)}"

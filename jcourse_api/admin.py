@@ -2,6 +2,7 @@ import os
 
 from django.contrib import admin
 from django.db import IntegrityError
+from django.db.models import F
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
@@ -81,9 +82,14 @@ class FormerCodeAdmin(ImportExportModelAdmin):
 @admin.register(Review)
 class ReviewAdmin(ImportExportModelAdmin):
     autocomplete_fields = ('user', 'course')
-    list_display = ('user', 'course', 'created', 'modified', 'approve_count', 'disapprove_count', 'comment_validity')
+    list_display = (
+        'user', 'course', 'created', 'last_modified', 'approve_count', 'disapprove_count', 'comment_validity')
     search_fields = ('user__username', 'course__code')
     readonly_fields = ('approve_count', 'disapprove_count')
+
+    @admin.display(ordering=F('modified').desc(nulls_last=True), description='更新时间')
+    def last_modified(self, obj):
+        return obj.modified
 
 
 @admin.register(Report)
