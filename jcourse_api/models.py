@@ -58,6 +58,7 @@ class Semester(models.Model):
         ordering = ['-name']
 
     name = models.CharField(verbose_name='名称', max_length=64, unique=True)
+    available = models.BooleanField(verbose_name='用户可选', default=True)
 
     def __str__(self):
         return self.name

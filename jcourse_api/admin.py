@@ -139,8 +139,8 @@ class CategoryAdmin(ImportExportModelAdmin):
 
 
 @admin.register(Semester)
-class NameAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'name')
+class SemesterAdmin(ImportExportModelAdmin):
+    list_display = ('id', 'name', 'available')
 
 
 @admin.register(UserPoint)

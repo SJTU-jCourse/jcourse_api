@@ -38,7 +38,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 class SemesterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Semester
-        fields = '__all__'
+        fields = ('id', 'name')
 
 
 class UserSerializer(serializers.ModelSerializer):
