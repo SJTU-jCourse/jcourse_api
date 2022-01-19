@@ -114,13 +114,14 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_related_teachers(obj: Course):
         return Course.objects.filter(code=obj.code).exclude(main_teacher=obj.main_teacher) \
             .values('id', avg=F('review_avg'), count=F('review_count'),
-                    tname=F('main_teacher__name')).order_by(F('avg').desc(nulls_last=True))
+                    tname=F('main_teacher__name')).order_by(F('avg').desc(nulls_last=True),
+                                                            F('count').desc(nulls_last=True))
 
     @staticmethod
     def get_related_courses(obj: Course):
         return Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code) \
             .values('id', 'code', 'name', avg=F('review_avg'),
-                    count=F('review_count')).order_by(F('avg').desc(nulls_last=True))
+                    count=F('review_count')).order_by(F('avg').desc(nulls_last=True), F('count').desc(nulls_last=True))
 
     @staticmethod
     def get_semester(obj):
