@@ -32,6 +32,7 @@ def create_test_env() -> None:
     Semester.objects.create(name='2021-2022-1')
     Semester.objects.create(name='2021-2022-2')
     Semester.objects.create(name='2021-2022-3')
+    Semester.objects.create(name='2022-2023-1', available=False)
     User.objects.create(username='test')
 
 

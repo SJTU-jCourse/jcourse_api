@@ -18,9 +18,9 @@ class ReviewTest(TestCase):
         response = self.client.get(self.endpoint).json()
         self.assertEqual(response['count'], 1)
         review = response['results'][0]
+        self.assertEqual(review['id'], self.review.id)
         self.assertEqual(review['semester'], self.semester.name)
         course = review['course']
-        # self.assertEqual(course['id'], 2)
         self.assertEqual(course['code'], 'CS1500')
         self.assertEqual(course['teacher'], '高女士')
         # self.assertEqual(course['semester'], None)
@@ -33,6 +33,40 @@ class ReviewTest(TestCase):
         self.assertEqual(review['comment'], 'TEST')
         self.assertEqual(review['score'], 'W')
         self.assertEqual(review['moderator_remark'], None)
+        self.assertIsNotNone(review['created'])
+        self.assertIsNone(review['modified'])
+
+    def test_order_by(self):
+        review = create_review('test2')
+        Action.objects.create(review=review, user=self.user, action=1)
+        response = self.client.get(self.endpoint, {'order': 'approves'}).json()
+        self.assertEqual(response['count'], 2)
+        self.assertEqual(response['results'][0]['id'], review.id)
+        self.assertEqual(response['results'][1]['id'], self.review.id)
+
+    def test_retrieve(self):
+        response = self.client.get(self.endpoint + f'{self.review.id}/')
+        review = response.json()
+        self.assertEqual(review['id'], self.review.id)
+        self.assertEqual(review['semester']['name'], self.semester.name)
+        self.assertEqual(review['semester']['id'], self.semester.id)
+        course = review['course']
+        self.assertEqual(course['code'], 'CS1500')
+        self.assertEqual(course['teacher'], '高女士')
+        self.assertEqual(course['semester'], None)
+        self.assertEqual(course['name'], '计算机科学导论')
+        self.assertEqual(course['id'], self.review.course_id)
+        actions = review['actions']
+        self.assertEqual(actions['approves'], 1)
+        self.assertEqual(actions['disapproves'], 0)
+        self.assertEqual(actions['action'], 1)
+        self.assertEqual(review['is_mine'], True)
+        self.assertEqual(review['rating'], 3)
+        self.assertEqual(review['comment'], 'TEST')
+        self.assertEqual(review['score'], 'W')
+        self.assertEqual(review['moderator_remark'], None)
+        self.assertIsNotNone(review['created'])
+        self.assertIsNone(review['modified'])
 
     def test_course_avg_count(self):
         course = Course.objects.get(code='CS1500')
@@ -67,7 +101,9 @@ class ReviewTest(TestCase):
         data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
                 'comment': 'TEST2', 'rating': 3}
         response = self.client.put(self.endpoint + f'{self.review.id}/', data)
+        review = response.json()
         self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(review['modified'])
 
     def test_put_others_review(self):
         review = create_review('test2', 'CS1500', 5)
@@ -136,6 +172,12 @@ class ActionTest(TestCase):
         self.client.force_login(self.user)
         self.endpoint = f'/api/review/{self.review.id}/reaction/'
 
+    def check_review_action(self, action: int, approves: int, disapproves: int):
+        response = self.client.get(f'/api/review/{self.review.id}/').json()
+        self.assertEqual(response['actions']['action'], action)
+        self.assertEqual(response['actions']['approves'], approves)
+        self.assertEqual(response['actions']['disapproves'], disapproves)
+
     def test_wrong_pk(self):
         response = self.client.post('/api/review//reaction/', {'action': 1})
         self.assertEqual(response.status_code, 404)
@@ -155,15 +197,18 @@ class ActionTest(TestCase):
         self.assertEqual(response['action'], '1')
         self.assertEqual(response['approves'], 1)
         self.assertEqual(response['disapproves'], 0)
+        self.check_review_action(1, 1, 0)
 
     def test_disapprove(self):
         response = self.client.post(self.endpoint, {'action': -1}).json()
         self.assertEqual(response['action'], '-1')
         self.assertEqual(response['approves'], 0)
         self.assertEqual(response['disapproves'], 1)
+        self.check_review_action(-1, 0, 1)
 
     def test_unset(self):
         response = self.client.post(self.endpoint, {'action': 0}).json()
         self.assertEqual(response['action'], '0')
         self.assertEqual(response['approves'], 0)
         self.assertEqual(response['disapproves'], 0)
+        self.check_review_action(0, 0, 0)

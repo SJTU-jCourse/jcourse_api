@@ -20,7 +20,7 @@ class SemesterTest(TestCase):
     def test_body(self):
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, 200)
-        semesters = Semester.objects.all()
+        semesters = Semester.objects.filter(available=True)
         expected = [{'id': semester.pk, 'name': semester.name} for semester in semesters]
         self.assertEqual(response.json(), expected)
 
@@ -158,6 +158,12 @@ class FilterTest(TestCase):
         self.assertEqual(response['departments'],
                          [{'id': Department.objects.get(name='PHYSICS').pk, 'count': 2, 'name': 'PHYSICS'},
                           {'id': Department.objects.get(name='SEIEE').pk, 'count': 2, 'name': 'SEIEE'}])
+
+    def test_delete_course(self):
+        Course.objects.all().delete()
+        response = self.client.get(self.endpoint).json()
+        self.assertEqual(response['categories'], [])
+        self.assertEqual(response['departments'], [])
 
 
 class SearchTest(TestCase):
