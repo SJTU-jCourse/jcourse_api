@@ -76,7 +76,9 @@ with open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig') as f:
 
 unique_courses = set()
 for course in courses:
-    if course[3] == '致远学院' and course_department.get((course[0], course[5]), '') != '致远学院':
+    other_dept = course_department.get((course[0], course[5]), '')
+    if course[3] == '致远学院' and other_dept != '' and other_dept != '致远学院':
+        print(course)
         continue
     unique_courses.add(course)
 
