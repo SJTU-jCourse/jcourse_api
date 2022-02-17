@@ -112,6 +112,14 @@ class ReviewTest(TestCase):
         response = self.client.put(self.endpoint + f'{review.id}/', data)
         self.assertEqual(response.status_code, 403)
 
+    def test_modify_rating(self):
+        data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
+                'comment': 'TEST2', 'rating': 5}
+        self.client.put(self.endpoint + f'{self.review.id}/', data)
+        response = self.client.get(f'/api/course/{self.review.course_id}/').json()
+        self.assertEqual(response['rating']['count'], 1)
+        self.assertEqual(response['rating']['avg'], 5)
+
     def test_delete_my_review(self):
         response = self.client.delete(self.endpoint + f'{self.review.id}/')
         self.assertEqual(response.status_code, 204)

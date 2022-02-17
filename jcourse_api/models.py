@@ -170,13 +170,13 @@ class Review(models.Model):
             need_to_update = True
         else:
             previous = Review.objects.get(pk=self.pk)
-            if previous.course_id != self.course_id:
+            if previous.course_id != self.course_id or previous.rating != self.rating:
                 need_to_update = True
                 old_course = previous.course
         super().save(force_insert, force_update, using, update_fields)
         if need_to_update:
             update_course_reviews(self.course)
-            if old_course:
+            if old_course and old_course != self.course:
                 update_course_reviews(old_course)
 
 
