@@ -84,7 +84,7 @@ class ReviewAdmin(ImportExportModelAdmin):
     autocomplete_fields = ('user', 'course')
     list_display = (
         'user', 'course', 'created', 'last_modified', 'approve_count', 'disapprove_count', 'comment_validity')
-    search_fields = ('user__username', 'course__code')
+    search_fields = ('user__username', 'course__code', 'course__id')
     readonly_fields = ('approve_count', 'disapprove_count')
 
     @admin.display(ordering=F('modified').desc(nulls_last=True), description='更新时间')
