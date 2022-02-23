@@ -21,6 +21,10 @@ with open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig') as f:
     reader = csv.DictReader(f)
 
     for row in reader:
+        department = row['开课院系']
+        if department == '研究生院':  # 跳过所有的研究生课程（主要原因是没有main_teacher字段）
+            continue
+
         teacher_groups = row['合上教师']
         if teacher_groups == 'QT2002231068/THIERRY; Fine; VAN CHUNG/无[外国语学院]':
             teacher_groups = 'QT2002231068/THIERRY, Fine, VAN CHUNG/无[外国语学院]'
@@ -68,7 +72,6 @@ with open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig') as f:
         main_teacher = row['任课教师'].split('|')[0] if row['任课教师'] else tid_groups[0]
         if department != '致远学院':
             course_department[(code, main_teacher)] = department
-
         # code	name	credit	department	category    main_teacher	teacher_group
         courses.add(
             (code, name, row['学分'], department, category,
