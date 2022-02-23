@@ -124,7 +124,7 @@ class Course(models.Model):
                 old_category = previous.category
             if previous.department_id != self.department_id:
                 need_to_update_department = True
-                old_department = previous.department_id
+                old_department = previous.department
         super().save(force_insert, force_update, using, update_fields)
         if need_to_update_department:
             update_department_count(self.department)
