@@ -25,7 +25,7 @@ class UserTest(TestCase):
 class UserPointTest(TestCase):
     def setUp(self) -> None:
         create_test_env()
-        create_review()
+        self.review = create_review()
         self.client = APIClient()
         self.user = User.objects.get(username='test')
         UserPoint.objects.create(user=self.user, value=100, description='test')
@@ -55,6 +55,21 @@ class UserPointTest(TestCase):
         details = response['details']
         self.assertEqual(len(details), 1)
         self.assertEqual(details[0]['value'], 100)
+
+    def test_bad_reviews(self):
+        user2 = User.objects.create(username='test2')
+        user3 = User.objects.create(username='test3')
+        user4 = User.objects.create(username='test4')
+        Action.objects.create(user=user2, review=self.review, action=-1)
+        Action.objects.create(user=user3, review=self.review, action=-1)
+        Action.objects.create(user=user4, review=self.review, action=-1)
+        response = self.client.get(self.endpoint).json()
+        self.assertEqual(response['points'], 100)
+        self.assertEqual(response['reviews'], 0)
+        self.assertEqual(response['first_reviews'], 0)
+        self.assertEqual(response['approves'], 0)
+        self.assertEqual(response['first_reviews_approves'], 0)
+        self.assertEqual(response['addition'], 100)
 
 
 class EnrollLessonTest(TestCase):

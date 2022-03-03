@@ -238,8 +238,7 @@ class StatisticView(APIView):
                         status=status.HTTP_200_OK)
 
 
-def get_user_point(user: User):
-    reviews = Review.objects.filter(user=user)
+def get_user_point_with_reviews(user: User, reviews):
     courses = reviews.values_list('course', flat=True)
     approves_count = reviews.aggregate(count=Sum('approve_count'))['count']
     if approves_count is None:
@@ -263,6 +262,11 @@ def get_user_point(user: User):
     return {'points': points, 'reviews': reviews_count, 'first_reviews': first_reviews_count,
             'approves': approves_count, 'first_reviews_approves': first_reviews_approves_count,
             'addition': additional_point, 'details': addition_details}
+
+
+def get_user_point(user: User):
+    reviews = Review.objects.filter(user=user).exclude(disapprove_count__gt=F('approve_count') * 2)
+    return get_user_point_with_reviews(user, reviews)
 
 
 class UserPointView(APIView):

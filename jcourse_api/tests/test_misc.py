@@ -64,3 +64,11 @@ class ApiKeyTest(TestCase):
         data = {'account': 'test2'}
         response = self.client.post(self.endpoint, data, HTTP_API_KEY="123457")
         self.assertEqual(response.status_code, 400)
+
+    def test_blocked_user(self):
+        user = User.objects.get(username=hash_username('test'))
+        user.is_active = False
+        user.save()
+        data = {'account': 'test'}
+        response = self.client.post(self.endpoint, data, HTTP_API_KEY="123457")
+        self.assertEqual(response.status_code, 400)
