@@ -15,8 +15,18 @@ categories = set()
 courses = set()
 encoding = 'utf-8'
 data_dir = '../data'
-semester = '2021-2022-2'
+semester = '2021-2022-3'
 course_department = dict()
+
+
+def regulate_department(raw_name: str) -> str:  # 将系统一到学院层面
+    if any(raw_name == x for x in ['软件学院', '微电子学院', '计算机科学与工程系']):
+        return '电子信息与电气工程学院'
+    if raw_name == '高分子科学与工程系':
+        return '化学化工学院'
+    return raw_name
+
+
 with open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig') as f:
     reader = csv.DictReader(f)
 
@@ -37,16 +47,15 @@ with open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig') as f:
             except ValueError:
                 print("\"" + teacher + "\"")
                 continue
-            department = title[title.find('[') + 1:-1]
+            department = regulate_department(title[title.find('[') + 1:-1])
             title = title[0:title.find('[')]
             my_pinyin = ''.join(lazy_pinyin(name))
             abbr_pinyin = ''.join([i[0] for i in pinyin(name, style=Style.FIRST_LETTER)])
             teachers.add((tid, name, title, department, my_pinyin, abbr_pinyin, semester))
             tid_groups.append(tid)
             departments.add(department)
-        department = row['开课院系']
-        if any(department == x for x in ['软件学院', '微电子学院', '计算机科学与工程系']):
-            department = '电子信息与电气工程学院'
+        department = regulate_department(row['开课院系'])
+
         departments.add(department)
         name = row['课程名称']
         code = row['课程号']
