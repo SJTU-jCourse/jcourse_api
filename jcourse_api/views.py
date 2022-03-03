@@ -289,7 +289,7 @@ class UserPointView(APIView):
         except ApiKey.DoesNotExist:
             return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            user = User.objects.get(username=hash_username(account))
+            user = User.objects.get(username=hash_username(account), is_active=True)
         except User.DoesNotExist:
             return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(get_user_point(user))
