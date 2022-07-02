@@ -156,7 +156,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Semester.objects.filter(available=True)
+    queryset = Semester.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = SemesterSerializer
     pagination_class = None

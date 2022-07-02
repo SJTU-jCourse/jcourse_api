@@ -20,8 +20,9 @@ class SemesterTest(TestCase):
     def test_body(self):
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, 200)
-        semesters = Semester.objects.filter(available=True)
-        expected = [{'id': semester.pk, 'name': semester.name} for semester in semesters]
+        semesters = Semester.objects.all()
+        expected = [{'id': semester.pk, 'name': semester.name, 'available': semester.available}
+                    for semester in semesters]
         self.assertEqual(response.json(), expected)
 
     def test_readonly(self):

@@ -14,7 +14,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 class SemesterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Semester
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'available')
 
 
 class UserSerializer(serializers.ModelSerializer):
