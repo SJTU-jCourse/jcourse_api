@@ -33,6 +33,7 @@ class StatisticTest(TestCase):
         self.assertEqual(response['courses'], 4)
         self.assertEqual(response['users'], 1)
         self.assertEqual(response['reviews'], 1)
+        self.assertEqual(response['courses_with_review'], 1)
 
 
 class ApiKeyTest(TestCase):
