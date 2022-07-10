@@ -109,7 +109,7 @@ class ActionAdmin(ImportExportModelAdmin):
 
 @admin.register(Notice)
 class NoticeAdmin(ImportExportModelAdmin):
-    list_display = ('title', 'message', 'created', 'available')
+    list_display = ('title', 'message', 'created', 'url', 'available')
 
 
 class DepartmentResource(resources.ModelResource):

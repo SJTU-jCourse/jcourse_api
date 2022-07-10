@@ -10,14 +10,18 @@ class NoticeTest(TestCase):
         self.client = APIClient()
         self.user = User.objects.create(username='test')
         self.client.force_login(self.user)
-        Notice.objects.create(title='TEST1', message='Just a test notice', available=True)
+        Notice.objects.create(title='TEST3', message='Just a test notice', available=True)
+        Notice.objects.create(title='TEST1', message='Just a test notice', available=True, url='https://example.com')
         Notice.objects.create(title='TEST2', message='Just a test notice', available=False)
 
     def test_list(self):
         response = self.client.get('/api/notice/').json()
-        self.assertEqual(len(response), 1)
+        self.assertEqual(len(response), 2)
         self.assertEqual(response[0]['title'], 'TEST1')
         self.assertEqual(response[0]['message'], 'Just a test notice')
+        self.assertEqual(response[0]['url'], 'https://example.com')
+        self.assertEqual(response[1]['url'], None)
+        self.assertEqual(response[1]['title'], 'TEST3')
 
 
 class StatisticTest(TestCase):

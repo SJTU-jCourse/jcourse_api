@@ -188,6 +188,7 @@ class Notice(models.Model):
 
     title = models.CharField(verbose_name='标题', max_length=256)
     message = models.TextField(verbose_name='正文', max_length=256)
+    url = models.TextField(verbose_name='链接', max_length=256, null=True, blank=True)
     created = models.DateTimeField(verbose_name='发布时间', default=timezone.now)
     available = models.BooleanField(verbose_name='是否显示', default=True)
 

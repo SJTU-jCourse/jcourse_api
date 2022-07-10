@@ -26,7 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
 class NoticeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notice
-        fields = ('title', 'message', 'created')
+        fields = ('title', 'message', 'created', 'url')
 
 
 class ReportSerializer(serializers.ModelSerializer):
