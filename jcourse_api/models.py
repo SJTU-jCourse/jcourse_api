@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -140,7 +142,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = '点评'
         verbose_name_plural = verbose_name
-        ordering = ['-created']
+        ordering = ['-modified']
         constraints = [models.UniqueConstraint(fields=['user', 'course'], name='unique_review')]
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)

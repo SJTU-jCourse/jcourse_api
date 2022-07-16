@@ -124,7 +124,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return ReviewListSerializer
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        created_time = timezone.now()
+        serializer.save(user=self.request.user, modified=created_time, created=created_time)
 
     def perform_update(self, serializer):
         serializer.save(modified=timezone.now())
