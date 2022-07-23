@@ -1,6 +1,5 @@
 import csv
 import io
-from io import BytesIO
 
 import django_filters
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -385,8 +384,20 @@ class FileUploadView(APIView):
             raise ParseError("Empty content")
         file: InMemoryUploadedFile = request.data['file']
         # 注意编码
-        csv_reader = csv.DictReader(io.StringIO(file.read().decode('utf-8-sig')))
+        csv_reader = csv.DictReader(io.StringIO(file.read().decode('gbk')))
+        # for line in csv_reader:
+        #     print(line)
+        # TODO 解析内容
+        to_be_created = []
+        departments = set()
         for line in csv_reader:
-            print(line)
-            # TODO 解析内容
+            departments.add(line['开课院系'])
+
+        for department in departments:
+            existed = Department.objects.filter(name=department)
+            if not existed:
+                d = Department(name=department)
+                to_be_created.append(d)
+                print(department)
+        Department.objects.bulk_create(to_be_created)
         return Response(status=status.HTTP_201_CREATED)
