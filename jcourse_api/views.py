@@ -1,4 +1,9 @@
+import csv
+import io
+from io import BytesIO
+
 import django_filters
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import send_mail
 from django.db.models import Sum, OuterRef, Subquery
 from django.utils.decorators import method_decorator
@@ -9,6 +14,8 @@ from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action, api_view
+from rest_framework.exceptions import ParseError
+from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -367,3 +374,19 @@ class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         courses = get_course_list_queryset(self.request.user)
         return courses.filter(enrollcourse__user=self.request.user)
+
+
+class FileUploadView(APIView):
+    parser_class = (FileUploadParser,)
+
+    # TODO: 限制文件格式
+    def post(self, request, format=None):
+        if 'file' not in request.data:
+            raise ParseError("Empty content")
+        file: InMemoryUploadedFile = request.data['file']
+        # 注意编码
+        csv_reader = csv.DictReader(io.StringIO(file.read().decode('utf-8-sig')))
+        for line in csv_reader:
+            print(line)
+            # TODO 解析内容
+        return Response(status=status.HTTP_201_CREATED)
