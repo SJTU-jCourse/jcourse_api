@@ -20,11 +20,13 @@ def create_test_env() -> None:
     c2.teacher_group.add(teacher_gao)
     c2.teacher_group.add(teacher_pan)
     c3 = Course.objects.create(code='MARX1001', name='思想道德修养与法律基础', credit=3, department=dept_phy,
-                               main_teacher=teacher_liang, category=category)
+                               main_teacher=teacher_liang)
+    c3.categories.add(category)
     c3.teacher_group.add(teacher_liang)
     c4 = Course.objects.create(code='MARX1001', name='思想道德修养与法律基础', credit=3, department=dept_phy,
-                               main_teacher=teacher_zhao, category=category)
+                               main_teacher=teacher_zhao)
     c4.teacher_group.add(teacher_zhao)
+    c4.categories.add(category)
     FormerCode.objects.create(old_code='CS250', new_code='CS2500')
     FormerCode.objects.create(old_code='CS251', new_code='CS2500')
     FormerCode.objects.create(old_code='CS150', new_code='CS1500')

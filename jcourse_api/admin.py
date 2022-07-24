@@ -2,7 +2,6 @@ import os
 
 from django.contrib import admin
 from django.db import IntegrityError
-from django.db.models import F
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
@@ -12,7 +11,7 @@ from jcourse_api.models import *
 
 class CourseResource(resources.ModelResource):
     department = fields.Field(attribute='department', widget=ForeignKeyWidget(Department, 'name'))
-    category = fields.Field(attribute='category', widget=ForeignKeyWidget(Category, 'name'))
+    categories = fields.Field(attribute='categories', widget=ManyToManyWidget(Teacher, separator=';', field='name'))
     main_teacher = fields.Field(attribute='main_teacher', widget=ForeignKeyWidget(Teacher, 'tid'))
     teacher_group = fields.Field(attribute='teacher_group',
                                  widget=ManyToManyWidget(Teacher, separator=';', field='tid'))
@@ -37,11 +36,11 @@ class CourseResource(resources.ModelResource):
 @admin.register(Course)
 class CourseAdmin(ImportExportModelAdmin):
     list_display = (
-        'id', 'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'review_count', 'review_avg',
+        'id', 'code', 'name', 'credit', 'department', 'category_names', 'main_teacher', 'review_count', 'review_avg',
         'last_semester')
-    list_filter = ('department', 'category', 'credit', 'last_semester')
+    list_filter = ('department', 'categories', 'credit', 'last_semester')
     search_fields = ('id', 'code', 'name')
-    autocomplete_fields = ('main_teacher', 'teacher_group')
+    autocomplete_fields = ('main_teacher', 'teacher_group', 'department', 'categories')
     resource_class = CourseResource
     readonly_fields = ('review_count', 'review_avg')
 
@@ -126,12 +125,14 @@ class DepartmentResource(resources.ModelResource):
 @admin.register(Department)
 class DepartmentAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name', 'count')
+    search_fields = ('name',)
     resource_class = DepartmentResource
 
 
 @admin.register(Category)
 class CategoryAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name', 'count')
+    search_fields = ('name',)
 
 
 @admin.register(Semester)

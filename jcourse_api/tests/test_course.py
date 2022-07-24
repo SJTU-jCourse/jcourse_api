@@ -65,7 +65,7 @@ class CourseTest(TestCase):
         response = self.client.get(self.endpoint)
         courses = response.json()['results']
         self.assertEqual(courses[0]['name'], '计算机科学导论')
-        self.assertIsNone(courses[0]['category'])
+        self.assertEqual(courses[0]['categories'], [])
         self.assertEqual(courses[0]['department'], 'SEIEE')
         self.assertEqual(courses[0]['teacher'], '高女士')
         self.assertTrue(courses[0]['is_reviewed'])
@@ -97,10 +97,10 @@ class CourseTest(TestCase):
         self.assertEqual(courses[1]['code'], 'CS2500')
 
     def test_filter(self):
-        response = self.client.get(self.endpoint, {'category': Category.objects.get(name='通识').pk})
+        response = self.client.get(self.endpoint, {'categories': Category.objects.get(name='通识').pk})
         courses = response.json()['results']
         for course in courses:
-            self.assertEqual(course['category'], '通识')
+            self.assertEqual(course['categories'], ['通识'])
 
         response = self.client.get(self.endpoint, {'department': Department.objects.get(name='SEIEE').pk})
         courses = response.json()['results']
@@ -112,7 +112,7 @@ class CourseTest(TestCase):
         response = self.client.get(self.endpoint + f"{test_course.pk}/")
         course = response.json()
         self.assertEqual(course['name'], '思想道德修养与法律基础')
-        self.assertEqual(course['category'], '通识')
+        self.assertEqual(course['categories'], ['通识'])
         self.assertEqual(course['department'], 'PHYSICS')
         main_teacher = course['main_teacher']
         teacher_group = course['teacher_group']

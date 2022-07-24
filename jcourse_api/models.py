@@ -19,10 +19,14 @@ class Department(models.Model):
         verbose_name_plural = verbose_name
 
     name = models.CharField(verbose_name='名称', max_length=64, unique=True)
-    count = models.IntegerField(verbose_name='课程数量', default=0)
 
     def __str__(self):
         return self.name
+
+    def count(self):
+        return Course.objects.filter(department=self).count()
+
+    count.short_description = '课程数量'
 
 
 class Category(models.Model):
@@ -32,10 +36,14 @@ class Category(models.Model):
         verbose_name_plural = verbose_name
 
     name = models.CharField(verbose_name='名称', max_length=64, unique=True)
-    count = models.IntegerField(verbose_name='课程数量', default=0)
 
     def __str__(self):
         return self.name
+
+    def count(self):
+        return Course.objects.filter(categories=self).count()
+
+    count.short_description = '课程数量'
 
 
 class FormerCode(models.Model):
@@ -93,8 +101,7 @@ class Course(models.Model):
 
     code = models.CharField(verbose_name='课号', max_length=32, db_index=True)
     name = models.CharField(verbose_name='名称', max_length=255, db_index=True)
-    category = models.ForeignKey(Category, verbose_name='类别', null=True, blank=True, on_delete=models.SET_NULL,
-                                 db_index=True)
+    categories = models.ManyToManyField(Category, verbose_name='类别', db_index=True)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, verbose_name='开课单位', null=True, blank=True,
                                    db_index=True)
     credit = models.FloatField(verbose_name='学分', default=0)
@@ -109,31 +116,10 @@ class Course(models.Model):
     def __str__(self):
         return f"{self.code} {self.name}（{self.main_teacher}）"
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        need_to_update_department = False
-        need_to_update_category = False
-        old_category = None
-        old_department = None
-        if self.pk is None:
-            need_to_update_department = True
-            need_to_update_category = True
-        else:
-            previous = Course.objects.get(pk=self.pk)
-            if previous.category_id != self.category_id:
-                need_to_update_category = True
-                old_category = previous.category
-            if previous.department_id != self.department_id:
-                need_to_update_department = True
-                old_department = previous.department
-        super().save(force_insert, force_update, using, update_fields)
-        if need_to_update_department:
-            update_department_count(self.department)
-            if old_department:
-                update_department_count(old_department)
-        if need_to_update_category:
-            update_category_count(self.category)
-            if old_category:
-                update_category_count(old_category)
+    def category_names(self):
+        return ','.join(self.categories.all().values_list('name', flat=True))
+
+    category_names.short_description = '类别'
 
 
 class Review(models.Model):
@@ -308,15 +294,3 @@ def update_course_reviews(course: Course):
     course.review_count = review['count']
     course.review_avg = review['avg']
     course.save(update_fields=['review_count', 'review_avg'])
-
-
-def update_department_count(department: Department):
-    if department:
-        department.count = Course.objects.filter(department=department).count()
-        department.save(update_fields=['count'])
-
-
-def update_category_count(category: Category):
-    if category:
-        category.count = Course.objects.filter(category=category).count()
-        category.save(update_fields=['count'])

@@ -41,11 +41,23 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
+    count = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_count(obj):
+        return obj.count
+
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = '__all__'
+
+    count = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_count(obj):
+        return obj.count
 
 
 def get_course_rating(obj: Course):
@@ -53,9 +65,9 @@ def get_course_rating(obj: Course):
 
 
 class CourseSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
+    categories = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
-        many=False,
+        many=True,
         required=False,
         slug_field='name'
     )
@@ -109,9 +121,9 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class CourseListSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
+    categories = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
-        many=False,
+        many=True,
         required=False,
         slug_field='name'
     )

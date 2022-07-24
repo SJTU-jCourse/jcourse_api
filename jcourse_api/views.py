@@ -27,19 +27,19 @@ class NumberInFilter(BaseInFilter, NumberFilter):
 
 
 class CourseFilter(django_filters.FilterSet):
-    category = NumberInFilter(field_name="category", lookup_expr="in")
+    categories = NumberInFilter(field_name="categories", lookup_expr="in")
     department = NumberInFilter(field_name="department", lookup_expr="in")
 
     class Meta:
         model = Course
-        fields = ['category', 'department']
+        fields = ['categories', 'department']
 
 
 def get_course_list_queryset(user: User):
     my_review = Review.objects.filter(user=user, course_id=OuterRef('pk')).values('pk')
     my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('pk')).values('semester')
 
-    return Course.objects.select_related('main_teacher', 'category', 'department').annotate(
+    return Course.objects.select_related('main_teacher').prefetch_related('categories', 'department').annotate(
         semester=Subquery(my_enroll_semester[:1]),
         is_reviewed=Subquery(my_review[:1]))
 
@@ -220,9 +220,9 @@ class FilterView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request):
-        categories = Category.objects.filter(count__gt=0)
+        categories = Category.objects.annotate(count=Count('course')).filter(count__gt=0)
         category_serializer = CategorySerializer(categories, many=True)
-        departments = Department.objects.filter(count__gt=0)
+        departments = Department.objects.annotate(count=Count('course')).filter(count__gt=0)
         department_serializer = DepartmentSerializer(departments, many=True)
         return Response({'categories': category_serializer.data, 'departments': department_serializer.data},
                         status=status.HTTP_200_OK)

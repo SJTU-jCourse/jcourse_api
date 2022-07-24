@@ -8,10 +8,8 @@ class JcourseApiConfig(AppConfig):
     verbose_name = '选课社区'
 
     def ready(self):
-        from jcourse_api.models import Action, Review, Course
+        from jcourse_api.models import Action, Review
         from jcourse_api.signals import signal_delete_review_actions, \
-            signal_delete_course_reviews, \
-            signal_delete_filter_count
+            signal_delete_course_reviews
         post_delete.connect(signal_delete_review_actions, sender=Action)
         post_delete.connect(signal_delete_course_reviews, sender=Review)
-        post_delete.connect(signal_delete_filter_count, sender=Course)
