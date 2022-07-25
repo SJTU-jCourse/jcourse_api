@@ -1,8 +1,10 @@
 import csv
 import io
+import re
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from pypinyin import pinyin, lazy_pinyin, Style
 
 import django_filters
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import send_mail
 from django.db.models import Sum, OuterRef, Subquery
 from django.utils.decorators import method_decorator
@@ -385,19 +387,138 @@ class FileUploadView(APIView):
         file: InMemoryUploadedFile = request.data['file']
         # 注意编码
         csv_reader = csv.DictReader(io.StringIO(file.read().decode('gbk')))
-        # for line in csv_reader:
-        #     print(line)
-        # TODO 解析内容
-        to_be_created = []
+        scripts_dir = './scripts'
+        former_codes = dict()
+
+        with open(f'{scripts_dir}/former_code.csv', mode='r', encoding='utf-8-sig') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                former_codes[row['old_code']] = row['new_code']
+
+        to_be_created_d = []
+        to_be_created_t = []
+        to_be_created_c = []
         departments = set()
+        categories = set()
+        teachers = set()
+        courses = set()
+        course_department = dict()
+
+        def regulate_department(raw_name: str) -> str:  # 将系统一到学院层面
+            if any(raw_name == x for x in ['软件学院', '微电子学院', '计算机科学与工程系']):
+                return '电子信息与电气工程学院'
+            if raw_name == '高分子科学与工程系':
+                return '化学化工学院'
+            return raw_name
+
         for line in csv_reader:
-            departments.add(line['开课院系'])
+            tmp = line['教学班名称']
+            seme = re.findall(r'\d{4}-\d{4}-\d', tmp)
+            semester = ''.join(seme)
+            existed = Semester.objects.filter(name=semester)
+            if not existed:
+                semester = Semester(name=semester)
+                semester.save()
+            teacher_groups = line['合上教师']
+            if teacher_groups == 'QT2002231068/THIERRY; Fine; VAN CHUNG/无[外国语学院]':
+                teacher_groups = 'QT2002231068/THIERRY, Fine, VAN CHUNG/无[外国语学院]'
+
+            teacher_groups = teacher_groups.split(';')
+            print(teacher_groups)
+            tid_groups = []
+            for teacher in teacher_groups:
+                try:
+                    tid, name, title = teacher.split('/')
+                except ValueError:
+                    print("\"" + teacher + "\"")
+                    continue
+                department = regulate_department(title[title.find('[') + 1:-1])
+                title = title[0:title.find('[')]
+                my_pinyin = ''.join(lazy_pinyin(name))
+                abbr_pinyin = ''.join([i[0] for i in pinyin(name, style=Style.FIRST_LETTER)])
+                teachers.add((tid, name, title, department, my_pinyin, abbr_pinyin, semester))
+                tid_groups.append(tid)
+            # for teacher in teacher_groups:
+                title = teacher.split('/')[2]
+                department = regulate_department(title[title.find('[') + 1:-1])
+                departments.add(department)
+            department = line['开课院系']
+            if department == '研究生院':  # 跳过所有的研究生课程（主要原因是没有main_teacher字段）
+                continue
+            departments.add(department)
+            name = line['课程名称']
+            code = line['课程号']
+
+            category = line['通识课归属模块'].split(',')[0]
+            if category == "" and department == '研究生院':
+                category = '研究生'
+                name = name.removesuffix('（研）')
+            if category == "" and line['年级'] == "0":
+                if line['课程号'].startswith('SP'):
+                    category = '新生研讨'
+                else:
+                    category = '通选'
+            if category == "" and any(code.startswith(x) for x in ['PE001C', 'PE002C', 'PE003C', 'PE004C']):
+                category = '体育'
+            if category.find('（致远）') != -1:
+                category = category.removesuffix('（致远）')
+            categories.add(category)
+            if category == "" and code in former_codes:
+                code = former_codes[code]
+            main_teacher = line['任课教师'].split('|')[0] if line['任课教师'] else tid_groups[0]
+            if department != '致远学院':
+                course_department[(code, main_teacher)] = department
+            # code	name	credit	department	category    main_teacher	teacher_group
+            courses.add(
+                (code, name, line['学分'], department, category,
+                 main_teacher, ';'.join(tid_groups), semester))
 
         for department in departments:
             existed = Department.objects.filter(name=department)
             if not existed:
                 d = Department(name=department)
-                to_be_created.append(d)
-                print(department)
-        Department.objects.bulk_create(to_be_created)
+                to_be_created_d.append(d)
+        Department.objects.bulk_create(to_be_created_d)
+
+        unique_courses = set()
+        for course in courses:
+            other_dept = course_department.get((course[0], course[5]), '')
+            if course[3] == '致远学院' and other_dept != '' and other_dept != '致远学院':
+                print(course)
+                continue
+            unique_courses.add(course)
+
+        for category in categories:
+            existed = Category.objects.filter(name=category)
+            if not existed:
+                c = Category(name=category)
+                to_be_created_c.append(c)
+        Category.objects.bulk_create(to_be_created_c)
+
+        for teacher in teachers:
+            existed = Teacher.objects.filter(name=teacher[1])
+            if not existed:
+                t = Teacher(tid=teacher[0], name=teacher[1], title=teacher[2],
+                            department=Department.objects.get(name=teacher[3]),
+                            pinyin=teacher[4], abbr_pinyin=teacher[5],
+                            last_semester=Semester.objects.get(name=teacher[6]))
+                to_be_created_t.append(t)
+        Teacher.objects.bulk_create(to_be_created_t)
+
+        for course in unique_courses:
+            existed = Course.objects.filter(code=course[0], main_teacher=Teacher.objects.get(tid=course[5]))
+            if not existed:
+                c = Course(code=course[0], name=course[1], credit=course[2],
+                           department=Department.objects.get(name=course[3]),
+                           category=Category.objects.get(name=course[4]),
+                           main_teacher=Teacher.objects.get(tid=course[5]),
+                           last_semester=Semester.objects.get(name=course[7]))
+                c.save()
+                teacher_group = []
+                my_teachers = course[6].split(';')
+                for my_teacher in my_teachers:
+                    teacher = Teacher.objects.get(tid=my_teacher)
+                    teacher_group.append(teacher)
+                c.teacher_group.set(teacher_group)
+
         return Response(status=status.HTTP_201_CREATED)
