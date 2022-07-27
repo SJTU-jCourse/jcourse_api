@@ -398,10 +398,12 @@ class FileUploadView(APIView):
         to_be_created_d = []
         to_be_created_t = []
         to_be_created_c = []
+        to_be_created_co = []
         departments = set()
         categories = set()
         teachers = set()
         courses = set()
+        semesters = list(Semester.objects.values_list('name', flat=True))
         course_department = dict()
 
         def regulate_department(raw_name: str) -> str:  # 将系统一到学院层面
@@ -415,8 +417,8 @@ class FileUploadView(APIView):
             tmp = line['教学班名称']
             seme = re.findall(r'\d{4}-\d{4}-\d', tmp)
             semester = ''.join(seme)
-            existed = Semester.objects.filter(name=semester)
-            if not existed:
+            if semester not in semesters:
+                semesters.append(semester)
                 semester = Semester(name=semester)
                 semester.save()
             teacher_groups = line['合上教师']
@@ -424,7 +426,6 @@ class FileUploadView(APIView):
                 teacher_groups = 'QT2002231068/THIERRY, Fine, VAN CHUNG/无[外国语学院]'
 
             teacher_groups = teacher_groups.split(';')
-            print(teacher_groups)
             tid_groups = []
             for teacher in teacher_groups:
                 try:
@@ -438,7 +439,6 @@ class FileUploadView(APIView):
                 abbr_pinyin = ''.join([i[0] for i in pinyin(name, style=Style.FIRST_LETTER)])
                 teachers.add((tid, name, title, department, my_pinyin, abbr_pinyin, semester))
                 tid_groups.append(tid)
-            # for teacher in teacher_groups:
                 title = teacher.split('/')[2]
                 department = regulate_department(title[title.find('[') + 1:-1])
                 departments.add(department)
@@ -473,12 +473,23 @@ class FileUploadView(APIView):
                 (code, name, line['学分'], department, category,
                  main_teacher, ';'.join(tid_groups), semester))
 
+        all_semesters_obj = {}
+        all_semesters = list(Semester.objects.values_list('id', 'name'))
+        for semester in all_semesters:
+            all_semesters_obj[semester[1]] = semester[0]
+
+        department_list = list(Department.objects.values_list('name', flat=True))
         for department in departments:
-            existed = Department.objects.filter(name=department)
-            if not existed:
+            if department not in department_list:
                 d = Department(name=department)
+                department_list.append(department)
                 to_be_created_d.append(d)
         Department.objects.bulk_create(to_be_created_d)
+
+        all_departments_obj = {}
+        all_departments = list(Department.objects.values_list('id', 'name'))
+        for department in all_departments:
+            all_departments_obj[department[1]] = department[0]
 
         unique_courses = set()
         for course in courses:
@@ -488,37 +499,52 @@ class FileUploadView(APIView):
                 continue
             unique_courses.add(course)
 
+        category_list = list(Category.objects.values_list('name', flat=True))
         for category in categories:
-            existed = Category.objects.filter(name=category)
-            if not existed:
+            if category not in category_list:
                 c = Category(name=category)
                 to_be_created_c.append(c)
         Category.objects.bulk_create(to_be_created_c)
 
+        all_categories_obj = {}
+        all_categories = list(Category.objects.values_list('id', 'name'))
+        for category in all_categories:
+            all_categories_obj[category[1]] = category[0]
+
+        teacher_list = list(Teacher.objects.values_list('name', flat=True))
         for teacher in teachers:
-            existed = Teacher.objects.filter(name=teacher[1])
-            if not existed:
+            if teacher[1] not in teacher_list:
                 t = Teacher(tid=teacher[0], name=teacher[1], title=teacher[2],
-                            department=Department.objects.get(name=teacher[3]),
+                            department_id=all_departments_obj[teacher[3]],
                             pinyin=teacher[4], abbr_pinyin=teacher[5],
-                            last_semester=Semester.objects.get(name=teacher[6]))
+                            last_semester_id=all_semesters_obj[semesters[-1]])
                 to_be_created_t.append(t)
         Teacher.objects.bulk_create(to_be_created_t)
 
+        all_teachers_obj = {}
+        all_teachers = list(Teacher.objects.values_list('id', 'tid'))
+        for teacher in all_teachers:
+            all_teachers_obj[teacher[1]] = teacher[0]
+        print(all_teachers_obj)
+
+        course_set = set(Course.objects.values_list('code', 'main_teacher__tid'))
         for course in unique_courses:
-            existed = Course.objects.filter(code=course[0], main_teacher=Teacher.objects.get(tid=course[5]))
-            if not existed:
+            if (course[0], course[5]) not in course_set:
                 c = Course(code=course[0], name=course[1], credit=course[2],
-                           department=Department.objects.get(name=course[3]),
-                           category=Category.objects.get(name=course[4]),
-                           main_teacher=Teacher.objects.get(tid=course[5]),
-                           last_semester=Semester.objects.get(name=course[7]))
-                c.save()
-                teacher_group = []
-                my_teachers = course[6].split(';')
-                for my_teacher in my_teachers:
-                    teacher = Teacher.objects.get(tid=my_teacher)
-                    teacher_group.append(teacher)
-                c.teacher_group.set(teacher_group)
+                           department_id=all_departments_obj[course[3]],
+                           category_id=all_categories_obj[course[4]],
+                           main_teacher_id=all_teachers_obj[course[5]],
+                           last_semester_id=all_semesters_obj[semesters[-1]])
+                to_be_created_co.append(c)
+                course_set.add((course[0], course[5]))
+        Course.objects.bulk_create(to_be_created_co)
+
+        for course in unique_courses:
+            c = Course.objects.get(code=course[0], main_teacher_id=all_teachers_obj[course[5]])
+            my_teachers = course[6].split(';')
+            teacher_group = []
+            for my_teacher in my_teachers:
+                teacher_group.append(all_teachers_obj[my_teacher])
+            c.teacher_group.set(teacher_group)
 
         return Response(status=status.HTTP_201_CREATED)
