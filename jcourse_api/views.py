@@ -380,7 +380,6 @@ class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
 class FileUploadView(APIView):
     parser_class = (FileUploadParser,)
 
-    # TODO: 限制文件格式
     def post(self, request, format=None):
         if 'file' not in request.data:
             raise ParseError("Empty content")
@@ -492,12 +491,15 @@ class FileUploadView(APIView):
             all_departments_obj[department[1]] = department[0]
 
         unique_courses = set()
+        courses_filter = []
         for course in courses:
             other_dept = course_department.get((course[0], course[5]), '')
             if course[3] == '致远学院' and other_dept != '' and other_dept != '致远学院':
                 print(course)
                 continue
-            unique_courses.add(course)
+            if (course[0], course[5]) not in courses_filter:
+                courses_filter.append((course[0], course[5]))
+                unique_courses.add(course)
 
         category_list = list(Category.objects.values_list('name', flat=True))
         for category in categories:
@@ -525,7 +527,6 @@ class FileUploadView(APIView):
         all_teachers = list(Teacher.objects.values_list('id', 'tid'))
         for teacher in all_teachers:
             all_teachers_obj[teacher[1]] = teacher[0]
-        print(all_teachers_obj)
 
         course_set = set(Course.objects.values_list('code', 'main_teacher__tid'))
         for course in unique_courses:
@@ -539,12 +540,18 @@ class FileUploadView(APIView):
                 course_set.add((course[0], course[5]))
         Course.objects.bulk_create(to_be_created_co)
 
+        all_courses_obj = {}
+        all_courses = list(Course.objects.values_list('id', 'code'))
+        for course in all_courses:
+            all_courses_obj[course[1]] = course[0]
+
+        teacher_group = []
         for course in unique_courses:
-            c = Course.objects.get(code=course[0], main_teacher_id=all_teachers_obj[course[5]])
             my_teachers = course[6].split(';')
-            teacher_group = []
             for my_teacher in my_teachers:
-                teacher_group.append(all_teachers_obj[my_teacher])
-            c.teacher_group.set(teacher_group)
+                course_teacher = Course.teacher_group.through(course_id=all_courses_obj[course[0]],
+                                                              teacher_id=all_teachers_obj[my_teacher])
+                teacher_group.append(course_teacher)
+        Course.teacher_group.through.objects.bulk_create(teacher_group, batch_size=7000)
 
         return Response(status=status.HTTP_201_CREATED)
