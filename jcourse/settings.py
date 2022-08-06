@@ -93,7 +93,7 @@ if REDIS_HOST:
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
         'NAME': 'jcourse',
         'USER': 'jcourse',
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'jcourse'),
