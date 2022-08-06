@@ -11,3 +11,4 @@ pypinyin==0.46.0
 coverage==6.4.1
 django-debug-toolbar==3.5.0
 redis==4.3.4
+django-prometheus==2.2.0

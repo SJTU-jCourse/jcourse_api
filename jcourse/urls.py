@@ -22,7 +22,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include('jcourse_api.urls')),
-    path('oauth/', include('oauth.urls'))
+    path('oauth/', include('oauth.urls')),
+    path('prometheus/', include('django_prometheus.urls')),
 ]
 
 if DEBUG:
