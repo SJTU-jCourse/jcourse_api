@@ -24,7 +24,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-chd73zi=3zn63gqmmczye
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.environ.get('DEBUG', False))
 
-ALLOWED_HOSTS = ['course.sjtu.plus', 'host.docker.internal']
+ALLOWED_HOSTS = ['course.sjtu.plus', 'host.docker.internal', 'backend']
 CSRF_TRUSTED_ORIGINS = ['https://course.sjtu.plus']
 # Application definition
 
