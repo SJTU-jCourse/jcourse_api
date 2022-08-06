@@ -86,7 +86,8 @@ class Teacher(models.Model):
     pinyin = models.CharField(verbose_name='拼音', max_length=64, null=True, blank=True, db_index=True)
     abbr_pinyin = models.CharField(verbose_name='拼音缩写', max_length=64, null=True, blank=True, db_index=True)
     # 仅用于后台维护，不对外显示
-    last_semester = models.ForeignKey(Semester, verbose_name='最后更新学期', null=True, blank=True, on_delete=models.SET_NULL)
+    last_semester = models.ForeignKey(Semester, verbose_name='最后更新学期', null=True, blank=True,
+                                      on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
@@ -101,9 +102,9 @@ class Course(models.Model):
 
     code = models.CharField(verbose_name='课号', max_length=32, db_index=True)
     name = models.CharField(verbose_name='名称', max_length=255, db_index=True)
-    categories = models.ManyToManyField(Category, verbose_name='类别', db_index=True)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, verbose_name='开课单位', null=True, blank=True,
-                                   db_index=True)
+    categories = models.ManyToManyField(Category, verbose_name='类别', db_index=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, verbose_name='开课单位',
+                                   null=True, blank=True, db_index=True)
     credit = models.FloatField(verbose_name='学分', default=0)
     main_teacher = models.ForeignKey(Teacher, verbose_name='主讲教师', on_delete=models.CASCADE, db_index=True)
     teacher_group = models.ManyToManyField(Teacher, verbose_name='教师组成', related_name='teacher_course')
@@ -111,7 +112,8 @@ class Course(models.Model):
     review_count = models.IntegerField(verbose_name='点评数', null=True, blank=True, default=0, db_index=True)
     review_avg = models.FloatField(verbose_name='平均评分', null=True, blank=True, default=0, db_index=True)
     # 仅用于后台维护，不对外显示
-    last_semester = models.ForeignKey(Semester, verbose_name='最后更新学期', null=True, blank=True, on_delete=models.SET_NULL)
+    last_semester = models.ForeignKey(Semester, verbose_name='最后更新学期', null=True, blank=True,
+                                      on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"{self.code} {self.name}（{self.main_teacher}）"
