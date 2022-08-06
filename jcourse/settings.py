@@ -85,7 +85,7 @@ REDIS_HOST = os.environ.get('REDIS_HOST', None)
 if REDIS_HOST:
     CACHES = {
         'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'BACKEND': 'django_prometheus.cache.backends.redis.RedisCache',
             'LOCATION': f'redis://{REDIS_HOST}:6379',
         }
     }
@@ -93,7 +93,7 @@ if REDIS_HOST:
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
         'NAME': 'jcourse',
         'USER': 'jcourse',
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'jcourse'),
