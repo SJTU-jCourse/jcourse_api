@@ -8,8 +8,6 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import JsonResponse
-from django.shortcuts import redirect
-# Create your views here.
 from django.urls import reverse
 
 from jcourse import settings
@@ -24,11 +22,7 @@ oauth.register(
     access_token_url='https://jaccount.sjtu.edu.cn/oauth2/token',
     authorize_url='https://jaccount.sjtu.edu.cn/oauth2/authorize',
     api_base_url='https://api.sjtu.edu.cn/',
-    client_kwargs={
-        "scope": "openid",
-        "token_endpoint_auth_method": "client_secret_basic",
-        "token_placement": "header"
-    }
+    client_kwargs={"scope": "basic"}
 )
 jaccount = oauth.jaccount
 
@@ -46,7 +40,9 @@ def logout_auth(request):
 
 
 def login_jaccount(request):
-    redirect_uri = request.build_absolute_uri(reverse('auth_jaccount'))
+    redirect_uri = request.GET.get('redirect_uri', '')
+    if redirect_uri == '':
+        redirect_uri = request.build_absolute_uri(reverse('auth_jaccount'))
     return jaccount.authorize_redirect(request, redirect_uri)
 
 
@@ -56,11 +52,7 @@ def hash_username(username: str):
 
 def auth_jaccount(request):
     try:
-        redirect_uri = request.GET.get('redirect_uri')
-        if redirect_uri:
-            token = jaccount.authorize_access_token(request, redirect_uri=redirect_uri)
-        else:
-            token = jaccount.authorize_access_token(request)
+        token = jaccount.authorize_access_token(request)
     except OAuthError:
         return JsonResponse({'details': 'Bad argument!'}, status=400)
     claims = jwt.decode(token.get('id_token'),
@@ -74,17 +66,15 @@ def auth_jaccount(request):
 
 
 def sync_lessons_login(request):
-    redirect_uri = request.build_absolute_uri(reverse('sync-lessons-auth'))
-    return oauth.jaccount.authorize_redirect(request, redirect_uri, scope="openid lessons")
+    redirect_uri = request.GET.get('redirect_uri', '')
+    if redirect_uri == '':
+        redirect_uri = request.build_absolute_uri(reverse('sync-lessons-auth'))
+    return jaccount.authorize_redirect(request, redirect_uri, scope="basic lessons")
 
 
 def sync_lessons_auth(request):
     try:
-        redirect_uri = request.GET.get('redirect_uri')
-        if redirect_uri:
-            token = jaccount.authorize_access_token(request, redirect_uri=redirect_uri)
-        else:
-            token = jaccount.authorize_access_token(request)
+        token = jaccount.authorize_access_token(request)
     except OAuthError:
         return JsonResponse({'details': 'Bad argument!'}, status=400)
     request.session['token'] = token
