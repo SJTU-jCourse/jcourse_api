@@ -1,13 +1,13 @@
 import csv
 import io
+
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from pypinyin import pinyin, lazy_pinyin, Style
-from rest_framework.exceptions import ParseError
+from rest_framework import status
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAdminUser
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.views import APIView
 
 from jcourse_api.serializers import *
 
@@ -215,17 +215,15 @@ def import_dependent_data(data, semester: str):
 
 
 class FileUploadView(APIView):
-    # permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser]
     parser_class = (FileUploadParser,)
 
     @staticmethod
     def post(request):
-        print(1)
-        if 'file' not in request.data:
-            raise ParseError("Empty content")
+        if 'file' not in request.data or 'semester' not in request.data:
+            return Response({"details": "Bad arguments"}, status=status.HTTP_400_BAD_REQUEST)
         file: InMemoryUploadedFile = request.data['file']
         semester: str = request.data['semester']
-        print(semester)
         csv_reader = csv.DictReader(io.StringIO(file.read().decode('utf-8-sig')))
         data = UploadData()
         clean_data(csv_reader, data)
