@@ -122,6 +122,21 @@ class DepartmentResource(resources.ModelResource):
             pass
 
 
+class CategoryResource(resources.ModelResource):
+    class Meta:
+        model = Category
+        exclude = ('id', 'count')
+        skip_unchanged = True
+        report_skipped = False
+        import_id_fields = ('name',)
+
+    def save_instance(self, instance, using_transactions=True, dry_run=False):
+        try:
+            super().save_instance(instance, using_transactions, dry_run)
+        except IntegrityError:
+            pass
+
+
 @admin.register(Department)
 class DepartmentAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name', 'count')
@@ -133,6 +148,7 @@ class DepartmentAdmin(ImportExportModelAdmin):
 class CategoryAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name', 'count')
     search_fields = ('name',)
+    resource_class = CategoryResource
 
 
 @admin.register(Semester)
