@@ -24,7 +24,7 @@ class CourseResource(resources.ModelResource):
         skip_unchanged = True
         report_skipped = False
         export_order = (
-            'code', 'name', 'credit', 'department', 'category', 'main_teacher', 'teacher_group', 'last_semester')
+            'code', 'name', 'credit', 'department', 'categories', 'main_teacher', 'teacher_group', 'last_semester')
 
     def save_instance(self, instance, using_transactions=True, dry_run=False):
         try:
