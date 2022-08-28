@@ -24,8 +24,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-chd73zi=3zn63gqmmczye
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.environ.get('DEBUG', False))
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+if os.environ.get('ALLOWED_HOSTS', None):
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
+if os.environ.get('CSRF_TRUSTED_ORIGINS', None):
+    CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS').split(',')
 # Application definition
 
 INSTALLED_APPS = [
