@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+# from jcourse_api.upload import FileUploadView
 from jcourse_api.views import *
 
 router = DefaultRouter()
@@ -21,4 +22,5 @@ urlpatterns = [
     path('points/', UserPointView.as_view(), name='user-points'),
     path('sync-lessons/<str:term>/', sync_lessons, name='sync-lessons'),
     path('sync-lessons/', sync_lessons, name='sync-lessons'),
+    # path('upload/', FileUploadView.as_view(), name='upload'),
 ]

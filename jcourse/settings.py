@@ -273,3 +273,5 @@ if LOGGING_FILE != '':
             },
         }
     }
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240

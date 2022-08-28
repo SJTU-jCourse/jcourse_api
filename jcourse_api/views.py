@@ -367,3 +367,4 @@ class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         courses = get_course_list_queryset(self.request.user)
         return courses.filter(enrollcourse__user=self.request.user)
+
