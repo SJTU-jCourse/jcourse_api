@@ -23,6 +23,7 @@ class CourseResource(resources.ModelResource):
         exclude = ('id', 'review_count', 'review_avg')
         skip_unchanged = True
         report_skipped = False
+        use_bulk = True
         export_order = (
             'code', 'name', 'credit', 'department', 'categories', 'main_teacher', 'teacher_group', 'last_semester')
 
@@ -54,6 +55,7 @@ class TeacherResource(resources.ModelResource):
         import_id_fields = ('tid',)
         skip_unchanged = True
         report_skipped = False
+        use_bulk = True
         exclude = ('id',)
         export_order = ('tid', 'name', 'department', 'title', 'last_semester')
 
