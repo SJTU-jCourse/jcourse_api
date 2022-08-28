@@ -11,7 +11,7 @@ from jcourse_api.models import *
 
 class CourseResource(resources.ModelResource):
     department = fields.Field(attribute='department', widget=ForeignKeyWidget(Department, 'name'))
-    categories = fields.Field(attribute='categories', widget=ManyToManyWidget(Teacher, separator=';', field='name'))
+    categories = fields.Field(attribute='categories', widget=ManyToManyWidget(Category, separator=';', field='name'))
     main_teacher = fields.Field(attribute='main_teacher', widget=ForeignKeyWidget(Teacher, 'tid'))
     teacher_group = fields.Field(attribute='teacher_group',
                                  widget=ManyToManyWidget(Teacher, separator=';', field='tid'))
