@@ -6,7 +6,6 @@ from authlib.jose import jwt
 from authlib.oidc.core import CodeIDToken
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
-from django.db import transaction
 from django.http import JsonResponse
 from django.urls import reverse
 
@@ -27,10 +26,17 @@ oauth.register(
 jaccount = oauth.jaccount
 
 
-def login_with(request, username: str, user_type: str):
-    with transaction.atomic():
+def login_with(request, account: str, user_type: str):
+    lower = account.lower()
+    former_username = hash_username(account)
+    username = hash_username(lower)
+    try:
+        user = User.objects.get(username=former_username)
+        user.username = username
+        user.save()
+    except User.DoesNotExist:
         user, _ = User.objects.get_or_create(username=username)
-        UserProfile.objects.update_or_create(user=user, defaults={'user_type': user_type})
+    UserProfile.objects.update_or_create(user=user, defaults={'user_type': user_type, 'lowercase': True})
     login(request, user)
 
 
@@ -59,8 +65,7 @@ def auth_jaccount(request):
                         jaccount.client_secret, claims_cls=CodeIDToken)
     user_type = claims['type']
     account = claims['sub']
-    hashed_username = hash_username(account)
-    login_with(request, hashed_username, user_type)
+    login_with(request, account, user_type)
     response = JsonResponse({'account': account})
     return response
 
