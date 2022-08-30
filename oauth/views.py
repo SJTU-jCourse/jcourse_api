@@ -91,46 +91,37 @@ def sync_lessons_auth(request):
     return JsonResponse({'details': 'Sync Status Ready!'})
 
 
-def send_code_email(email):
-    code = secrets.token_urlsafe(6)
-    valid_time = LOGIN_VERIFICATION_TIMEOUT
+def send_code_email(email: str, code: str):
     email_title = "选课社区登录"
-    email_body = "您的登录验证码为：\n{0}\n{1}分钟内有效，请尽快进行验证。".format(code, valid_time)
+    email_body = "您的登录验证码为：\n{0}\n{1}分钟内有效，请尽快进行验证。".format(code, LOGIN_VERIFICATION_TIMEOUT)
     send_status = send_mail(email_title, email_body, settings.DEFAULT_FROM_EMAIL, [email])
     if not send_status:
         return False
-    return code
 
 
 @api_view(['POST'])
 def send_code(request):
     email = request.POST.get("email", None)
-    valid_time = LOGIN_VERIFICATION_TIMEOUT
-    valid_email = email.endswith('@sjtu.edu.cn')
-    if valid_email:
-        code_sent = send_code_email(email)
-        if code_sent:
-            cache.set(email, code_sent, valid_time * 60)
-            response = JsonResponse({'details': '邮件已发送！'})
-            return response
-        else:
-            response = JsonResponse({'details': '验证码发送失败，请稍后重试。'}, status=400)
-            return response
+    if not email.endswith('@sjtu.edu.cn'):
+        return JsonResponse({'details': '请输入 SJTU 邮箱！'}, status=400)
+    code = secrets.token_urlsafe(6)
+    code_sent = send_code_email(email, code)
+    if code_sent:
+        cache.set(email, code_sent, LOGIN_VERIFICATION_TIMEOUT * 60)
+        return JsonResponse({'details': '邮件已发送！请查看你的 SJTU 邮箱收件箱（包括垃圾邮件）。'})
     else:
-        response = JsonResponse({'details': '请输入交大邮箱！'}, status=400)
-        return response
+        return JsonResponse({'details': '验证码发送失败，请稍后重试。'}, status=400)
 
 
 @api_view(['POST'])
 def verify_and_login(request):
     email = request.POST.get("email", None)
     code = request.POST.get("code", None)
-    if code != cache.get(email) or code is None:
+    if code is None or code != cache.get(email):
         response = JsonResponse({'details': '验证码错误，请重试。'}, status=400)
         return response
-    else:
-        account = email.split('@')
-        hashed_username = hash_username(account[0])
-        login_with(request, hashed_username, 'email')
-        response = JsonResponse({'account': account[0]})
-        return response
+    account = email.split('@')
+    hashed_username = hash_username(account[0])
+    login_with(request, hashed_username, 'email')
+    response = JsonResponse({'account': account[0]})
+    return response
