@@ -91,26 +91,28 @@ def sync_lessons_auth(request):
     return JsonResponse({'details': 'Sync Status Ready!'})
 
 
-def send_code_email(email: str, code: str):
-    email_title = "选课社区登录"
-    email_body = "您的登录验证码为：\n{0}\n{1}分钟内有效，请尽快进行验证。".format(code, LOGIN_VERIFICATION_TIMEOUT)
-    send_status = send_mail(email_title, email_body, settings.DEFAULT_FROM_EMAIL, [email])
-    if not send_status:
-        return False
+def send_code_email(email: str):
+    code = secrets.token_hex(3)
+    email_title = "选课社区验证码"
+    email_body = f"您好！\n\n" \
+                 f"请使用以下验证码完成登录，{LOGIN_VERIFICATION_TIMEOUT}分钟内有效：\n\n" \
+                 f"{code}\n\n" \
+                 f"如非本人操作请忽略该邮件。\n\n" \
+                 f"选课社区"
+    cache.set(email, code, LOGIN_VERIFICATION_TIMEOUT * 60)
+    return send_mail(email_title, email_body, settings.DEFAULT_FROM_EMAIL, [email])
 
 
 @api_view(['POST'])
 @throttle_classes([EmailCodeRateThrottle])
 def send_code(request):
-    email = request.POST.get("email", None)
+    email: str = request.POST.get("email", None)
     if email is None:
         return JsonResponse({'details': 'Bad argument!'}, status=400)
+    email = email.strip().lower()
     if not email.endswith('@sjtu.edu.cn'):
         return JsonResponse({'details': '请输入 SJTU 邮箱！'}, status=400)
-    code = secrets.token_urlsafe(6)
-    code_sent = send_code_email(email, code)
-    if code_sent:
-        cache.set(email, code_sent, LOGIN_VERIFICATION_TIMEOUT * 60)
+    if send_code_email(email):
         return JsonResponse({'details': '邮件已发送！请查看你的 SJTU 邮箱收件箱（包括垃圾邮件）。'})
     else:
         return JsonResponse({'details': '验证码发送失败，请稍后重试。'}, status=400)
@@ -119,14 +121,16 @@ def send_code(request):
 @api_view(['POST'])
 @throttle_classes([VerifyEmailRateThrottle])
 def verify_and_login(request):
-    email = request.POST.get("email", None)
-    code = request.POST.get("code", None)
+    email: str = request.POST.get("email", None)
+    code: str = request.POST.get("code", None)
     if email is None or code is None:
         return JsonResponse({'details': 'Bad argument!'}, status=400)
+    email = email.strip().lower()
+    code = code.strip()
     if code != cache.get(email):
         return JsonResponse({'details': '验证码错误，请重试。'}, status=400)
-    account = email.split('@')
-    hashed_username = hash_username(account[0])
+    account = email.split('@')[0]
+    hashed_username = hash_username(account)
     login_with(request, hashed_username, 'email')
-    response = JsonResponse({'account': account[0]})
+    response = JsonResponse({'account': account})
     return response
