@@ -7,15 +7,15 @@ from authlib.jose import jwt
 from authlib.oidc.core import CodeIDToken
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
-
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.urls import reverse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, throttle_classes
 
 from jcourse import settings
 from jcourse.settings import HASH_SALT, LOGIN_VERIFICATION_TIMEOUT
+from jcourse.throttles import EmailCodeRateThrottle, VerifyEmailRateThrottle
 from oauth.models import UserProfile
 
 oauth = OAuth()
@@ -100,8 +100,11 @@ def send_code_email(email: str, code: str):
 
 
 @api_view(['POST'])
+@throttle_classes([EmailCodeRateThrottle])
 def send_code(request):
     email = request.POST.get("email", None)
+    if email is None:
+        return JsonResponse({'details': 'Bad argument!'}, status=400)
     if not email.endswith('@sjtu.edu.cn'):
         return JsonResponse({'details': '请输入 SJTU 邮箱！'}, status=400)
     code = secrets.token_urlsafe(6)
@@ -114,12 +117,14 @@ def send_code(request):
 
 
 @api_view(['POST'])
+@throttle_classes([VerifyEmailRateThrottle])
 def verify_and_login(request):
     email = request.POST.get("email", None)
     code = request.POST.get("code", None)
-    if code is None or code != cache.get(email):
-        response = JsonResponse({'details': '验证码错误，请重试。'}, status=400)
-        return response
+    if email is None or code is None:
+        return JsonResponse({'details': 'Bad argument!'}, status=400)
+    if code != cache.get(email):
+        return JsonResponse({'details': '验证码错误，请重试。'}, status=400)
     account = email.split('@')
     hashed_username = hash_username(account[0])
     login_with(request, hashed_username, 'email')

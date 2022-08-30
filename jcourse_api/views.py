@@ -18,7 +18,7 @@ from rest_framework.views import APIView
 import jcourse.settings
 from jcourse_api.permissions import IsOwnerOrReadOnly
 from jcourse_api.serializers import *
-from jcourse_api.throttles import ActionRateThrottle
+from jcourse.throttles import ActionRateThrottle
 from oauth.views import hash_username, jaccount
 
 
