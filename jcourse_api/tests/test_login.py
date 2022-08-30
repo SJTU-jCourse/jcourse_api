@@ -1,5 +1,5 @@
 from unittest.mock import patch
-
+from django.core import mail
 from django.core.cache import cache
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -25,6 +25,8 @@ class SendCodeTest(TestCase):
         self.assertEqual(resp.status_code, 400)
         resp = self.client.post(self.endpoint, data={"email": "xxx@sjtu.edu.cn"})
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, '选课社区验证码')
 
     def test_throttle(self):
         resp = self.client.post(self.endpoint, data={"email": "xxx@sjtu.edu.cn"})
@@ -64,6 +66,8 @@ class VerifyCodeTest(TestCase):
         email = "xxx@sjtu.edu.cn"
         resp = self.client.post('/oauth/email/send-code/', data={"email": email})
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, '选课社区验证码')
         code = cache.get(email)
         self.assertIsNotNone(code)
         resp = self.client.post(self.endpoint, data={"email": email, "code": code})
