@@ -11,6 +11,7 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, throttle_classes
 
 from jcourse import settings
@@ -31,16 +32,28 @@ oauth.register(
 jaccount = oauth.jaccount
 
 
-def login_with(request, account: str, user_type: str):
+def get_or_create_user(account: str):
     lower = account.lower()
     former_username = hash_username(account)
     username = hash_username(lower)
-    try:
-        user = User.objects.get(username=former_username)
-        user.username = username
-        user.save()
-    except User.DoesNotExist:
+
+    user = User.objects.filter(username=former_username)
+    if not user.exists():
         user, _ = User.objects.get_or_create(username=username)
+        return user
+
+    user = User.objects.filter(username=username)
+    if user.exists():
+        return user
+
+    user = User.objects.get(username=former_username)
+    user.username = username
+    user.save()
+    return user
+
+
+def login_with(request, account: str, user_type: str):
+    user = get_or_create_user(account)
     UserProfile.objects.update_or_create(user=user, defaults={'user_type': user_type, 'lowercase': True})
     login(request, user)
 
@@ -106,7 +119,7 @@ def send_code_email(email: str):
 @api_view(['POST'])
 @throttle_classes([EmailCodeRateThrottle])
 def send_code(request):
-    email: str = request.POST.get("email", None)
+    email: str = request.data.get("email", None)
     if email is None:
         return JsonResponse({'details': 'Bad argument!'}, status=400)
     email = email.strip().lower()
@@ -121,8 +134,8 @@ def send_code(request):
 @api_view(['POST'])
 @throttle_classes([VerifyEmailRateThrottle])
 def verify_and_login(request):
-    email: str = request.POST.get("email", None)
-    code: str = request.POST.get("code", None)
+    email: str = request.data.get("email", None)
+    code: str = request.data.get("code", None)
     if email is None or code is None:
         return JsonResponse({'details': 'Bad argument!'}, status=400)
     email = email.strip().lower()
