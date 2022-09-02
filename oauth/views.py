@@ -44,7 +44,7 @@ def get_or_create_user(account: str):
 
     user = User.objects.filter(username=username)
     if user.exists():
-        return user
+        return user.first()
 
     user = User.objects.get(username=former_username)
     user.username = username
