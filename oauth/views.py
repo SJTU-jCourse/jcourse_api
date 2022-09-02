@@ -147,5 +147,6 @@ def verify_and_login(request):
     account = email.split('@')[0]
     hashed_username = hash_username(account)
     login_with(request, hashed_username, 'email')
+    cache.delete(email)
     response = JsonResponse({'account': account})
     return response
