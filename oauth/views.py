@@ -118,6 +118,7 @@ def send_code_email(email: str):
 
 @api_view(['POST'])
 @throttle_classes([EmailCodeRateThrottle])
+@csrf_exempt
 def send_code(request):
     email: str = request.data.get("email", None)
     if email is None:
@@ -133,6 +134,7 @@ def send_code(request):
 
 @api_view(['POST'])
 @throttle_classes([VerifyEmailRateThrottle])
+@csrf_exempt
 def verify_and_login(request):
     email: str = request.data.get("email", None)
     code: str = request.data.get("code", None)
