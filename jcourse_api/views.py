@@ -163,7 +163,7 @@ class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SemesterSerializer
     pagination_class = None
 
-    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(cache_page(60))
     def dispatch(self, request: Request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
@@ -232,7 +232,7 @@ class FilterView(APIView):
 class StatisticView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_page(60))
     def get(self, request: Request):
         user_join = User.objects.annotate(date=TruncDate("date_joined")).values("date").annotate(
             count=Count("id"))
@@ -286,7 +286,7 @@ class UserPointView(APIView):
         else:
             return [AllowAny()]
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_page(60))
     @method_decorator(vary_on_cookie)
     def get(self, request: Request):
         return Response(get_user_point(request.user))
