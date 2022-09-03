@@ -235,9 +235,9 @@ class StatisticView(APIView):
     @method_decorator(cache_page(60))
     def get(self, request: Request):
         user_join = User.objects.annotate(date=TruncDate("date_joined")).values("date").annotate(
-            count=Count("id"))
+            count=Count("id")).order_by("date")
         review_create = Review.objects.annotate(date=TruncDate("created")).values("date").annotate(
-            count=Count("id"))
+            count=Count("id")).order_by("date")
         return Response({'courses': Course.objects.count(),
                          'courses_with_review': Course.objects.filter(review_count__gt=0).count(),
                          'users': User.objects.count(),
