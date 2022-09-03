@@ -1,6 +1,7 @@
 import django_filters
 from django.core.mail import send_mail
 from django.db.models import Sum, OuterRef, Subquery
+from django.db.models.functions import TruncDate
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
@@ -233,10 +234,16 @@ class StatisticView(APIView):
 
     @method_decorator(cache_page(60 * 5))
     def get(self, request: Request):
+        user_join = User.objects.annotate(date=TruncDate("date_joined")).values("date").annotate(
+            count=Count("id"))
+        review_create = Review.objects.annotate(date=TruncDate("created")).values("date").annotate(
+            count=Count("id"))
         return Response({'courses': Course.objects.count(),
                          'courses_with_review': Course.objects.filter(review_count__gt=0).count(),
                          'users': User.objects.count(),
-                         'reviews': Review.objects.count()},
+                         'reviews': Review.objects.count(),
+                         'user_join': user_join,
+                         'review_create': review_create},
                         status=status.HTTP_200_OK)
 
 
@@ -367,4 +374,3 @@ class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         courses = get_course_list_queryset(self.request.user)
         return courses.filter(enrollcourse__user=self.request.user)
-
