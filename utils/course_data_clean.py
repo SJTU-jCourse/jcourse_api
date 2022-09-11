@@ -5,7 +5,8 @@ from pypinyin import pinyin, lazy_pinyin, Style
 
 
 def regulate_department(raw: str) -> str:  # 将系统一到学院层面
-    if any(raw == x for x in ['软件学院', '微电子学院', '计算机科学与工程系']):
+    if any(raw == x for x in
+           ['软件学院', '微电子学院', '计算机科学与工程系', '电子工程系', '微电子与纳米科学系', '信息安全工程学院']):
         return '电子信息与电气工程学院'
     if raw == '高分子科学与工程系':
         return '化学化工学院'
