@@ -113,7 +113,7 @@ class FileUploadView(APIView):
         semester: str = request.data['semester']
         csv_reader = csv.DictReader(io.StringIO(file.read().decode('utf-8-sig')))
         data = UploadData()
-        data.clean_data(csv_reader, './script')
+        data.clean_data_for_jwc(csv_reader, './script')
         pre_import(data)
         created_courses, created_teachers = import_dependent_data(data, semester)
         resp = {"courses": len(created_courses), "teachers": len(created_teachers)}

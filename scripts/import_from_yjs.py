@@ -6,13 +6,12 @@ encoding = 'utf-8'
 data_dir = '../data'
 semester = '2022-2023-1'
 
-f = open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig')
-reader = csv.DictReader(f)
+csv_gs = csv.DictReader(open(f"{data_dir}/yjs-data-1.csv", mode='r', encoding='utf-8-sig'))
+csv_jwc = csv.DictReader(open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig'))
 
 data = UploadData()
-data.clean_data_for_jwc(reader, '.')
+data.clean_data_for_gs(csv_jwc, csv_gs)
 
-f.close()
 teachers = data.get_teachers()
 teachers.append_col([semester] * len(teachers), header='last_semester')
 courses = data.get_courses()

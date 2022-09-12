@@ -4,18 +4,49 @@ import tablib
 from pypinyin import pinyin, lazy_pinyin, Style
 
 
-def regulate_department(raw: str) -> str:  # 将系统一到学院层面
+# 教学信息服务网数据的处理，将系统一到学院层面
+def regulate_department(raw: str) -> str:
     if any(raw == x for x in
            ['软件学院', '微电子学院', '计算机科学与工程系', '电子工程系', '微电子与纳米科学系', '信息安全工程学院']):
         return '电子信息与电气工程学院'
-    if raw == '高分子科学与工程系':
+    if any(raw == x for x in
+           ['高分子科学与工程系', '化学工程系']):
         return '化学化工学院'
-    if raw == '植物科学系':
+    if any(raw == x for x in
+           ['机电控制与物流装备研究所', '汽车工程研究院', '重大装备设计与控制研究所']):
+        return '机械与动力工程学院'
+    if any(raw == x for x in
+           ['植物科学系', '新农村发展研究院', '资源与环境系']):
         return '农业与生物学院'
+    if raw == '原子分子与等离子体物理研究所':
+        return '物理与天文学院'
+    if raw == '土木工程系':
+        return '船舶海洋与建筑工程学院'
+    if raw == '设计系':
+        return '设计学院'
     if raw == '公共管理系':
         return '国际与公共事务学院'
     if raw == '历史系':
         return '人文学院'
+    return raw
+
+
+# 研究生应用管理平台数据的处理，和本科生保持一致
+def regulate_dept_gs(raw: str) -> str:
+    raw = raw[5:]
+    if raw == "上海交大-密西根大学联合学院":
+        return "密西根学院"
+    if raw == "智慧能源创新学院":
+        return "国家电投智慧能源创新学院"
+    if raw.startswith("电子信息与电气工程学院"):
+        return "电子信息与电气工程学院"
+    return raw
+
+
+def regulate_gs_course_name(raw: str) -> str:
+    raw = raw.removesuffix("(研）")
+    raw = raw.removesuffix("（研）")
+    raw = raw.removesuffix("(研)")
     return raw
 
 
@@ -90,14 +121,49 @@ class UploadData:
             self.departments.add(department)
         return ids
 
-    def clean_data(self, csv_reader, base_dir: str):
+    def clean_data_for_gs(self, jwc_csv: csv.DictReader, gs_csv: csv.DictReader):
+        code_dept = dict()
+        for line in gs_csv:
+            code = line["KCDM"]
+            dept = regulate_dept_gs(line["KKDW_DISPLAY"])
+            if code_dept.get(code, None) is None:
+                code_dept[code] = dept
+            else:
+                if code_dept.get(code) != dept:
+                    print(line)
+
+        for line in jwc_csv:
+            department = line['开课院系']
+
+            if department != '研究生院':  # 只处理研究生课程
+                continue
+            name = regulate_gs_course_name(line['课程名称'])
+            code = line['课程号']
+            try:
+                department = code_dept[code]
+            except KeyError:
+                continue
+            teacher_ids = self.deal_with_teacher_group(line)
+            self.departments.add(department)
+            categories = ["研究生"]
+            for category in categories:
+                self.categories.add(category)
+
+            main_teacher = line['任课教师'].split('|')[0] if line['任课教师'] else teacher_ids[0]
+
+            # code	name	credit	department	category    main_teacher	teacher_group
+            self.courses.add(
+                (code, name, line['学分'], department, ";".join(categories),
+                 main_teacher, ";".join(teacher_ids)))
+
+    def clean_data_for_jwc(self, csv_reader, base_dir: str):
         new_codes = get_former_codes(base_dir)
 
         for line in csv_reader:
-            teacher_ids = self.deal_with_teacher_group(line)
             department = line['开课院系']
             if department == '研究生院':  # 跳过所有的研究生课程（主要原因是没有main_teacher字段）
                 continue
+            teacher_ids = self.deal_with_teacher_group(line)
             self.departments.add(department)
             categories = regulate_categories(line)
             for category in categories:
