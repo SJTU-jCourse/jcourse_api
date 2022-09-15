@@ -135,7 +135,7 @@ class Review(models.Model):
     course = models.ForeignKey(Course, verbose_name='课程', on_delete=models.CASCADE, db_index=True)
     semester = models.ForeignKey(Semester, verbose_name='上课学期', on_delete=models.SET_NULL, null=True)
     rating = models.IntegerField(verbose_name='推荐指数', validators=[MaxValueValidator(5), MinValueValidator(1)])
-    comment = models.TextField(verbose_name='详细点评', max_length=1926)
+    comment = models.TextField(verbose_name='详细点评', max_length=9681)
     created = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
     modified = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True)
     score = models.CharField(verbose_name='成绩', null=True, blank=True, max_length=10)
