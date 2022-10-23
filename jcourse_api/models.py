@@ -111,7 +111,7 @@ class Notification(models.Model):
     )
 
     class Meta:
-        verbose_name = '通知通知'  # 前面有个重名的 Notice
+        verbose_name = '通知'
         verbose_name_plural = verbose_name
         # abstract = True
         ordering = ('-create_at',)
@@ -123,7 +123,6 @@ class Notification(models.Model):
         related_name='notify_actor',
         on_delete=models.CASCADE,
         verbose_name='发送者',
-        db_index=True
     )
     recipient = models.ForeignKey(
         User,
@@ -131,7 +130,6 @@ class Notification(models.Model):
         related_name='notify_recipient',
         on_delete=models.CASCADE,
         verbose_name='接收者',
-        db_index=True
     )
 
     type = models.IntegerField(verbose_name='类型', default=0, choices=NOTIFICATION_TYPE_CHOICES, )
