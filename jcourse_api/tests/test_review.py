@@ -129,6 +129,23 @@ class ReviewTest(TestCase):
         response = self.client.delete(self.endpoint + f'{review.id}/')
         self.assertEqual(response.status_code, 403)
 
+    def test_revision(self):
+        data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
+                'comment': 'TEST2', 'rating': 3}
+        response = self.client.put(self.endpoint + f'{self.review.id}/', data)
+        review = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(review['modified'])
+        revision = ReviewRevision.objects.filter(review_id=self.review.id)
+        self.assertIsNotNone(revision)
+        revision = revision.first()
+        self.assertEqual(revision.comment, self.review.comment)
+        self.assertEqual(revision.score, self.review.score)
+        self.assertEqual(revision.rating, self.review.rating)
+        self.assertEqual(revision.course_id, self.review.course_id)
+        self.assertEqual(revision.semester_id, self.review.semester_id)
+        self.assertEqual(revision.user_id, self.user.id)
+
     def test_write(self):
         course = Course.objects.get(code='CS2500')
         semester = Semester.objects.get(name='2021-2022-2')

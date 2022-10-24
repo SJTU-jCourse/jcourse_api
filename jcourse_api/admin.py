@@ -82,9 +82,16 @@ class FormerCodeAdmin(ImportExportModelAdmin):
 class ReviewAdmin(ImportExportModelAdmin):
     autocomplete_fields = ('user', 'course')
     list_display = (
-        'user', 'course', 'created', 'modified', 'approve_count', 'disapprove_count', 'comment_validity')
+        'id', 'user', 'course', 'created', 'modified', 'approve_count', 'disapprove_count', 'comment_validity')
     search_fields = ('user__username', 'course__code', 'course__id')
     readonly_fields = ('approve_count', 'disapprove_count')
+
+
+@admin.register(ReviewRevision)
+class ReviewRevisionAdmin(ImportExportModelAdmin):
+    autocomplete_fields = ('user', 'review', 'course')
+    list_display = ('id', 'review_id', 'user', 'course', 'created', 'comment_validity')
+    search_fields = ('review__id', 'user__username', 'course__code', 'course__id')
 
 
 @admin.register(Report)

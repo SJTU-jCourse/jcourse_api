@@ -168,6 +168,26 @@ class Review(models.Model):
                 update_course_reviews(old_course)
 
 
+class ReviewRevision(models.Model):
+    class Meta:
+        verbose_name = '点评修订记录'
+        verbose_name_plural = verbose_name
+
+    review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.CASCADE, db_index=True)
+    user = models.ForeignKey(User, verbose_name='执行用户', on_delete=models.SET_NULL, null=True)
+    course = models.ForeignKey(Course, verbose_name='课程', on_delete=models.SET_NULL, null=True)
+    semester = models.ForeignKey(Semester, verbose_name='上课学期', on_delete=models.SET_NULL, null=True)
+    rating = models.IntegerField(verbose_name='推荐指数', validators=[MaxValueValidator(5), MinValueValidator(1)])
+    comment = models.TextField(verbose_name='详细点评', max_length=9681)
+    created = models.DateTimeField(verbose_name='修订时间', default=timezone.now, db_index=True)
+    score = models.CharField(verbose_name='成绩', null=True, blank=True, max_length=10)
+
+    def comment_validity(self):
+        return constrain_text(self.comment)
+
+    comment_validity.short_description = '详细点评'
+
+
 class Notice(models.Model):
     class Meta:
         verbose_name = '通知'
