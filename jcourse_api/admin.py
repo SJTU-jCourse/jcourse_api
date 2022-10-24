@@ -104,8 +104,8 @@ class ReportAdmin(ImportExportModelAdmin):
 
 @admin.register(Action)
 class ActionAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'action', 'review',)
-    search_fields = ('user__username', 'review__course__code')
+    list_display = ('user', 'action', 'modified', 'review')
+    search_fields = ('user__username', 'review__course__code', 'review__id')
     readonly_fields = ('user', 'review',)
 
 

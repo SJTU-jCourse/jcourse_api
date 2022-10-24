@@ -235,14 +235,16 @@ class Action(models.Model):
     class Meta:
         verbose_name = '点评点赞'
         verbose_name_plural = verbose_name
+        ordering = ['-modified']
         constraints = [models.UniqueConstraint(fields=['user', 'review'], name='unique_action')]
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.CASCADE, db_index=True)
     action = models.IntegerField(choices=ACTION_CHOICES, verbose_name='操作', default=0, db_index=True)
+    modified = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True, auto_now=True)
 
     def __str__(self):
-        return f"{self.user} {self.get_action_display()} {self.review}"
+        return f"{self.user} {self.get_action_display()} {self.review.id}"
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         need_to_update = False
