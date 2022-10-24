@@ -188,9 +188,9 @@ class ReviewRevision(models.Model):
     comment_validity.short_description = '详细点评'
 
 
-class Notice(models.Model):
+class Announcement(models.Model):
     class Meta:
-        verbose_name = '通知'
+        verbose_name = '公告'
         ordering = ['-created']
         verbose_name_plural = verbose_name
 

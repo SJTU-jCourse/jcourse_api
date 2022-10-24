@@ -183,10 +183,10 @@ class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
         return super().dispatch(request, *args, **kwargs)
 
 
-class NoticeViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Notice.objects.filter(available=True)
+class AnnouncementViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Announcement.objects.filter(available=True)
     permission_classes = [IsAuthenticated]
-    serializer_class = NoticeSerializer
+    serializer_class = AnnouncementSerializer
     pagination_class = None
 
 

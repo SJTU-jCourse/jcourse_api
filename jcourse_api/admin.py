@@ -109,8 +109,8 @@ class ActionAdmin(ImportExportModelAdmin):
     readonly_fields = ('user', 'review',)
 
 
-@admin.register(Notice)
-class NoticeAdmin(ImportExportModelAdmin):
+@admin.register(Announcement)
+class AnnouncementAdmin(ImportExportModelAdmin):
     list_display = ('title', 'message', 'created', 'url', 'available')
 
 

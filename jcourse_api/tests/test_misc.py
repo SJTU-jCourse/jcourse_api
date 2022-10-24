@@ -5,17 +5,17 @@ from jcourse_api.tests import *
 from oauth.views import hash_username
 
 
-class NoticeTest(TestCase):
+class AnnouncementTest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = User.objects.create(username='test')
         self.client.force_login(self.user)
-        Notice.objects.create(title='TEST3', message='Just a test notice', available=True)
-        Notice.objects.create(title='TEST1', message='Just a test notice', available=True, url='https://example.com')
-        Notice.objects.create(title='TEST2', message='Just a test notice', available=False)
+        Announcement.objects.create(title='TEST3', message='Just a test notice', available=True)
+        Announcement.objects.create(title='TEST1', message='Just a test notice', available=True, url='https://example.com')
+        Announcement.objects.create(title='TEST2', message='Just a test notice', available=False)
 
     def test_list(self):
-        response = self.client.get('/api/notice/').json()
+        response = self.client.get('/api/announcement/').json()
         self.assertEqual(len(response), 2)
         self.assertEqual(response[0]['title'], 'TEST1')
         self.assertEqual(response[0]['message'], 'Just a test notice')
