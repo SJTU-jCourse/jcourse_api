@@ -1,5 +1,6 @@
 import django_filters
 from django.core.mail import send_mail
+from django.db import transaction
 from django.db.models import Sum, OuterRef, Subquery
 from django.db.models.functions import TruncDate
 from django.utils.decorators import method_decorator
@@ -130,12 +131,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
         else:
             return ReviewListSerializer
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: serializers.ModelSerializer):
         created_time = timezone.now()
         serializer.save(user=self.request.user, modified=created_time, created=created_time)
 
-    def perform_update(self, serializer):
-        serializer.save(modified=timezone.now())
+    def perform_update(self, serializer: serializers.ModelSerializer):
+        modified_time = timezone.now()
+        review: Review = serializer.instance
+        with transaction.atomic():
+            ReviewRevision.objects.create(user=self.request.user,
+                                          review_id=review.id, course_id=review.course_id,
+                                          semester_id=review.semester_id, score=review.score,
+                                          rating=review.rating, comment=review.comment,
+                                          created=modified_time, )
+            serializer.save(modified=modified_time)
 
     @action(detail=True, methods=['POST'], throttle_classes=[UserRateThrottle, ActionRateThrottle])
     def reaction(self, request: Request, pk=None):
@@ -174,10 +183,10 @@ class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
         return super().dispatch(request, *args, **kwargs)
 
 
-class NoticeViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Notice.objects.filter(available=True)
+class AnnouncementViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Announcement.objects.filter(available=True)
     permission_classes = [IsAuthenticated]
-    serializer_class = NoticeSerializer
+    serializer_class = AnnouncementSerializer
     pagination_class = None
 
 
