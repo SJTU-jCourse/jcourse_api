@@ -185,3 +185,44 @@ class ApiKeyAdmin(admin.ModelAdmin):
         if db_field.name == 'key':
             field.initial = os.urandom(16).hex()
         return field
+
+
+@admin.register(Notification)
+class NotificationAdmin(ImportExportModelAdmin):
+    # raw_id_fields = ('recipient',)
+    list_display = ('type_word', 'recipient', 'actor', 'read', 'public', 'emailed')
+
+    list_filter = ('read', 'public', 'create_at', 'read_at', 'type')
+    actions = ['mark_as_read',
+               'mark_as_unread',
+               'mark_as_emailed_and_email',
+               'mark_as_emailed_but_not_email',
+               'mark_as_not_emailed',
+               ]
+
+    def get_queryset(self, request):
+        qs = super(NotificationAdmin, self).get_queryset(request)
+        return qs.prefetch_related('actor')
+
+    @admin.action(description='设为已读')
+    def mark_as_read(self, request, queryset):
+        queryset.update(read=True, readAt=timezone.now())
+
+    @admin.action(description='设为未读')
+    def mark_as_unread(self, request, queryset):
+        queryset.update(read=False, readAt=None)
+
+    @admin.action(description='标记为已发送邮件-并发送邮件')
+    def mark_as_emailed_and_email(self, request, queryset):
+        queryset.update(emailed=True)
+        for notification in queryset:
+            # 邮件发送部分
+            pass
+
+    @admin.action(description='标记为已发送邮件-但不发送邮件')
+    def mark_as_emailed_but_not_email(self, request, queryset):
+        queryset.update(emailed=True)
+
+    @admin.action(description='标记为未发送邮件')
+    def mark_as_not_emailed(self, request, queryset):
+        queryset.update(emailed=False)

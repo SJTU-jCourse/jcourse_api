@@ -7,3 +7,7 @@ def signal_delete_review_actions(sender, instance: Action, **kwargs):
 
 def signal_delete_course_reviews(sender, instance: Review, **kwargs):
     update_course_reviews(instance.course)
+
+
+def signal_notify_report_replied(sender, instance: Report, **kwargs):
+    send_report_replied_notification(instance)
