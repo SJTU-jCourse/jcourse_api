@@ -26,9 +26,9 @@ class CourseResource(resources.ModelResource):
         export_order = (
             'code', 'name', 'credit', 'department', 'categories', 'main_teacher', 'teacher_group', 'last_semester')
 
-    def save_instance(self, instance, using_transactions=True, dry_run=False):
+    def save_instance(self, instance, is_create, using_transactions=True, dry_run=False):
         try:
-            super().save_instance(instance, using_transactions, dry_run)
+            super().save_instance(instance, is_create, using_transactions, dry_run)
         except IntegrityError:
             pass
 
@@ -57,9 +57,9 @@ class TeacherResource(resources.ModelResource):
         exclude = ('id',)
         export_order = ('tid', 'name', 'department', 'title', 'last_semester')
 
-    def save_instance(self, instance, using_transactions=True, dry_run=False):
+    def save_instance(self, instance, is_create, using_transactions=True, dry_run=False):
         try:
-            super().save_instance(instance, using_transactions, dry_run)
+            super().save_instance(instance, is_create, using_transactions, dry_run)
         except IntegrityError:
             pass
 
@@ -122,9 +122,9 @@ class DepartmentResource(resources.ModelResource):
         report_skipped = False
         import_id_fields = ('name',)
 
-    def save_instance(self, instance, using_transactions=True, dry_run=False):
+    def save_instance(self, instance, is_create, using_transactions=True, dry_run=False):
         try:
-            super().save_instance(instance, using_transactions, dry_run)
+            super().save_instance(instance, is_create, using_transactions, dry_run)
         except IntegrityError:
             pass
 
@@ -137,9 +137,9 @@ class CategoryResource(resources.ModelResource):
         report_skipped = False
         import_id_fields = ('name',)
 
-    def save_instance(self, instance, using_transactions=True, dry_run=False):
+    def save_instance(self, instance, is_create, using_transactions=True, dry_run=False):
         try:
-            super().save_instance(instance, using_transactions, dry_run)
+            super().save_instance(instance, is_create, using_transactions, dry_run)
         except IntegrityError:
             pass
 
