@@ -287,3 +287,15 @@ class UserPointSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserPoint
         exclude = ('user', 'id')
+
+
+class ReviewRevisionSerializer(serializers.ModelSerializer):
+    semester = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_semester(obj):
+        return obj.semester.name
+
+    class Meta:
+        model = ReviewRevision
+        exclude = ('review',)

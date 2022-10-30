@@ -11,7 +11,7 @@ from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action, api_view
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
@@ -108,7 +108,6 @@ def get_reviews(user: User, action: str):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsOwnerOrReadOnly]
 
     def get_permissions(self):
         if jcourse.settings.REVIEW_READ_ONLY:
@@ -170,6 +169,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()
         data = serializer(reviews, many=True, context={'request': request}).data
         return Response(data)
+
+
+class ReviewRevisionViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAdminUser]
+    serializer_class = ReviewRevisionSerializer
+
+    def get_queryset(self):
+        review_id = self.request.query_params.get('review_id', '')
+        return ReviewRevision.objects.select_related('semester').filter(review_id=review_id).order_by(
+            F('created').desc(nulls_last=True))
 
 
 class SemesterViewSet(viewsets.ReadOnlyModelViewSet):

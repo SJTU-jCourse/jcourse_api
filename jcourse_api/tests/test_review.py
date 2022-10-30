@@ -129,23 +129,6 @@ class ReviewTest(TestCase):
         response = self.client.delete(self.endpoint + f'{review.id}/')
         self.assertEqual(response.status_code, 403)
 
-    def test_revision(self):
-        data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
-                'comment': 'TEST2', 'rating': 3}
-        response = self.client.put(self.endpoint + f'{self.review.id}/', data)
-        review = response.json()
-        self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(review['modified'])
-        revision = ReviewRevision.objects.filter(review_id=self.review.id)
-        self.assertIsNotNone(revision)
-        revision = revision.first()
-        self.assertEqual(revision.comment, self.review.comment)
-        self.assertEqual(revision.score, self.review.score)
-        self.assertEqual(revision.rating, self.review.rating)
-        self.assertEqual(revision.course_id, self.review.course_id)
-        self.assertEqual(revision.semester_id, self.review.semester_id)
-        self.assertEqual(revision.user_id, self.user.id)
-
     def test_write(self):
         course = Course.objects.get(code='CS2500')
         semester = Semester.objects.get(name='2021-2022-2')
@@ -186,6 +169,56 @@ class ReviewTest(TestCase):
         response = self.client.post(self.endpoint,
                                     {'course': course.id, 'score': '100', 'comment': 'TEST', 'rating': 5})
         self.assertEqual(response.status_code, 201)  # 允许学期为空
+
+
+class ReviewRevisionTest(TestCase):
+    def setUp(self) -> None:
+        create_test_env()
+        self.review = create_review()
+        self.client = APIClient()
+        self.user = User.objects.get(username='test')
+        self.client.force_login(self.user)
+        self.endpoint = '/api/review-revision/'
+        self.semester = Semester.objects.get(name='2021-2022-1')
+
+    def test_create_revision_on_review(self):
+        data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
+                'comment': 'TEST2', 'rating': 3}
+        response = self.client.put(f'/api/review/{self.review.id}/', data)
+        review = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(review['modified'])
+        revision = ReviewRevision.objects.filter(review_id=self.review.id)
+        self.assertIsNotNone(revision)
+        revision = revision.first()
+        self.assertEqual(revision.comment, self.review.comment)
+        self.assertEqual(revision.score, self.review.score)
+        self.assertEqual(revision.rating, self.review.rating)
+        self.assertEqual(revision.course_id, self.review.course_id)
+        self.assertEqual(revision.semester_id, self.review.semester_id)
+        self.assertEqual(revision.user_id, self.user.id)
+
+    def test_only_admin(self):
+        response = self.client.get(self.endpoint + f'?review_id={self.review.id}')
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_revision(self):
+        data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
+                'comment': 'TEST2', 'rating': 3}
+        response = self.client.put(f'/api/review/{self.review.id}/', data)
+        self.assertEqual(response.status_code, 200)
+        self.user.is_staff = True
+        self.user.save()
+        response = self.client.get(self.endpoint + f'?review_id={self.review.id}')
+        revisions = response.json()
+        self.assertEqual(revisions["count"], 1)
+        revision = revisions["results"][0]
+        self.assertEqual(revision["comment"], self.review.comment)
+        self.assertEqual(revision["score"], self.review.score)
+        self.assertEqual(revision["rating"], self.review.rating)
+        self.assertEqual(revision["course"], self.review.course_id)
+        self.assertEqual(revision["semester"], self.review.semester.name)
+        self.assertEqual(revision["user"], self.user.id)
 
 
 class ActionTest(TestCase):
