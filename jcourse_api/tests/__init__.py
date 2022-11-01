@@ -43,5 +43,5 @@ def create_review(username: str = 'test', code: str = 'CS1500', rating: int = 3)
     course = Course.objects.get(code=code)
     review = Review.objects.create(user=user, course=course, comment='TEST', rating=rating, score='W',
                                    semester=Semester.objects.get(name='2021-2022-1'))
-    Action.objects.create(review=review, user=user, action=1)
+    ReviewReaction.objects.create(review=review, user=user, reaction=1)
     return review

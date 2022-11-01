@@ -229,22 +229,22 @@ class Report(models.Model):
     reply_validity.short_description = '回复'
 
 
-class Action(models.Model):
-    ACTION_CHOICES = [(1, '赞同'), (-1, '反对'), (0, '重置')]
+class ReviewReaction(models.Model):
+    REACTION_CHOICES = [(1, '赞同'), (-1, '反对'), (0, '重置')]
 
     class Meta:
-        verbose_name = '点评点赞'
+        verbose_name = '点评回应'
         verbose_name_plural = verbose_name
         ordering = ['-modified']
-        constraints = [models.UniqueConstraint(fields=['user', 'review'], name='unique_action')]
+        constraints = [models.UniqueConstraint(fields=['user', 'review'], name='unique_reaction')]
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.CASCADE, db_index=True)
-    action = models.IntegerField(choices=ACTION_CHOICES, verbose_name='操作', default=0, db_index=True)
+    reaction = models.IntegerField(choices=REACTION_CHOICES, verbose_name='操作', default=0, db_index=True)
     modified = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True, auto_now=True)
 
     def __str__(self):
-        return f"{self.user} {self.get_action_display()} {self.review.id}"
+        return f"{self.user} {self.get_reaction_display()} {self.review.id}"
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         need_to_update = False
@@ -252,15 +252,15 @@ class Action(models.Model):
         if self.pk is None:
             need_to_update = True
         else:
-            previous = Action.objects.get(pk=self.pk)
-            if previous.review_id != self.review_id or previous.action != self.action:
+            previous = ReviewReaction.objects.get(pk=self.pk)
+            if previous.review_id != self.review_id or previous.reaction != self.reaction:
                 need_to_update = True
                 old_review = previous.review
         super().save(force_insert, force_update, using, update_fields)
         if need_to_update:
-            update_review_actions(self.review)
+            update_review_reactions(self.review)
             if old_review and old_review != self.review:
-                update_review_actions(old_review)
+                update_review_reactions(old_review)
 
 
 class ApiKey(models.Model):
@@ -305,9 +305,9 @@ class UserPoint(models.Model):
         return f"{self.user} 积分：{self.value} 原因：{constrain_text(self.description)}"
 
 
-def update_review_actions(review: Review):
-    actions = Action.objects.filter(review=review).aggregate(approves=Count('action', filter=Q(action=1)),
-                                                             disapproves=Count('action', filter=Q(action=-1)))
+def update_review_reactions(review: Review):
+    actions = ReviewReaction.objects.filter(review=review).aggregate(approves=Count('reaction', filter=Q(reaction=1)),
+                                                                     disapproves=Count('reaction', filter=Q(reaction=-1)))
     review.approve_count = actions['approves']
     review.disapprove_count = actions['disapproves']
     review.save(update_fields=['approve_count', 'disapprove_count'])

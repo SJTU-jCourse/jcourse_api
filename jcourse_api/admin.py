@@ -102,9 +102,9 @@ class ReportAdmin(ImportExportModelAdmin):
     readonly_fields = ('user', 'comment', 'created')
 
 
-@admin.register(Action)
-class ActionAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'action', 'modified', 'review')
+@admin.register(ReviewReaction)
+class ReactionAdmin(ImportExportModelAdmin):
+    list_display = ('user', 'reaction', 'modified', 'review')
     search_fields = ('user__username', 'review__course__code', 'review__id')
     readonly_fields = ('user', 'review',)
 

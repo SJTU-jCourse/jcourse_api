@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 import jcourse.settings
 from jcourse_api.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from jcourse_api.serializers import *
-from jcourse.throttles import ActionRateThrottle
+from jcourse.throttles import ReactionRateThrottle
 from oauth.views import hash_username, jaccount
 
 
@@ -98,13 +98,13 @@ class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 def get_reviews(user: User, action: str):
-    my_action = Action.objects.filter(user=user, review_id=OuterRef('pk')).values('action')
+    my_reaction = ReviewReaction.objects.filter(user=user, review_id=OuterRef('pk')).values('reaction')
     reviews = Review.objects.select_related('course', 'course__main_teacher', 'semester')
     if action == 'retrieve':
         my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('course_id')).values('semester')
         return reviews.annotate(
-            my_action=Subquery(my_action[:1]), my_enroll_semester=Subquery(my_enroll_semester[:1]))
-    return reviews.annotate(my_action=Subquery(my_action[:1]))
+            my_reaction=Subquery(my_reaction[:1]), my_enroll_semester=Subquery(my_enroll_semester[:1]))
+    return reviews.annotate(my_reaction=Subquery(my_reaction[:1]))
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -145,20 +145,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
                                           created=modified_time, )
             serializer.save(modified=modified_time)
 
-    @action(detail=True, methods=['POST'], throttle_classes=[UserRateThrottle, ActionRateThrottle])
+    @action(detail=True, methods=['POST'], throttle_classes=[UserRateThrottle, ReactionRateThrottle])
     def reaction(self, request: Request, pk=None):
-        if 'action' not in request.data:
+        if 'reaction' not in request.data:
             return Response({'error': '未指定操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
         if pk is None:
             return Response({'error': '未指定点评id！'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            Action.objects.update_or_create(user=request.user, review_id=pk,
-                                            defaults={'action': request.data.get('action')})
+            ReviewReaction.objects.update_or_create(user=request.user, review_id=pk,
+                                                    defaults={'reaction': request.data.get('reaction')})
             review = Review.objects.get(pk=pk)
-        except (Action.DoesNotExist, Review.DoesNotExist):
+        except (ReviewReaction.DoesNotExist, Review.DoesNotExist):
             return Response({'error': '无指定点评！'}, status=status.HTTP_404_NOT_FOUND)
         return Response({'id': pk,
-                         'action': request.data.get('action'),
+                         'reaction': request.data.get('reaction'),
                          'approves': review.approve_count,
                          'disapproves': review.disapprove_count},
                         status=status.HTTP_200_OK)

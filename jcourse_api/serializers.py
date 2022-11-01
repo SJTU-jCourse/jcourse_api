@@ -205,8 +205,8 @@ class CreateReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(error_msg)
 
 
-def get_review_actions(obj):
-    return {'approves': obj.approve_count, 'disapproves': obj.disapprove_count, 'action': obj.my_action}
+def get_review_reactions(obj):
+    return {'approves': obj.approve_count, 'disapproves': obj.disapprove_count, 'reaction': obj.my_reaction}
 
 
 def is_my_review(serializer: serializers.Serializer, obj: Review):
@@ -219,7 +219,7 @@ def is_my_review(serializer: serializers.Serializer, obj: Review):
 
 class ReviewListSerializer(serializers.ModelSerializer):
     course = CourseInReviewListSerializer(read_only=True)
-    actions = serializers.SerializerMethodField()
+    reactions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
 
@@ -235,13 +235,13 @@ class ReviewListSerializer(serializers.ModelSerializer):
         return is_my_review(self, obj)
 
     @staticmethod
-    def get_actions(obj):
-        return get_review_actions(obj)
+    def get_reactions(obj):
+        return get_review_reactions(obj)
 
 
 class ReviewItemSerializer(serializers.ModelSerializer):
     course = serializers.SerializerMethodField()
-    actions = serializers.SerializerMethodField()
+    reactions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
     semester = SemesterSerializer()
 
@@ -253,8 +253,8 @@ class ReviewItemSerializer(serializers.ModelSerializer):
         return is_my_review(self, obj)
 
     @staticmethod
-    def get_actions(obj):
-        return get_review_actions(obj)
+    def get_reactions(obj):
+        return get_review_reactions(obj)
 
     @staticmethod
     def get_course(obj):
@@ -263,7 +263,7 @@ class ReviewItemSerializer(serializers.ModelSerializer):
 
 
 class ReviewInCourseSerializer(serializers.ModelSerializer):
-    actions = serializers.SerializerMethodField()
+    reactions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
 
@@ -276,8 +276,8 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
         return obj.semester.name
 
     @staticmethod
-    def get_actions(obj):
-        return get_review_actions(obj)
+    def get_reactions(obj):
+        return get_review_reactions(obj)
 
     def get_is_mine(self, obj: Review):
         return is_my_review(self, obj)

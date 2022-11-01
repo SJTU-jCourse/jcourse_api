@@ -1,8 +1,8 @@
 from rest_framework.throttling import UserRateThrottle
 
 
-class ActionRateThrottle(UserRateThrottle):
-    scope = 'review_action'
+class ReactionRateThrottle(UserRateThrottle):
+    scope = 'review_reaction'
 
 
 class VerifyEmailRateThrottle(UserRateThrottle):

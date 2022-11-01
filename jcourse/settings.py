@@ -164,7 +164,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.UserRateThrottle'],
     'DEFAULT_THROTTLE_RATES': {
         'user': '5/second',
-        'review_action': '20/day',
+        'review_reaction': '20/day',
         'email_code': '1/minute',
         'verify_email': '5/minute',
     },
