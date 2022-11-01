@@ -36,6 +36,12 @@ class ReportSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', 'created', 'reply')
 
 
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ('id', 'actor', 'recipient', 'type', 'description', 'created', 'read_at')
+
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category

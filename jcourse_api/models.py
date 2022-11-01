@@ -1,4 +1,7 @@
+from django.contrib import admin
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Count, Avg, Q
@@ -91,6 +94,80 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Notification(models.Model):
+    NOTIFICATION_TYPE_CHOICES = (
+        (0, '管理员回复'),
+        (1, '获得点赞'),
+        (2, '积分失效'),
+        (3, '积分补偿'),
+        (4, '点评被回复'),
+        (5, '点评被引用'),
+        (6, '点评被删除'),
+        (7, '反馈被回复'),
+        (8, '关注的课程有新点评'),
+
+    )
+
+    NOTIFICATION_TYPE = {
+        'admin_reply': 0,
+        'get_likes': 1,
+        'points_invalid': 2,
+        'points_compensate': 3,
+        'reviews_replied': 4,
+        'reviews_quoted': 5,
+        'reviews_removed': 6,
+        'reports_replied': 7,
+        'courses_new_review': 8,
+    }
+
+    class Meta:
+        verbose_name = '通知'
+        verbose_name_plural = verbose_name
+        # abstract = True
+        ordering = ('-created',)
+        index_together = ('recipient',)
+
+    actor = models.ForeignKey(
+        User,
+        blank=False,
+        related_name='notify_actor',
+        on_delete=models.CASCADE,
+        verbose_name='发送者',
+    )
+    recipient = models.ForeignKey(
+        User,
+        blank=False,
+        related_name='notify_recipient',
+        on_delete=models.CASCADE,
+        verbose_name='接收者',
+    )
+
+    type = models.IntegerField(verbose_name='类型', default=0, choices=NOTIFICATION_TYPE_CHOICES, )
+
+    @admin.display(description='类型')
+    def type_word(self):
+        return self.NOTIFICATION_TYPE_CHOICES[self.type][1]
+
+    description = models.TextField(blank=True, null=True, verbose_name='内容')
+
+    content_type = models.ForeignKey(ContentType, models.CASCADE, verbose_name='内容类型', null=True)
+    object_id = models.PositiveIntegerField(verbose_name='内容ID', null=True)
+    related_object = GenericForeignKey('content_type', 'object_id')
+
+    created = models.DateTimeField(default=timezone.now, db_index=True, verbose_name='创建时间')
+    read_at = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name='阅读时间')
+
+    @admin.display(description='已读', boolean=True)
+    def read(self):
+        return self.read_at is not None
+
+    public = models.BooleanField(default=True, db_index=True, verbose_name='已发布')
+    emailed = models.BooleanField(default=False, db_index=True, verbose_name='已发送邮件')
+
+    def __str__(self):
+        return f"{self.id}"
 
 
 class Course(models.Model):
@@ -215,6 +292,7 @@ class Report(models.Model):
     comment = models.TextField(verbose_name='反馈', max_length=817)
     created = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
     reply = models.TextField(verbose_name='回复', max_length=817, null=True, blank=True)
+    notification = GenericRelation(Notification)
 
     def __str__(self):
         return f"{self.user}：{constrain_text(self.comment)}"
@@ -318,3 +396,16 @@ def update_course_reviews(course: Course):
     course.review_count = review['count']
     course.review_avg = review['avg']
     course.save(update_fields=['review_count', 'review_avg'])
+
+
+def send_report_replied_notification(report: Report):
+    if report.reply:
+        notification = Notification.objects.create(
+            actor=report.user,  # maybe need a system account to send this notification
+            recipient=report.user,
+            type=Notification.NOTIFICATION_TYPE['reports_replied'],
+            content_type=ContentType.objects.get_for_model(report),
+            object_id=report.id,
+            created=timezone.now()
+        )
+        notification.save()

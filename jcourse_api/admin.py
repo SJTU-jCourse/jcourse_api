@@ -1,12 +1,15 @@
 import os
 
 from django.contrib import admin
+from django.core.mail import send_mail
 from django.db import IntegrityError
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
+import jcourse
 from jcourse_api.models import *
+import jcourse.settings
 
 
 class CourseResource(resources.ModelResource):
@@ -185,3 +188,24 @@ class ApiKeyAdmin(admin.ModelAdmin):
         if db_field.name == 'key':
             field.initial = os.urandom(16).hex()
         return field
+
+
+@admin.register(Notification)
+class NotificationAdmin(ImportExportModelAdmin):
+    list_display = ('type_word', 'recipient', 'actor', 'read', 'public', 'emailed')
+    list_filter = ('public', 'created', 'read_at', 'type')
+    actions = ['mark_as_read',
+               'mark_as_unread',
+               ]
+
+    def get_queryset(self, request):
+        qs = super(NotificationAdmin, self).get_queryset(request)
+        return qs.prefetch_related('actor')
+
+    @admin.action(description='设为已读')
+    def mark_as_read(self, request, queryset):
+        queryset.update(read_at=timezone.now())
+
+    @admin.action(description='设为未读')
+    def mark_as_unread(self, request, queryset):
+        queryset.update(read_at=None)
