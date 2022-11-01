@@ -94,3 +94,11 @@ class NotificationTest(TestCase):
         self.assertIsNone(response2['read_at'])
         notification2 = Notification.objects.get(id=self.notification2.id)
         self.assertIsNone(notification2.read_at)
+
+    def test_not_authed_user_change_read_state(self):
+        self.create_env()
+        client = APIClient()
+        user8 = User.objects.create(username='test8')
+        client.force_login(user8)
+        response = client.post(f'{self.endpoint}{self.notification2.id}/read/', {'read': '1'}).json()
+        self.assertEqual(response, {'error': '无指定通知！'})

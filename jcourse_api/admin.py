@@ -1,15 +1,11 @@
 import os
 
-from django.contrib import admin
-from django.core.mail import send_mail
 from django.db import IntegrityError
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 
-import jcourse
 from jcourse_api.models import *
-import jcourse.settings
 
 
 class CourseResource(resources.ModelResource):

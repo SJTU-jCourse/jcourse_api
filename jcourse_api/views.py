@@ -11,7 +11,6 @@ from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action, api_view
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -415,7 +414,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         if pk is None:
             return Response({'error': '未指定通知id！'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            notification = Notification.objects.get(id=pk)
+            notification = Notification.objects.get(id=pk, recipient=request.user)
             if int(request.data['read']):
                 notification.read_at = timezone.now()
             else:
