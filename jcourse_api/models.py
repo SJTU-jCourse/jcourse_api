@@ -1,3 +1,4 @@
+import enum
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -110,17 +111,16 @@ class Notification(models.Model):
 
     )
 
-    NOTIFICATION_TYPE = {
-        'admin_reply': 0,
-        'get_likes': 1,
-        'points_invalid': 2,
-        'points_compensate': 3,
-        'reviews_replied': 4,
-        'reviews_quoted': 5,
-        'reviews_removed': 6,
-        'reports_replied': 7,
-        'courses_new_review': 8,
-    }
+    class NotificationType(enum.IntEnum):
+        ADMIN_REPLY = 0
+        GET_LIKES = 1
+        POINTS_INVALID = 2
+        POINTS_COMPENSATE = 3
+        REVIEWS_REPLIED = 4
+        REVIEWS_QUOTED = 5
+        REVIEWS_REMOVED = 6
+        REPORTS_REPLIED = 7
+        COURSES_NEW_REVIEW = 8
 
     class Meta:
         verbose_name = '通知'
@@ -385,7 +385,8 @@ class UserPoint(models.Model):
 
 def update_review_reactions(review: Review):
     actions = ReviewReaction.objects.filter(review=review).aggregate(approves=Count('reaction', filter=Q(reaction=1)),
-                                                                     disapproves=Count('reaction', filter=Q(reaction=-1)))
+                                                                     disapproves=Count('reaction',
+                                                                                       filter=Q(reaction=-1)))
     review.approve_count = actions['approves']
     review.disapprove_count = actions['disapproves']
     review.save(update_fields=['approve_count', 'disapprove_count'])
@@ -403,7 +404,7 @@ def send_report_replied_notification(report: Report):
         notification = Notification.objects.create(
             actor=report.user,  # maybe need a system account to send this notification
             recipient=report.user,
-            type=Notification.NOTIFICATION_TYPE['reports_replied'],
+            type=Notification.NotificationType.REPORTS_REPLIED,
             content_type=ContentType.objects.get_for_model(report),
             object_id=report.id,
             created=timezone.now()

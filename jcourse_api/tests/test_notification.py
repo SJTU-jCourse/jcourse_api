@@ -3,15 +3,12 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from rest_framework.test import APIClient
-
-from jcourse_api.tests import *
+from jcourse_api.models import *
 
 
 class NotificationTest(TestCase):
     def create_env(self):
-        from jcourse_api.models import Report
         report = Report.objects.create(user=self.user, comment='test', created=timezone.now())
-
         self.notification1 = Notification.objects.create(actor=self.user,
                                                          recipient=self.user2,
                                                          type=7,
@@ -19,14 +16,11 @@ class NotificationTest(TestCase):
                                                          object_id=report.id,
                                                          created=timezone.now() - datetime.timedelta(days=1)
                                                          )
-        self.notification1.save()
-
         self.notification2 = Notification.objects.create(actor=self.user,
                                                          recipient=self.user,
                                                          type=1,
                                                          created=timezone.now() - datetime.timedelta(days=2)
                                                          )
-        self.notification2.save()
         self.notification3 = Notification.objects.create(actor=self.user2,
                                                          recipient=self.user,
                                                          type=1,
@@ -34,7 +28,6 @@ class NotificationTest(TestCase):
                                                          read_at=timezone.now() - datetime.timedelta(hours=3),
                                                          created=timezone.now() - datetime.timedelta(hours=4)
                                                          )
-        self.notification3.save()
         self.notification4 = Notification.objects.create(actor=self.user2,
                                                          recipient=self.user,
                                                          type=2,
@@ -43,7 +36,6 @@ class NotificationTest(TestCase):
                                                          read_at=timezone.now(),
                                                          created=timezone.now() - datetime.timedelta(hours=2)
                                                          )
-        self.notification4.save()
 
     def setUp(self) -> None:
         self.client = APIClient()
