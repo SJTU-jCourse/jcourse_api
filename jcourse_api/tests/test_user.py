@@ -124,7 +124,6 @@ class ReportTest(TestCase):
 
     def test_create(self):
         response = self.client.post(self.endpoint, {'comment': 'TEST'}).json()
-        self.assertEqual(response['id'], 1)
         self.assertEqual(response['comment'], 'TEST')
         self.assertIn('created', response)
         self.assertIn('reply', response)
@@ -148,11 +147,13 @@ class SyncTest(TestCase):
     def jaccount_api(cls):
         return {'errno': 0, 'error': 'success', 'total': 0, 'entities': [
             {'name': '(2019-2020-1)-CS1500-1', 'kind': 'sjtu.lesson', 'bsid': '',
-             'code': '(2019-2020-1)-CS1500-1', 'course': {'code': 'CS1500', 'name': '计算机科学导论', 'kind': 'sjtu.course'},
+             'code': '(2019-2020-1)-CS1500-1',
+             'course': {'code': 'CS1500', 'name': '计算机科学导论', 'kind': 'sjtu.course'},
              'teachers': [{'name': '高女士', 'kind': 'canvas.profile'}],
              'organize': {'id': '03000', 'name': '电子信息与电气工程学院'}, 'hours': 32, 'credits': 3},
             {'name': '(2019-2020-1)-TH000-1', 'kind': 'sjtu.lesson', 'bsid': '',
-             'code': '(2019-2020-1)-TH000-1', 'course': {'code': 'TH000', 'name': '思想道德修养与法律基础', 'kind': 'sjtu.course'},
+             'code': '(2019-2020-1)-TH000-1',
+             'course': {'code': 'TH000', 'name': '思想道德修养与法律基础', 'kind': 'sjtu.course'},
              'teachers': [{'name': '梁女士', 'kind': 'canvas.profile'}],
              'organize': {'id': '03000', 'name': '马克思主义学院'}, 'hours': 32, 'credits': 2}]}
 

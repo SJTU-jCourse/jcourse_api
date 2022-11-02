@@ -1,6 +1,5 @@
 import os
 
-from django.contrib import admin
 from django.db import IntegrityError
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
@@ -185,3 +184,19 @@ class ApiKeyAdmin(admin.ModelAdmin):
         if db_field.name == 'key':
             field.initial = os.urandom(16).hex()
         return field
+
+
+@admin.register(Notification)
+class NotificationAdmin(ImportExportModelAdmin):
+    autocomplete_fields = ('recipient',)
+    list_display = ('id', 'type', 'recipient', 'read', 'public')
+    list_filter = ('public', 'created', 'read_at', 'type')
+    actions = ['mark_as_read', 'mark_as_unread']
+
+    @admin.action(description='设为已读')
+    def mark_as_read(self, request, queryset):
+        queryset.update(read_at=timezone.now())
+
+    @admin.action(description='设为未读')
+    def mark_as_unread(self, request, queryset):
+        queryset.update(read_at=None)
