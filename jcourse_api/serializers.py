@@ -39,7 +39,7 @@ class ReportSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ('id', 'actor', 'recipient', 'type', 'description', 'created', 'read_at')
+        fields = ('id', 'recipient', 'type', 'description', 'created', 'read_at')
 
 
 class CategorySerializer(serializers.ModelSerializer):

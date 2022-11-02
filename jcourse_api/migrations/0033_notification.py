@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 import django.utils.timezone
 
 
@@ -25,7 +24,6 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(db_index=True, default=django.utils.timezone.now, verbose_name='创建时间')),
                 ('read_at', models.DateTimeField(blank=True, db_index=True, null=True, verbose_name='阅读时间')),
                 ('public', models.BooleanField(db_index=True, default=True, verbose_name='已发布')),
-                ('actor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notify_actor', to=settings.AUTH_USER_MODEL, verbose_name='发送者')),
                 ('content_type', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype', verbose_name='内容类型')),
                 ('recipient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notify_recipient', to=settings.AUTH_USER_MODEL, verbose_name='接收者')),
             ],

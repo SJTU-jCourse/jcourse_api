@@ -113,18 +113,8 @@ class Notification(models.Model):
         verbose_name_plural = verbose_name
         ordering = ('-created',)
 
-    actor = models.ForeignKey(
-        User,
-        blank=False,
-        related_name='notify_actor',
-        on_delete=models.CASCADE,
-        verbose_name='发送者',
-        db_index=True
-    )
     recipient = models.ForeignKey(
         User,
-        blank=False,
-        related_name='notify_recipient',
         on_delete=models.CASCADE,
         verbose_name='接收者',
         db_index=True
@@ -378,12 +368,10 @@ def update_course_reviews(course: Course):
 
 def send_report_replied_notification(report: Report):
     if report.reply:
-        notification = Notification.objects.create(
-            actor=report.user,  # maybe need a system account to send this notification
+        Notification.objects.create(
             recipient=report.user,
             type=Notification.NotificationType.REPORTS_REPLIED,
             content_type=ContentType.objects.get_for_model(report),
             object_id=report.id,
             created=timezone.now()
         )
-        notification.save()
