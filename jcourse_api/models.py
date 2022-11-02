@@ -259,7 +259,6 @@ class Report(models.Model):
     comment = models.TextField(verbose_name='反馈', max_length=817)
     created = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
     reply = models.TextField(verbose_name='回复', max_length=817, null=True, blank=True)
-    notification = GenericRelation(Notification)
 
     def __str__(self):
         return f"{self.user}：{constrain_text(self.comment)}"
