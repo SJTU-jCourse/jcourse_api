@@ -155,7 +155,8 @@ class FilterTest(TestCase):
 
     def test_body(self):
         response = self.client.get(self.endpoint).json()
-        self.assertEqual(response['categories'], [{'id': Category.objects.get(name='通识').pk, 'count': 2, 'name': '通识'}])
+        self.assertEqual(response['categories'],
+                         [{'id': Category.objects.get(name='通识').pk, 'count': 2, 'name': '通识'}])
         self.assertEqual(response['departments'],
                          [{'id': Department.objects.get(name='PHYSICS').pk, 'count': 2, 'name': 'PHYSICS'},
                           {'id': Department.objects.get(name='SEIEE').pk, 'count': 2, 'name': 'SEIEE'}])

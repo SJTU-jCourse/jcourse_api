@@ -18,9 +18,9 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 
 import jcourse.settings
+from jcourse.throttles import ReactionRateThrottle
 from jcourse_api.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from jcourse_api.serializers import *
-from jcourse.throttles import ReactionRateThrottle
 from oauth.views import hash_username, jaccount
 
 
