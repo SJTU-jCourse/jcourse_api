@@ -1,4 +1,3 @@
-import enum
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -98,36 +97,21 @@ class Teacher(models.Model):
 
 
 class Notification(models.Model):
-    NOTIFICATION_TYPE_CHOICES = (
-        (0, '管理员回复'),
-        (1, '获得点赞'),
-        (2, '积分失效'),
-        (3, '积分补偿'),
-        (4, '点评被回复'),
-        (5, '点评被引用'),
-        (6, '点评被删除'),
-        (7, '反馈被回复'),
-        (8, '关注的课程有新点评'),
-
-    )
-
-    class NotificationType(enum.IntEnum):
-        ADMIN_REPLY = 0
-        GET_LIKES = 1
-        POINTS_INVALID = 2
-        POINTS_COMPENSATE = 3
-        REVIEWS_REPLIED = 4
-        REVIEWS_QUOTED = 5
-        REVIEWS_REMOVED = 6
-        REPORTS_REPLIED = 7
-        COURSES_NEW_REVIEW = 8
+    class NotificationType(models.IntegerChoices):
+        ADMIN_REPLY = 0, '管理员回复'
+        GET_LIKES = 1, '获得点赞'
+        POINTS_INVALID = 2, '积分失效'
+        POINTS_COMPENSATE = 3, '积分补偿'
+        REVIEWS_REPLIED = 4, '点评被回复'
+        REVIEWS_QUOTED = 5, '点评被引用'
+        REVIEWS_REMOVED = 6, '点评被删除'
+        REPORTS_REPLIED = 7, '反馈被回复'
+        COURSES_NEW_REVIEW = 8, '关注的课程有新点评'
 
     class Meta:
         verbose_name = '通知'
         verbose_name_plural = verbose_name
-        # abstract = True
         ordering = ('-created',)
-        index_together = ('recipient',)
 
     actor = models.ForeignKey(
         User,
@@ -135,6 +119,7 @@ class Notification(models.Model):
         related_name='notify_actor',
         on_delete=models.CASCADE,
         verbose_name='发送者',
+        db_index=True
     )
     recipient = models.ForeignKey(
         User,
@@ -142,29 +127,21 @@ class Notification(models.Model):
         related_name='notify_recipient',
         on_delete=models.CASCADE,
         verbose_name='接收者',
+        db_index=True
     )
-
-    type = models.IntegerField(verbose_name='类型', default=0, choices=NOTIFICATION_TYPE_CHOICES, )
-
-    @admin.display(description='类型')
-    def type_word(self):
-        return self.NOTIFICATION_TYPE_CHOICES[self.type][1]
-
+    type = models.IntegerField(verbose_name='类型', choices=NotificationType.choices,
+                               db_index=True, null=True, blank=True)
     description = models.TextField(blank=True, null=True, verbose_name='内容')
-
     content_type = models.ForeignKey(ContentType, models.CASCADE, verbose_name='内容类型', null=True)
     object_id = models.PositiveIntegerField(verbose_name='内容ID', null=True)
     related_object = GenericForeignKey('content_type', 'object_id')
-
     created = models.DateTimeField(default=timezone.now, db_index=True, verbose_name='创建时间')
     read_at = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name='阅读时间')
+    public = models.BooleanField(default=True, db_index=True, verbose_name='已发布')
 
     @admin.display(description='已读', boolean=True)
     def read(self):
         return self.read_at is not None
-
-    public = models.BooleanField(default=True, db_index=True, verbose_name='已发布')
-    emailed = models.BooleanField(default=False, db_index=True, verbose_name='已发送邮件')
 
     def __str__(self):
         return f"{self.id}"

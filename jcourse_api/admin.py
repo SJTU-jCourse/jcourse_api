@@ -188,11 +188,10 @@ class ApiKeyAdmin(admin.ModelAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(ImportExportModelAdmin):
-    list_display = ('type_word', 'recipient', 'actor', 'read', 'public', 'emailed')
+    autocomplete_fields = ('recipient', 'actor')
+    list_display = ('id', 'type', 'recipient', 'actor', 'read', 'public')
     list_filter = ('public', 'created', 'read_at', 'type')
-    actions = ['mark_as_read',
-               'mark_as_unread',
-               ]
+    actions = ['mark_as_read', 'mark_as_unread']
 
     def get_queryset(self, request):
         qs = super(NotificationAdmin, self).get_queryset(request)
