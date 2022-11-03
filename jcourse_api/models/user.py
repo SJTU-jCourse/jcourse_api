@@ -14,6 +14,7 @@ class EnrollCourse(models.Model):
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, db_index=True)
     semester = models.ForeignKey(Semester, on_delete=models.SET_NULL, null=True, blank=True)
+    created = models.DateTimeField(verbose_name='创建时间', default=timezone.now, db_index=True)
 
     def __str__(self):
         return f"{self.user} {self.course.name} {self.semester.name}"
