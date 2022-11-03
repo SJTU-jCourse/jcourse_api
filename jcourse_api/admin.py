@@ -66,7 +66,7 @@ class TeacherResource(resources.ModelResource):
 @admin.register(Teacher)
 class TeacherAdmin(ImportExportModelAdmin):
     resource_class = TeacherResource
-    list_display = ('tid', 'name', 'department', 'title', 'pinyin', 'abbr_pinyin', 'last_semester')
+    list_display = ('id', 'tid', 'name', 'department', 'title', 'pinyin', 'abbr_pinyin', 'last_semester')
     list_filter = ('department', 'title', 'last_semester')
     search_fields = ('name', 'pinyin', 'abbr_pinyin')
 
@@ -95,7 +95,7 @@ class ReviewRevisionAdmin(ImportExportModelAdmin):
 
 @admin.register(Report)
 class ReportAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'solved', 'reply_validity', 'comment_validity', 'created')
+    list_display = ('id', 'user', 'solved', 'reply_validity', 'comment_validity', 'created')
     search_fields = ('user__username',)
     list_filter = ('solved',)
     readonly_fields = ('user', 'comment', 'created')
@@ -103,14 +103,14 @@ class ReportAdmin(ImportExportModelAdmin):
 
 @admin.register(ReviewReaction)
 class ReactionAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'reaction', 'modified', 'review')
+    list_display = ('id', 'user', 'reaction', 'modified', 'review')
     search_fields = ('user__username', 'review__course__code', 'review__id')
     readonly_fields = ('user', 'review',)
 
 
 @admin.register(Announcement)
 class AnnouncementAdmin(ImportExportModelAdmin):
-    list_display = ('title', 'message', 'created', 'url', 'available')
+    list_display = ('id', 'title', 'message', 'created', 'url', 'available')
 
 
 class DepartmentResource(resources.ModelResource):
@@ -175,13 +175,13 @@ class SemesterAdmin(ImportExportModelAdmin):
 @admin.register(UserPoint)
 class UserPointAdmin(ImportExportModelAdmin):
     autocomplete_fields = ('user',)
-    list_display = ('user', 'value', 'description', 'time')
+    list_display = ('id', 'user', 'value', 'description', 'time')
     search_fields = ('user__username', 'description')
 
 
 @admin.register(EnrollCourse)
 class EnrollCourseAdmin(ImportExportModelAdmin):
-    list_display = ('user', 'course', 'semester')
+    list_display = ('id', 'user', 'course', 'semester', 'created')
     search_fields = ('user__username', 'course__code')
     readonly_fields = ('user', 'course', 'semester')
 
