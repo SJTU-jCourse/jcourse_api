@@ -72,7 +72,10 @@ class ReviewRevision(models.Model):
 
 
 class ReviewReaction(models.Model):
-    REACTION_CHOICES = [(1, '赞同'), (-1, '反对'), (0, '重置')]
+    class ReactionType(models.IntegerChoices):
+        RESET = 0, '重置'
+        APPROVE = 1, '赞同'
+        DISAPPROVE = -1, '反对'
 
     class Meta:
         verbose_name = '点评回应'
@@ -82,7 +85,7 @@ class ReviewReaction(models.Model):
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.CASCADE, db_index=True)
-    reaction = models.IntegerField(choices=REACTION_CHOICES, verbose_name='操作', default=0, db_index=True)
+    reaction = models.IntegerField(choices=ReactionType.choices, verbose_name='操作', default=0, db_index=True)
     modified = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True, auto_now=True)
 
     def __str__(self):
