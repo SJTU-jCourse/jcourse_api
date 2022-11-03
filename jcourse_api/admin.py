@@ -149,12 +149,22 @@ class DepartmentAdmin(ImportExportModelAdmin):
     search_fields = ('name',)
     resource_class = DepartmentResource
 
+    def count(self, obj):
+        return Course.objects.filter(department=obj).count()
+
+    count.short_description = '课程数量'
+
 
 @admin.register(Category)
 class CategoryAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name', 'count')
     search_fields = ('name',)
     resource_class = CategoryResource
+
+    def count(self, obj):
+        return Course.objects.filter(categories=obj).count()
+
+    count.short_description = '课程数量'
 
 
 @admin.register(Semester)

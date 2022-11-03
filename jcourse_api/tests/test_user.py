@@ -198,7 +198,7 @@ class SyncTest(TestCase):
         self.assertEqual(enrolled[0].course_id, course_ids[0])
         self.assertEqual(enrolled[0].semester.name, '2021-2022-1')
 
-    @patch('jcourse_api.views.get_jaccount_lessons')
+    @patch('jcourse_api.views.enroll.get_jaccount_lessons')
     def test_e2e(self, mock_jac):
         mock_jac.return_value = SyncTest.jaccount_api()
         session = self.client.session

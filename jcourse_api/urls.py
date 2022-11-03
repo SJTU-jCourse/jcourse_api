@@ -24,5 +24,6 @@ urlpatterns = [
     path('points/', UserPointView.as_view(), name='user-points'),
     path('sync-lessons/<str:term>/', sync_lessons, name='sync-lessons'),
     path('sync-lessons/', sync_lessons, name='sync-lessons'),
+    path('course/<int:course_id>/review/', ReviewInCourseView.as_view(), name='review-in-course'),
     # path('upload/', FileUploadView.as_view(), name='upload'),
 ]
