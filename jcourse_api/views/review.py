@@ -90,12 +90,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return Response(data)
 
 
-class ReviewRevisionViewSet(viewsets.ReadOnlyModelViewSet):
+class ReviewRevisionView(ListAPIView):
     permission_classes = [IsAdminUser]
     serializer_class = ReviewRevisionSerializer
+    lookup_url_kwarg = 'review_id'
 
     def get_queryset(self):
-        review_id = self.request.query_params.get('review_id', '')
+        review_id = self.kwargs.get('review_id')
         return ReviewRevision.objects.select_related('semester').filter(review_id=review_id).order_by(
             F('created').desc(nulls_last=True))
 

@@ -14,7 +14,6 @@ router.register('search', SearchViewSet, basename='search')
 router.register('lesson', EnrollCourseViewSet, basename='lesson')
 router.register('report', ReportViewSet, basename='report')
 router.register('notification', NotificationViewSet, basename='notification')
-router.register('review-revision', ReviewRevisionViewSet, basename='review-revision')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -25,5 +24,6 @@ urlpatterns = [
     path('sync-lessons/<str:term>/', sync_lessons, name='sync-lessons'),
     path('sync-lessons/', sync_lessons, name='sync-lessons'),
     path('course/<int:course_id>/review/', ReviewInCourseView.as_view(), name='review-in-course'),
+    path('review/<int:review_id>/revision/', ReviewRevisionView.as_view(), name='review-revision'),
     # path('upload/', FileUploadView.as_view(), name='upload'),
 ]

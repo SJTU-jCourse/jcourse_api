@@ -100,6 +100,7 @@ class ReviewInCourseSerializer(serializers.ModelSerializer):
 
 class ReviewRevisionSerializer(serializers.ModelSerializer):
     semester = serializers.SerializerMethodField()
+    course = CourseInWriteReviewSerializer()
 
     @staticmethod
     def get_semester(obj):
@@ -107,4 +108,4 @@ class ReviewRevisionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ReviewRevision
-        exclude = ('review',)
+        exclude = ('review', 'user')
