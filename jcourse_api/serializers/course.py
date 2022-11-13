@@ -1,7 +1,7 @@
 from django.db.models import F
 from rest_framework import serializers
 
-from jcourse_api.models import Course, Department, Category, FormerCode
+from jcourse_api.models import Course, Department, Category, FormerCode, CourseNotificationLevel
 from jcourse_api.serializers.base import TeacherSerializer
 
 
@@ -30,6 +30,7 @@ class CourseSerializer(serializers.ModelSerializer):
     former_codes = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
     is_reviewed = serializers.SerializerMethodField()
+    notification_level = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -63,6 +64,13 @@ class CourseSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_is_reviewed(obj):
         return obj.is_reviewed if obj.is_reviewed else None
+
+    @staticmethod
+    def get_notification_level(obj):
+        try:
+            return CourseNotificationLevel.objects.get(course_id=obj.id).notification_level
+        except CourseNotificationLevel.DoesNotExist:
+            return None
 
 
 class CourseListSerializer(serializers.ModelSerializer):
