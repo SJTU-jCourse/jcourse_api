@@ -214,7 +214,7 @@ class NotificationAdmin(ImportExportModelAdmin):
 
 @admin.register(CourseNotificationLevel)
 class CourseNotificationLevelAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'course', 'user', 'notification_level')
-    list_filter = ('notification_level', 'modified')
+    list_display = ('id', 'course', 'user', 'notification_level', 'modified')
+    list_filter = ('notification_level', )
     search_fields = ('course__code', 'user__username')
     search_help_text = '输入课程代码或用户名'
