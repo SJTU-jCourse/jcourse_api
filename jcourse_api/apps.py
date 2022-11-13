@@ -15,4 +15,4 @@ class JcourseApiConfig(AppConfig):
         post_delete.connect(signal_delete_review_actions, sender=ReviewReaction)
         post_delete.connect(signal_delete_course_reviews, sender=Review)
         post_save.connect(signal_notify_report_replied, sender=Report)
-        post_save.connect(signal_notify_new_review_generated, sender=Review)
+        # post_save.connect(signal_notify_new_review_generated, sender=Review)
