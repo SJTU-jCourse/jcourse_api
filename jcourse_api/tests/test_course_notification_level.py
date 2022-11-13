@@ -1,5 +1,3 @@
-import datetime
-
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -85,16 +83,16 @@ class CourseNotificationLevelTest(TestCase):
         self.assertEqual(my_course_notification_level.notification_level,
                          CourseNotificationLevel.NotificationLevelType.FOLLOW)
 
-    def test_notify_new_review_generated(self):
-        count = Notification.objects.count()
-        CourseNotificationLevel.objects.create(
-            user=self.user,
-            course=self.course3,
-            notification_level=CourseNotificationLevel.NotificationLevelType.FOLLOW,
-        )
-        Review.objects.create(user=self.user, course=self.course3, comment='TEST', rating=3, score='W',
-                              semester=Semester.objects.get(name='2021-2022-1'))
-        self.assertEqual(Notification.objects.count(), count + 1)
+    # def test_notify_new_review_generated(self):
+    #     count = Notification.objects.count()
+    #     CourseNotificationLevel.objects.create(
+    #         user=self.user,
+    #         course=self.course3,
+    #         notification_level=CourseNotificationLevel.NotificationLevelType.FOLLOW,
+    #     )
+    #     Review.objects.create(user=self.user, course=self.course3, comment='TEST', rating=3, score='W',
+    #                           semester=Semester.objects.get(name='2021-2022-1'))
+    #     self.assertEqual(Notification.objects.count(), count + 1)
 
     def test_course_follow_list(self):
         response = self.client1.get('/api/course/?notification_level=1').json()
