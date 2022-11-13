@@ -36,6 +36,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         reviews = get_reviews(self.request.user, self.action)
+        if 'notification_level' in self.request.query_params:
+            notification_level = int(self.request.query_params['notification_level'])
+            filtered_course_ids = CourseNotificationLevel.objects.filter(user=self.request.user,
+                                                                         notification_level=notification_level) \
+                .values('course_id')
+            reviews = reviews.filter(course_id__in=filtered_course_ids)
+        else:
+            ignored_course_ids = CourseNotificationLevel.objects.filter(user=self.request.user,
+                                                                        notification_level=CourseNotificationLevel.NotificationLevelType.IGNORE) \
+                .values('course_id')
+            reviews = reviews.exclude(course_id__in=ignored_course_ids)
         if 'order' in self.request.query_params:
             if self.request.query_params['order'] == 'approves':
                 return reviews.order_by(F('approve_count').desc(nulls_last=True), F('created').desc(nulls_last=True))

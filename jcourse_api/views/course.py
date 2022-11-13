@@ -3,14 +3,13 @@ from django.db.models import Subquery, F, OuterRef
 from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from jcourse_api.models import *
-from jcourse_api.serializers import CourseListSerializer, CourseSerializer, CategorySerializer, DepartmentSerializer, \
-    CourseInWriteReviewSerializer
+from jcourse_api.serializers import CourseListSerializer, CourseSerializer, CourseInWriteReviewSerializer
 
 
 class NumberInFilter(BaseInFilter, NumberFilter):
@@ -42,6 +41,12 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         courses = get_course_list_queryset(self.request.user)
+        if 'notification_level' in self.request.query_params:
+            notification_level = int(self.request.query_params['notification_level'])
+            filtered_course_ids = CourseNotificationLevel.objects.filter(user=self.request.user,
+                                                                         notification_level=notification_level) \
+                .values('course_id')
+            courses = courses.filter(id__in=filtered_course_ids)
         if 'onlyhasreviews' in self.request.query_params:
             courses = courses.filter(review_count__gt=0). \
                 annotate(count=F('review_count'), avg=F('review_avg'))
@@ -55,6 +60,29 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
             return CourseListSerializer
         else:
             return CourseSerializer
+
+    # def get_
+    @action(detail=True, methods=['POST'])
+    def notification_level(self, request: Request, pk=None):
+        if 'level' not in request.data:
+            return Response({'error': '未指定操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
+        # if pk is None:
+        #     return Response({'error': '未指定课程id！'}, status=status.HTTP_400_BAD_REQUEST)
+        notification_level = int(request.data['level'])
+        if notification_level not in CourseNotificationLevel.NotificationLevelType:
+            return Response({'error': '无效的操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            course = Course.objects.get(id=pk)
+            course_notification, find = CourseNotificationLevel.objects.update_or_create(
+                user=request.user,
+                course=course,
+                defaults={'notification_level': notification_level}
+            )
+        except Course.DoesNotExist:
+            return Response({'error': '无指定课程！'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'id': pk,
+                         'notification_level': course_notification.notification_level},
+                        status=status.HTTP_200_OK)
 
 
 def get_search_course_queryset(q: str, user: User):
@@ -86,5 +114,3 @@ class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
             return get_search_course_queryset(q, self.request.user)
         elif self.action == 'retrieve':
             return get_course_list_queryset(self.request.user)
-
-

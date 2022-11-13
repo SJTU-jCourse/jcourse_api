@@ -46,7 +46,6 @@ class UserView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
 def get_user_point_with_reviews(user: User, reviews):
     courses = reviews.values_list('course', flat=True)
     approves_count = reviews.aggregate(count=Sum('approve_count'))['count']

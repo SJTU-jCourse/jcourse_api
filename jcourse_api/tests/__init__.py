@@ -4,11 +4,13 @@ from jcourse_api.models import *
 def create_test_env() -> None:
     dept_seiee = Department.objects.create(name='SEIEE')
     dept_phy = Department.objects.create(name='PHYSICS')
-    teacher_gao = Teacher.objects.create(tid=1, name='高女士', department=dept_seiee, title='教授', pinyin='gaoxiaofeng',
+    teacher_gao = Teacher.objects.create(tid=1, name='高女士', department=dept_seiee, title='教授',
+                                         pinyin='gaoxiaofeng',
                                          abbr_pinyin='gxf')
     teacher_pan = Teacher.objects.create(tid=4, name='潘老师', department=dept_seiee, title='教授', pinyin='panli',
                                          abbr_pinyin='pl')
-    teacher_liang = Teacher.objects.create(tid=2, name='梁女士', department=dept_phy, pinyin='liangqin', abbr_pinyin='lq')
+    teacher_liang = Teacher.objects.create(tid=2, name='梁女士', department=dept_phy, pinyin='liangqin',
+                                           abbr_pinyin='lq')
     teacher_zhao = Teacher.objects.create(tid=3, name='赵先生', department=dept_phy, title='讲师', pinyin='zhaohao',
                                           abbr_pinyin='zh')
     category = Category.objects.create(name='通识')
@@ -27,6 +29,7 @@ def create_test_env() -> None:
                                main_teacher=teacher_zhao)
     c4.teacher_group.add(teacher_zhao)
     c4.categories.add(category)
+
     FormerCode.objects.create(old_code='CS250', new_code='CS2500')
     FormerCode.objects.create(old_code='CS251', new_code='CS2500')
     FormerCode.objects.create(old_code='CS150', new_code='CS1500')

@@ -82,6 +82,10 @@ class NotificationTest(TestCase):
         self.assertIsNone(response2['read_at'])
         notification2 = Notification.objects.get(id=self.notification2.id)
         self.assertIsNone(notification2.read_at)
+        response = self.client.post(f'{self.endpoint}{1111}/read/', {'read': '0'}).json()
+        self.assertEqual(response, {'error': '无指定通知！'})
+        response = self.client.post(f'{self.endpoint}{self.notification2.id}/read/', {'find': '0'}).json()
+        self.assertEqual(response, {'error': '未指定操作类型！'})
 
     def test_not_authed_user_change_read_state(self):
         self.create_env()

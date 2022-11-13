@@ -11,3 +11,7 @@ def signal_delete_course_reviews(sender, instance: Review, **kwargs):
 
 def signal_notify_report_replied(sender, instance: Report, **kwargs):
     send_report_replied_notification(instance)
+
+
+def signal_notify_new_review_generated(sender, instance: Review, **kwargs):
+    find_course_new_review(instance.course)

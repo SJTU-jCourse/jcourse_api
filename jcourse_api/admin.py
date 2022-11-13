@@ -210,3 +210,11 @@ class NotificationAdmin(ImportExportModelAdmin):
     @admin.action(description='设为未读')
     def mark_as_unread(self, request, queryset):
         queryset.update(read_at=None)
+
+
+@admin.register(CourseNotificationLevel)
+class CourseNotificationLevelAdmin(ImportExportModelAdmin):
+    list_display = ('id', 'course', 'user', 'notification_level')
+    list_filter = ('notification_level', 'modified')
+    search_fields = ('course__code', 'user__username')
+    search_help_text = '输入课程代码或用户名'
