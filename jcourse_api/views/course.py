@@ -7,11 +7,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from jcourse_api.models import *
-from jcourse_api.serializers import CourseListSerializer, CourseSerializer, CategorySerializer, DepartmentSerializer, \
-    CourseInWriteReviewSerializer
+from jcourse_api.serializers import CourseListSerializer, CourseSerializer, CourseInWriteReviewSerializer
 
 
 class NumberInFilter(BaseInFilter, NumberFilter):
@@ -43,22 +41,18 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         courses = get_course_list_queryset(self.request.user)
+        if 'notification_level' in self.request.query_params:
+            notification_level = int(self.request.query_params['notification_level'])
+            filtered_course_ids = CourseNotificationLevel.objects.filter(user=self.request.user,
+                                                                         notification_level=notification_level) \
+                .values('course_id')
+            courses = courses.filter(id__in=filtered_course_ids)
         if 'onlyhasreviews' in self.request.query_params:
             courses = courses.filter(review_count__gt=0). \
                 annotate(count=F('review_count'), avg=F('review_avg'))
             if self.request.query_params['onlyhasreviews'] == 'count':
                 return courses.order_by(F('count').desc(nulls_last=True), F('avg').desc(nulls_last=True))
             return courses.order_by(F('avg').desc(nulls_last=True), F('count').desc(nulls_last=True))
-        if 'notification_level' in self.request.query_params:
-            notification_level = int(self.request.query_params['notification_level'])
-            if notification_level not in CourseNotificationLevel.NotificationLevelType:
-                return courses.none()
-            if notification_level == CourseNotificationLevel.NotificationLevelType.FOLLOW or \
-                    notification_level == CourseNotificationLevel.NotificationLevelType.IGNORE:
-                return courses.filter(id__in=CourseNotificationLevel.objects.filter(
-                    user=self.request.user,
-                    notification_level=notification_level).values_list('course__id').order_by('-modified')
-                                      )
         return courses.all()
 
     def get_serializer_class(self):
