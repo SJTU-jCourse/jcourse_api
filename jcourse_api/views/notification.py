@@ -1,9 +1,8 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-
+from rest_framework.decorators import action
 from jcourse_api.models import *
 from jcourse_api.serializers import NotificationSerializer
 
@@ -19,8 +18,8 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     def read(self, request: Request, pk=None):
         if 'read' not in request.data:
             return Response({'error': '未指定操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
-        if pk is None:
-            return Response({'error': '未指定通知id！'}, status=status.HTTP_400_BAD_REQUEST)
+        # if pk is None:
+        #     return Response({'error': '未指定通知id！'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             notification = Notification.objects.get(id=pk, recipient=request.user)
             if int(request.data['read']):

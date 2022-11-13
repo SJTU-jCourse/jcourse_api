@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
-from jcourse_api.models import Report
+from jcourse_api.models import Report, Course
 
 
 class Notification(models.Model):
@@ -58,3 +58,13 @@ def send_report_replied_notification(report: Report):
             object_id=report.id,
             created=timezone.now()
         )
+
+
+def send_course_new_review_notification(user: User, course: Course):
+    Notification.objects.create(
+        recipient=user,
+        type=Notification.NotificationType.COURSES_NEW_REVIEW,
+        content_type=ContentType.objects.get_for_model(course),
+        object_id=course.id,
+        created=timezone.now()
+    )

@@ -10,7 +10,9 @@ class JcourseApiConfig(AppConfig):
     def ready(self):
         from jcourse_api.models import ReviewReaction, Review, Report
         from jcourse_api.signals import signal_delete_review_actions, \
-            signal_delete_course_reviews, signal_notify_report_replied
+            signal_delete_course_reviews, signal_notify_report_replied, \
+            signal_notify_new_review_generated
         post_delete.connect(signal_delete_review_actions, sender=ReviewReaction)
         post_delete.connect(signal_delete_course_reviews, sender=Review)
         post_save.connect(signal_notify_report_replied, sender=Report)
+        post_save.connect(signal_notify_new_review_generated, sender=Review)
