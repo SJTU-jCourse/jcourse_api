@@ -65,12 +65,14 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_is_reviewed(obj):
         return obj.is_reviewed if obj.is_reviewed else None
 
-    @staticmethod
-    def get_notification_level(obj):
-        try:
-            return CourseNotificationLevel.objects.get(course_id=obj.id).notification_level
-        except CourseNotificationLevel.DoesNotExist:
-            return None
+    def get_notification_level(self, obj):
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            try:
+                return CourseNotificationLevel.objects.get(user=request.user, course_id=obj.id).notification_level
+            except CourseNotificationLevel.DoesNotExist:
+                return None
+        return None
 
 
 class CourseListSerializer(serializers.ModelSerializer):
