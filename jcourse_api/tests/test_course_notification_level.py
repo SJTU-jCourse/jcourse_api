@@ -103,9 +103,14 @@ class CourseNotificationLevelTest(TestCase):
         self.assertEqual(int(response['count']), 6)
         response = self.client1.get('/api/course/?notification_level=6')
         self.assertEqual(response.status_code, 200)
-
         response = self.client2.get('/api/course/?notification_level=1').json()
         self.assertEqual(int(response['count']), 0)
+
+    def test_show_course_notification_level(self):
+        response = self.client1.get(f'/api/course/{self.course1.id}/').json()
+        self.assertEqual(response['notification_level'], 1)
+        response = self.client1.get(f'/api/course/{self.course3.id}/').json()
+        self.assertEqual(response['notification_level'], None)
 
     def test_change_notification_level(self):
         response = self.client1.post(f'/api/course/{self.course1.id}/notification_level/', {'level': '0'}).json()
