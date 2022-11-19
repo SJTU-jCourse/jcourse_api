@@ -31,3 +31,21 @@ class CourseFilterView(APIView):
         department_serializer = DepartmentSerializer(departments, many=True)
         return Response({'categories': category_serializer.data, 'departments': department_serializer.data},
                         status=status.HTTP_200_OK)
+
+
+class ReviewFilterView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request):
+        course_id = request.query_params.get('course_id')
+
+        reviews = Review.objects.filter(course__id=course_id)
+
+        semesters = reviews.values('semester').annotate(count=Count('semester')).filter(count__gt=0)
+        # semester_serializer = SemesterSerializer(semesters, many=True)
+
+        ratings = reviews.values('rating').annotate(count=Count('rating')) \
+            .order_by('rating').filter(count__gt=0)
+
+        return Response({'semesters': semesters, 'ratings': ratings},
+                        status=status.HTTP_200_OK)
