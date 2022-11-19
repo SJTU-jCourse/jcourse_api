@@ -151,7 +151,7 @@ class FilterTest(TestCase):
         self.client = APIClient()
         self.user = User.objects.get(username='test')
         self.client.force_login(self.user)
-        self.endpoint = '/api/filter/'
+        self.endpoint = '/api/course-filter/'
 
     def test_body(self):
         response = self.client.get(self.endpoint).json()

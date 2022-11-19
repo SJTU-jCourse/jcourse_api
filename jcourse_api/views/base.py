@@ -21,7 +21,7 @@ class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
         return super().dispatch(request, *args, **kwargs)
 
 
-class FilterView(APIView):
+class CourseFilterView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request):

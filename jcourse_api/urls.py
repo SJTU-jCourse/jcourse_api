@@ -18,7 +18,7 @@ router.register('notification', NotificationViewSet, basename='notification')
 urlpatterns = [
     path('', include(router.urls)),
     path('me/', UserView.as_view(), name='me'),
-    path('filter/', FilterView.as_view(), name='filter'),
+    path('course-filter/', CourseFilterView.as_view(), name='course-filter'),
     path('statistic/', StatisticView.as_view(), name='statistic'),
     path('points/', UserPointView.as_view(), name='user-points'),
     path('sync-lessons/<str:term>/', sync_lessons, name='sync-lessons'),
