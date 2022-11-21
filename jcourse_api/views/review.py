@@ -118,8 +118,8 @@ class ReviewInCourseView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     class OrderType(models.IntegerChoices):
-        LATEST = 0, '最新发表'
-        OLDEST = 1, '最早发表'
+        LATEST_MODIFIED = 0, '最新发表'
+        OLDEST_MODIFIED = 1, '最早发表'
         APPROVE_FROM_HIGH_TO_LOW = 2, '获赞从高到低'
         RATING_FROM_HIGH_TO_LOW = 3, '推荐指数从高到低'
         RATING_FROM_LOW_TO_HIGH = 4, '推荐指数从低到高'
@@ -131,10 +131,10 @@ class ReviewInCourseView(ListAPIView):
             order = int(self.request.query_params['order'])
             if order not in ReviewInCourseView.OrderType:
                 return Review.objects.none()
-            if order == ReviewInCourseView.OrderType.LATEST:
-                reviews = reviews.order_by(F('created').desc())
-            elif order == ReviewInCourseView.OrderType.OLDEST:
-                reviews = reviews.order_by(F('created').asc())
+            if order == ReviewInCourseView.OrderType.LATEST_MODIFIED:
+                reviews = reviews.order_by(F('modified').desc())
+            elif order == ReviewInCourseView.OrderType.OLDEST_MODIFIED:
+                reviews = reviews.order_by(F('modified').asc())
             elif order == ReviewInCourseView.OrderType.APPROVE_FROM_HIGH_TO_LOW:
                 reviews = reviews.order_by(F('approve_count').desc())
             elif order == ReviewInCourseView.OrderType.RATING_FROM_HIGH_TO_LOW:

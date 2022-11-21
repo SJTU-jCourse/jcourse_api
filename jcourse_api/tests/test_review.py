@@ -1,7 +1,6 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from jcourse_api.models import *
 from jcourse_api.tests import *
 
 
@@ -305,7 +304,7 @@ class FilterTest(TestCase):
 
         self.review1 = Review.objects.create(user=self.user, course=self.course1, comment='TEST', rating=5, score='W',
                                              semester=Semester.objects.get(name='2021-2022-1'),
-                                             created=timezone.now() - timezone.timedelta(days=1),
+                                             modified=timezone.now() - timezone.timedelta(days=1),
                                              approve_count=2)
         self.review2 = Review.objects.create(user=self.user, course=self.course2, comment='TEST', rating=3, score='W',
                                              semester=Semester.objects.get(name='2021-2022-2'))
@@ -316,14 +315,13 @@ class FilterTest(TestCase):
 
         self.review5 = Review.objects.create(user=self.user2, course=self.course1, comment='TEST', rating=3, score='W',
                                              semester=Semester.objects.get(name='2021-2022-2'),
-                                             created=timezone.now() - timezone.timedelta(days=2),
+                                             modified=timezone.now() - timezone.timedelta(days=2),
                                              approve_count=3)
         self.review6 = Review.objects.create(user=self.user2, course=self.course4, comment='TEST', rating=3, score='W',
                                              semester=Semester.objects.get(name='2021-2022-1'))
-
         self.review7 = Review.objects.create(user=self.user3, course=self.course1, comment='TEST', rating=1, score='W',
                                              semester=Semester.objects.get(name='2021-2022-1'),
-                                             created=timezone.now() - timezone.timedelta(days=3),
+                                             modified=timezone.now() - timezone.timedelta(days=3),
                                              approve_count=1)
 
         self.semester1 = Semester.objects.get(name='2021-2022-1')
