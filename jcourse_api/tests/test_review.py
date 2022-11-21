@@ -1,8 +1,8 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from jcourse_api.tests import *
 from jcourse_api.models import *
+from jcourse_api.tests import *
 
 
 class ReviewTest(TestCase):
@@ -332,7 +332,8 @@ class FilterTest(TestCase):
     def test_body(self):
         response = self.client1.get('/api/review-filter/', {'course_id': str(self.course1.id)}).json()
         self.assertEqual(response['semesters'],
-                         [{'semester': self.semester1.id, 'count': 2}, {'semester': self.semester2.id, 'count': 1}])
+                         [{'id': self.semester1.id, 'name': self.semester1.name, 'count': 2},
+                          {'id': self.semester2.id, 'name': self.semester2.name, 'count': 1}])
         self.assertEqual(response['ratings'],
                          [{'rating': 1, 'count': 1}, {'rating': 3, 'count': 1}, {'rating': 5, 'count': 1}])
 
