@@ -330,10 +330,10 @@ class FilterTest(TestCase):
     def test_body(self):
         response = self.client1.get('/api/review-filter/', {'course_id': str(self.course1.id)}).json()
         self.assertEqual(response['semesters'],
-                         [{'id': self.semester1.id, 'name': self.semester1.name, 'count': 2},
-                          {'id': self.semester2.id, 'name': self.semester2.name, 'count': 1}])
+                         [{'id': self.semester2.id, 'name': self.semester2.name, 'count': 1},
+                          {'id': self.semester1.id, 'name': self.semester1.name, 'count': 2}])
         self.assertEqual(response['ratings'],
-                         [{'rating': 1, 'count': 1}, {'rating': 3, 'count': 1}, {'rating': 5, 'count': 1}])
+                         [{'rating': 5, 'count': 1}, {'rating': 3, 'count': 1}, {'rating': 1, 'count': 1}])
 
     def test_order(self):
         course_id = self.course1.id

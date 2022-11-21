@@ -44,7 +44,8 @@ class ReviewFilterView(APIView):
             reviews = reviews.filter(course__id=course_id)
         semesters = reviews.values('semester') \
             .annotate(count=Count('semester'), name=F("semester__name"), id=F("semester__id")) \
-            .filter(count__gt=0).values("id", "name", "count")
-        ratings = reviews.values('rating').annotate(count=Count('rating')).order_by('rating').filter(count__gt=0)
+            .filter(count__gt=0).values("id", "name", "count").order_by(F('name').desc())
+        ratings = reviews.values('rating').annotate(count=Count('rating')).filter(count__gt=0).order_by(
+            F('rating').desc())
         return Response({'semesters': semesters, 'ratings': ratings},
                         status=status.HTTP_200_OK)
