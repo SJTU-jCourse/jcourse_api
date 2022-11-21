@@ -117,6 +117,34 @@ class ReviewInCourseView(ListAPIView):
     serializer_class = ReviewInCourseSerializer
     permission_classes = [IsAuthenticated]
 
+    class OrderType(models.IntegerChoices):
+        LATEST = 0, '最新发表'
+        OLDEST = 1, '最早发表'
+        APPROVE_FROM_HIGH_TO_LOW = 2, '获赞从高到低'
+        RATING_FROM_HIGH_TO_LOW = 3, '推荐指数从高到低'
+        RATING_FROM_LOW_TO_HIGH = 4, '推荐指数从低到高'
+
     def get_queryset(self):
         pk = self.kwargs.get('course_id')
-        return get_reviews(self.request.user, 'list').select_related('semester').filter(course_id=pk)
+        reviews = get_reviews(self.request.user, 'list').select_related('semester').filter(course_id=pk)
+        if 'order' in self.request.query_params:
+            order = int(self.request.query_params['order'])
+            if order not in ReviewInCourseView.OrderType:
+                return Review.objects.none()
+            if order == ReviewInCourseView.OrderType.LATEST:
+                reviews = reviews.order_by(F('created').desc())
+            elif order == ReviewInCourseView.OrderType.OLDEST:
+                reviews = reviews.order_by(F('created').asc())
+            elif order == ReviewInCourseView.OrderType.APPROVE_FROM_HIGH_TO_LOW:
+                reviews = reviews.order_by(F('approve_count').desc())
+            elif order == ReviewInCourseView.OrderType.RATING_FROM_HIGH_TO_LOW:
+                reviews = reviews.order_by(F('rating').desc())
+            elif order == ReviewInCourseView.OrderType.RATING_FROM_LOW_TO_HIGH:
+                reviews = reviews.order_by(F('rating').asc())
+        if 'semester' in self.request.query_params:
+            semester_id = int(self.request.query_params['semester'])
+            reviews = reviews.filter(semester__id=semester_id)
+        if 'rating' in self.request.query_params:
+            rating = int(self.request.query_params['rating'])
+            reviews = reviews.filter(rating=rating)
+        return reviews

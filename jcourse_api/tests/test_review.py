@@ -1,6 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 
+from jcourse_api.models import *
 from jcourse_api.tests import *
 
 
@@ -272,3 +273,94 @@ class ReviewReactionTest(TestCase):
         self.assertEqual(response['approves'], 0)
         self.assertEqual(response['disapproves'], 0)
         self.check_review_action(0, 0, 0)
+
+
+class FilterTest(TestCase):
+    def setUp(self) -> None:
+        self.user1 = User.objects.create(username='test1')
+        self.user2 = User.objects.create(username='test2')
+        self.user3 = User.objects.create(username='test3')
+
+        self.client1 = APIClient()
+        self.user = User.objects.get(username='test1')
+        self.client1.force_login(self.user)
+
+        self.client2 = APIClient()
+        self.client2.force_login(self.user2)
+
+        create_test_env()
+
+        dept_seiee = Department.objects.get(name='SEIEE')
+        teacher_zhang = Teacher.objects.create(tid=5, name='张先生', department=dept_seiee, title='教授',
+                                               pinyin='zhangfeng', abbr_pinyin='zf')
+        teacher_liang = Teacher.objects.get(tid=2)
+
+        self.course1 = Course.objects.get(code='CS2500')
+        self.course2 = Course.objects.get(code='CS1500')
+        self.course3 = Course.objects.get(code='MARX1001', main_teacher=teacher_liang)
+        self.course4 = Course.objects.create(code='EE0501', name='电路理论', credit=4, department=dept_seiee,
+                                             main_teacher=teacher_zhang)
+        self.course5 = Course.objects.create(code='EE0502', name='电路实验', credit=2, department=dept_seiee,
+                                             main_teacher=teacher_zhang)
+
+        self.review1 = Review.objects.create(user=self.user, course=self.course1, comment='TEST', rating=5, score='W',
+                                             semester=Semester.objects.get(name='2021-2022-1'),
+                                             created=timezone.now() - timezone.timedelta(days=1),
+                                             approve_count=2)
+        self.review2 = Review.objects.create(user=self.user, course=self.course2, comment='TEST', rating=3, score='W',
+                                             semester=Semester.objects.get(name='2021-2022-2'))
+        self.review3 = Review.objects.create(user=self.user, course=self.course4, comment='TEST', rating=3, score='W',
+                                             semester=Semester.objects.get(name='2021-2022-2'))
+        self.review4 = Review.objects.create(user=self.user, course=self.course5, comment='TEST', rating=3, score='W',
+                                             semester=Semester.objects.get(name='2021-2022-2'))
+
+        self.review5 = Review.objects.create(user=self.user2, course=self.course1, comment='TEST', rating=3, score='W',
+                                             semester=Semester.objects.get(name='2021-2022-2'),
+                                             created=timezone.now() - timezone.timedelta(days=2),
+                                             approve_count=3)
+        self.review6 = Review.objects.create(user=self.user2, course=self.course4, comment='TEST', rating=3, score='W',
+                                             semester=Semester.objects.get(name='2021-2022-1'))
+
+        self.review7 = Review.objects.create(user=self.user3, course=self.course1, comment='TEST', rating=1, score='W',
+                                             semester=Semester.objects.get(name='2021-2022-1'),
+                                             created=timezone.now() - timezone.timedelta(days=3),
+                                             approve_count=1)
+
+        self.semester1 = Semester.objects.get(name='2021-2022-1')
+        self.semester2 = Semester.objects.get(name='2021-2022-2')
+
+    def test_body(self):
+        response = self.client1.get('/api/review-filter/', {'course_id': str(self.course1.id)}).json()
+        self.assertEqual(response['semesters'],
+                         [{'id': self.semester1.id, 'name': self.semester1.name, 'count': 2},
+                          {'id': self.semester2.id, 'name': self.semester2.name, 'count': 1}])
+        self.assertEqual(response['ratings'],
+                         [{'rating': 1, 'count': 1}, {'rating': 3, 'count': 1}, {'rating': 5, 'count': 1}])
+
+    def test_order(self):
+        course_id = self.course1.id
+        response = self.client1.get(f'/api/course/{course_id}/review/').json()
+        self.assertEqual(len(response['results']), 3)
+        response = self.client1.get(f'/api/course/{course_id}/review/', {'order': 0}).json()
+        self.assertEqual(response['results'][0]['id'], self.review1.id)
+        response = self.client1.get(f'/api/course/{course_id}/review/', {'order': 1}).json()
+        self.assertEqual(response['results'][0]['id'], self.review7.id)
+        response = self.client1.get(f'/api/course/{course_id}/review/', {'order': 2}).json()
+        self.assertEqual(response['results'][0]['id'], self.review5.id)
+        response = self.client2.get(f'/api/course/{course_id}/review/', {'order': 3}).json()
+        self.assertEqual(response['results'][0]['id'], self.review1.id)
+        response = self.client2.get(f'/api/course/{course_id}/review/', {'order': 4}).json()
+        self.assertEqual(response['results'][0]['id'], self.review7.id)
+        response = self.client2.get(f'/api/course/{course_id}/review/', {'order': 5}).json()
+        self.assertEqual(len(response['results']), 0)
+
+    def test_semester_filter(self):
+        course_id = self.course1.id
+        response = self.client1.get(f'/api/course/{course_id}/review/', {'semester': self.semester1.id}).json()
+        self.assertEqual(len(response['results']), 2)
+
+    def test_rating_filter(self):
+        course_id = self.course1.id
+        response = self.client1.get(f'/api/course/{course_id}/review/', {'rating': 1}).json()
+        self.assertEqual(len(response['results']), 1)
+        self.assertEqual(response['results'][0]['id'], self.review7.id)

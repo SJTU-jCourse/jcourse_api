@@ -19,6 +19,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('me/', UserView.as_view(), name='me'),
     path('course-filter/', CourseFilterView.as_view(), name='course-filter'),
+    path('review-filter/', ReviewFilterView.as_view(), name='review-filter'),
     path('statistic/', StatisticView.as_view(), name='statistic'),
     path('points/', UserPointView.as_view(), name='user-points'),
     path('sync-lessons/<str:term>/', sync_lessons, name='sync-lessons'),
