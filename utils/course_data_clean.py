@@ -1,4 +1,5 @@
 import csv
+import re
 
 import tablib
 from pypinyin import pinyin, lazy_pinyin, Style
@@ -36,8 +37,6 @@ def regulate_dept_gs(raw: str) -> str:
     raw = raw[5:]
     if raw == "上海交大-密西根大学联合学院":
         return "密西根学院"
-    if raw == "智慧能源创新学院":
-        return "国家电投智慧能源创新学院"
     if raw.startswith("电子信息与电气工程学院"):
         return "电子信息与电气工程学院"
     return raw
@@ -65,6 +64,7 @@ def regulate_categories(line: dict[str, str]) -> set[str]:
     code = line['课程号']
     department = line['开课院系']
 
+    fresh_reg = re.compile(r"01\d{2}")
     for origin_category in origin_categories:
         category = origin_category.removesuffix("（致远）")
         category = category.removesuffix("（2022）")
@@ -76,7 +76,7 @@ def regulate_categories(line: dict[str, str]) -> set[str]:
     if len(categories) == 0 and department == '研究生院':
         categories.add('研究生')
     if len(categories) == 0 and line['年级'] == "0":
-        if line['课程号'].startswith('SP'):
+        if code.startswith('SP') or fresh_reg.search(code):
             categories.add('新生研讨')
         else:
             categories.add('通选')
@@ -173,8 +173,11 @@ class UploadData:
             code = line['课程号']
             if len(categories) == 0 and code in new_codes:
                 code = new_codes[code]
-            main_teacher = line['任课教师'].split('|')[0] if line['任课教师'] else teacher_ids[0]
-
+            try:
+                main_teacher = line['任课教师'].split('|')[0] if line['任课教师'] else teacher_ids[0]
+            except IndexError:
+                print(line)
+                continue
             if department != '致远学院':
                 # 有些课程，显示致远学院和非致远学院同时开课，实际上是同一门课，这里取非致远
                 self._course_department[(code, main_teacher)] = department
