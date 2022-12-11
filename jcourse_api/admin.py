@@ -71,8 +71,26 @@ class TeacherAdmin(ImportExportModelAdmin):
     search_fields = ('name', 'pinyin', 'abbr_pinyin')
 
 
+class FormerCodeResource(resources.ModelResource):
+    class Meta:
+        model = FormerCode
+        import_id_fields = ('old_code', 'new_code')
+        skip_unchanged = True
+        report_skipped = False
+        exclude = ('id',)
+        export_order = ('old_code', 'new_code')
+        use_bulk = True
+
+    def save_instance(self, instance, is_create, using_transactions=True, dry_run=False):
+        try:
+            super().save_instance(instance, is_create, using_transactions, dry_run)
+        except IntegrityError:
+            pass
+
+
 @admin.register(FormerCode)
 class FormerCodeAdmin(ImportExportModelAdmin):
+    resource_class = FormerCodeResource
     list_display = ('old_code', 'new_code')
     search_fields = ('old_code', 'new_code')
 
@@ -215,6 +233,6 @@ class NotificationAdmin(ImportExportModelAdmin):
 @admin.register(CourseNotificationLevel)
 class CourseNotificationLevelAdmin(ImportExportModelAdmin):
     list_display = ('id', 'course', 'user', 'notification_level', 'modified')
-    list_filter = ('notification_level', )
+    list_filter = ('notification_level',)
     search_fields = ('course__code', 'user__username')
     search_help_text = '输入课程代码或用户名'
