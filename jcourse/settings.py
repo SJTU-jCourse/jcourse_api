@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django_filters',
     'import_export',
     'corsheaders',
-    'django_prometheus'
+    'django_prometheus',
+    'django_celery_results'
 ]
 
 MIDDLEWARE = [
@@ -282,3 +283,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 LOGIN_VERIFICATION_TIMEOUT = int(os.environ.get('LOGIN_VERIFICATION_TIMEOUT', 10))
 
 REVIEW_READ_ONLY = bool(os.environ.get("REVIEW_READ_ONLY", False))
+
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'django-cache'
+CELERY_BROKER_URL = f'redis://{REDIS_HOST}'
