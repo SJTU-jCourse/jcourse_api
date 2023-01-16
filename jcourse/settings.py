@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'import_export',
     'corsheaders',
     'django_prometheus',
-    'django_celery_results'
+    'django_celery_results',
+    'django_celery_beat'
 ]
 
 MIDDLEWARE = [
@@ -291,3 +292,4 @@ REVIEW_READ_ONLY = bool(os.environ.get("REVIEW_READ_ONLY", False))
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
 CELERY_BROKER_URL = f'redis://{REDIS_HOST}'
+CELERY_TIMEZONE = "Asia/Shanghai"
