@@ -100,6 +100,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         data = serializer(reviews, many=True, context={'request': request}).data
         return Response(data)
 
+    @action(detail=True, methods=['GET'])
+    def location(self, request, pk):
+        review = Review.objects.get(pk=pk)
+        location = Review.objects.filter(course_id=review.course_id, modified__gt=review.modified).count()
+        return Response({"location": location, "course": review.course_id})
+
 
 class ReviewRevisionView(ListAPIView):
     permission_classes = [IsAdminUser]

@@ -34,7 +34,8 @@ class ReviewTest(TestCase):
         self.assertEqual(review['score'], 'W')
         self.assertEqual(review['moderator_remark'], None)
         self.assertIsNotNone(review['created'])
-        self.assertIsNone(review['modified'])
+        self.assertIsNotNone(review['modified'])
+        self.assertEqual(review['modified'], review['created'])
 
     def test_order_by(self):
         review = create_review('test2')
@@ -66,7 +67,8 @@ class ReviewTest(TestCase):
         self.assertEqual(review['score'], 'W')
         self.assertEqual(review['moderator_remark'], None)
         self.assertIsNotNone(review['created'])
-        self.assertIsNone(review['modified'])
+        self.assertIsNotNone(review['modified'])
+        self.assertEqual(review['modified'], review['created'])
 
     def test_course_avg_count(self):
         course = Course.objects.get(code='CS1500')
@@ -150,6 +152,17 @@ class ReviewTest(TestCase):
     def test_mine(self):
         response = self.client.get(self.endpoint + 'mine/').json()
         self.assertEqual(len(response), 1)
+
+    def test_location(self):
+        response = self.client.get(f"{self.endpoint}{self.review.id}/location/").json()
+        self.assertEqual(response, {"course": self.review.course_id, "location": 0})
+
+        review2 = create_review("test2")
+        response = self.client.get(f"{self.endpoint}{review2.id}/location/").json()
+        self.assertEqual(response, {"course": review2.course_id, "location": 0})
+
+        response = self.client.get(f"{self.endpoint}{self.review.id}/location/").json()
+        self.assertEqual(response, {"course": self.review.course_id, "location": 1})
 
     def test_missing_argument(self):
         course = Course.objects.get(code='CS2500')
