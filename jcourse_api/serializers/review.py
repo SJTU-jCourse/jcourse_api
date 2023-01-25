@@ -32,15 +32,13 @@ def is_my_review(serializer: serializers.Serializer, obj: Review):
     return False
 
 
-class ReviewListSerializer(serializers.ModelSerializer):
-    course = CourseInReviewListSerializer(read_only=True)
+class ReviewCommonSerializer(serializers.ModelSerializer):
     reactions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
-        exclude = ['user', 'approve_count', 'disapprove_count']
 
     @staticmethod
     def get_semester(obj):
@@ -54,22 +52,21 @@ class ReviewListSerializer(serializers.ModelSerializer):
         return get_review_reactions(obj)
 
 
-class ReviewItemSerializer(serializers.ModelSerializer):
-    course = serializers.SerializerMethodField()
-    reactions = serializers.SerializerMethodField()
-    is_mine = serializers.SerializerMethodField()
-    semester = SemesterSerializer()
+class ReviewListSerializer(ReviewCommonSerializer):
+    course = CourseInReviewListSerializer(read_only=True)
 
     class Meta:
         model = Review
         exclude = ['user', 'approve_count', 'disapprove_count']
 
-    def get_is_mine(self, obj: Review):
-        return is_my_review(self, obj)
 
-    @staticmethod
-    def get_reactions(obj):
-        return get_review_reactions(obj)
+class ReviewItemSerializer(ReviewCommonSerializer):
+    course = serializers.SerializerMethodField()
+    semester = SemesterSerializer()
+
+    class Meta:
+        model = Review
+        exclude = ['user', 'approve_count', 'disapprove_count']
 
     @staticmethod
     def get_course(obj):
@@ -77,25 +74,10 @@ class ReviewItemSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-class ReviewInCourseSerializer(serializers.ModelSerializer):
-    reactions = serializers.SerializerMethodField()
-    is_mine = serializers.SerializerMethodField()
-    semester = serializers.SerializerMethodField()
-
+class ReviewInCourseSerializer(ReviewCommonSerializer):
     class Meta:
         model = Review
         exclude = ('user', 'course', 'approve_count', 'disapprove_count')
-
-    @staticmethod
-    def get_semester(obj):
-        return obj.semester.name
-
-    @staticmethod
-    def get_reactions(obj):
-        return get_review_reactions(obj)
-
-    def get_is_mine(self, obj: Review):
-        return is_my_review(self, obj)
 
 
 class ReviewRevisionSerializer(serializers.ModelSerializer):
