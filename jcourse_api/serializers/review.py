@@ -36,9 +36,14 @@ class ReviewCommonSerializer(serializers.ModelSerializer):
     reactions = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
+    enrolled = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
+
+    @staticmethod
+    def get_enrolled(obj):
+        return obj.enrolled
 
     @staticmethod
     def get_semester(obj):
