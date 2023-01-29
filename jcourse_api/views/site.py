@@ -4,7 +4,6 @@ from django.db.models.functions import TruncDate
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,13 +14,11 @@ from jcourse_api.serializers import AnnouncementSerializer
 
 class AnnouncementViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Announcement.objects.filter(available=True)
-    permission_classes = [IsAuthenticated]
     serializer_class = AnnouncementSerializer
     pagination_class = None
 
 
 class StatisticView(APIView):
-    permission_classes = [IsAuthenticated]
 
     @method_decorator(cache_page(60))
     def get(self, request: Request):

@@ -1,6 +1,5 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -69,7 +68,6 @@ def sync_lessons(request: Request, term: str = '2018-2019-2'):
 
 
 class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = CourseListSerializer
     pagination_class = None
 

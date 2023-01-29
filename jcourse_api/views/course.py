@@ -4,7 +4,6 @@ from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -35,7 +34,6 @@ def get_course_list_queryset(user: User):
 
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_class = CourseFilter
 
@@ -96,7 +94,6 @@ def get_search_course_queryset(q: str, user: User):
 
 
 class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = CourseListSerializer
 
     def get_queryset(self):
@@ -105,7 +102,6 @@ class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class CourseInReviewViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = CourseInWriteReviewSerializer
 
     def get_queryset(self):

@@ -5,7 +5,7 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.vary import vary_on_cookie
 from rest_framework import mixins, viewsets, status
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,7 +19,6 @@ from oauth.views import hash_username
 class ReportViewSet(mixins.CreateModelMixin,
                     mixins.ListModelMixin,
                     viewsets.GenericViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = ReportSerializer
     pagination_class = None
 
@@ -36,7 +35,6 @@ class ReportViewSet(mixins.CreateModelMixin,
 
 
 class UserView(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self, request: Request):
         """
@@ -80,10 +78,10 @@ def get_user_point(user: User):
 class UserPointView(APIView):
 
     def get_permissions(self):
-        if self.request.method == 'GET':
-            return [IsAuthenticated()]
-        else:
+        if self.request.method == 'POST':
             return [AllowAny()]
+        else:
+            return super().get_permissions()
 
     @method_decorator(cache_page(60))
     @method_decorator(vary_on_cookie)
@@ -105,4 +103,3 @@ class UserPointView(APIView):
         except User.DoesNotExist:
             return Response({'detail': 'Bad arguments'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(get_user_point(user))
-

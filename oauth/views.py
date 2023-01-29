@@ -12,7 +12,8 @@ from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view, throttle_classes
+from rest_framework.decorators import api_view, throttle_classes, permission_classes
+from rest_framework.permissions import AllowAny
 
 from jcourse import settings
 from jcourse.settings import HASH_SALT, LOGIN_VERIFICATION_TIMEOUT
@@ -118,6 +119,7 @@ def send_code_email(email: str):
 
 @api_view(['POST'])
 @throttle_classes([EmailCodeRateThrottle])
+@permission_classes([AllowAny])
 @csrf_exempt
 def send_code(request):
     email: str = request.data.get("email", None)
@@ -134,6 +136,7 @@ def send_code(request):
 
 @api_view(['POST'])
 @throttle_classes([VerifyEmailRateThrottle])
+@permission_classes([AllowAny])
 @csrf_exempt
 def verify_and_login(request):
     email: str = request.data.get("email", None)

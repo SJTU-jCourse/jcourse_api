@@ -1,5 +1,4 @@
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -8,7 +7,6 @@ from jcourse_api.serializers import NotificationSerializer
 
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
     def get_queryset(self):

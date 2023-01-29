@@ -3,7 +3,7 @@ from django.db.models import Subquery, OuterRef, F
 from rest_framework import viewsets, serializers, status
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
@@ -121,7 +121,6 @@ class ReviewRevisionView(ListAPIView):
 class ReviewInCourseView(ListAPIView):
     lookup_url_kwarg = 'course_id'
     serializer_class = ReviewInCourseSerializer
-    permission_classes = [IsAuthenticated]
 
     class OrderType(models.IntegerChoices):
         LATEST_MODIFIED = 0, '最新发表'

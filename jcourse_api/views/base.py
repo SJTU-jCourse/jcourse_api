@@ -2,7 +2,6 @@ from django.db.models import F
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,7 +12,6 @@ from jcourse_api.serializers import SemesterSerializer, CategorySerializer, Depa
 
 class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Semester.objects.all()
-    permission_classes = [IsAuthenticated]
     serializer_class = SemesterSerializer
     pagination_class = None
 
@@ -23,7 +21,6 @@ class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CourseFilterView(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self, request: Request):
         categories = Category.objects.annotate(count=Count('course')).filter(count__gt=0)
@@ -35,7 +32,6 @@ class CourseFilterView(APIView):
 
 
 class ReviewFilterView(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self, request: Request):
         course_id = request.query_params.get('course_id')
