@@ -14,7 +14,7 @@ class EnrollCourse(models.Model):
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, db_index=True)
     semester = models.ForeignKey(Semester, on_delete=models.SET_NULL, null=True, blank=True)
-    created = models.DateTimeField(verbose_name='创建时间', default=timezone.now, db_index=True)
+    created_at = models.DateTimeField(verbose_name='创建时间', default=timezone.now, db_index=True)
 
     def __str__(self):
         return f"{self.user} {self.course.name} {self.semester.name}"
@@ -37,13 +37,13 @@ class UserPoint(models.Model):
 class Report(models.Model):
     class Meta:
         verbose_name = '反馈'
-        ordering = ['-created']
+        ordering = ['-created_at']
         verbose_name_plural = verbose_name
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     solved = models.BooleanField(verbose_name='是否解决', default=False, db_index=True)
     comment = models.TextField(verbose_name='反馈', max_length=817)
-    created = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
+    created_at = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
     reply = models.TextField(verbose_name='回复', max_length=817, null=True, blank=True)
 
     def __str__(self):

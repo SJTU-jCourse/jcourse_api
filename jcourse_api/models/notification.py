@@ -23,7 +23,7 @@ class Notification(models.Model):
     class Meta:
         verbose_name = '通知'
         verbose_name_plural = verbose_name
-        ordering = ('-created',)
+        ordering = ('-created_at',)
 
     recipient = models.ForeignKey(
         User,
@@ -37,7 +37,7 @@ class Notification(models.Model):
     content_type = models.ForeignKey(ContentType, models.CASCADE, verbose_name='内容类型', null=True)
     object_id = models.PositiveIntegerField(verbose_name='内容ID', null=True)
     related_object = GenericForeignKey('content_type', 'object_id')
-    created = models.DateTimeField(default=timezone.now, db_index=True, verbose_name='创建时间')
+    created_at = models.DateTimeField(default=timezone.now, db_index=True, verbose_name='创建时间')
     read_at = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name='阅读时间')
     public = models.BooleanField(default=True, db_index=True, verbose_name='已发布')
 
@@ -56,7 +56,7 @@ def send_report_replied_notification(report: Report):
             type=Notification.NotificationType.REPORTS_REPLIED,
             content_type=ContentType.objects.get_for_model(report),
             object_id=report.id,
-            created=timezone.now()
+            created_at=timezone.now()
         )
 
 
@@ -66,5 +66,5 @@ def send_course_new_review_notification(user: User, course: Course):
         type=Notification.NotificationType.COURSES_NEW_REVIEW,
         content_type=ContentType.objects.get_for_model(course),
         object_id=course.id,
-        created=timezone.now()
+        created_at=timezone.now()
     )

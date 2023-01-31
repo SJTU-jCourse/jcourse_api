@@ -21,7 +21,7 @@ class CourseNotificationLevel(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='课程', db_index=True, blank=True)
     notification_level = models.IntegerField(verbose_name='通知等级', choices=NotificationLevelType.choices,
                                              default=NotificationLevelType.NORMAL, blank=True)
-    modified = models.DateTimeField(verbose_name='改动时间', default=timezone.now)
+    modified_at = models.DateTimeField(verbose_name='改动时间', default=timezone.now)
 
     def __str__(self):
         return f"{self.user}-{self.get_notification_level_display()}-{self.course}"

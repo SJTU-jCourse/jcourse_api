@@ -99,7 +99,7 @@ class FormerCodeAdmin(ImportExportModelAdmin):
 class ReviewAdmin(ImportExportModelAdmin):
     autocomplete_fields = ('user', 'course')
     list_display = (
-        'id', 'user', 'course', 'created', 'modified', 'approve_count', 'disapprove_count', 'comment_validity')
+        'id', 'user', 'course', 'created_at', 'modified_at', 'approve_count', 'disapprove_count', 'comment_validity')
     search_fields = ('user__username', 'course__code', 'course__id')
     readonly_fields = ('approve_count', 'disapprove_count')
 
@@ -107,28 +107,28 @@ class ReviewAdmin(ImportExportModelAdmin):
 @admin.register(ReviewRevision)
 class ReviewRevisionAdmin(ImportExportModelAdmin):
     autocomplete_fields = ('user', 'review', 'course')
-    list_display = ('id', 'review_id', 'user', 'course', 'created', 'comment_validity')
+    list_display = ('id', 'review_id', 'user', 'course', 'created_at', 'comment_validity')
     search_fields = ('review__id', 'user__username', 'course__code', 'course__id')
 
 
 @admin.register(Report)
 class ReportAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'user', 'solved', 'reply_validity', 'comment_validity', 'created')
+    list_display = ('id', 'user', 'solved', 'reply_validity', 'comment_validity', 'created_at')
     search_fields = ('user__username',)
     list_filter = ('solved',)
-    readonly_fields = ('user', 'comment', 'created')
+    readonly_fields = ('user', 'comment', 'created_at')
 
 
 @admin.register(ReviewReaction)
 class ReactionAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'user', 'reaction', 'modified', 'review')
+    list_display = ('id', 'user', 'reaction', 'modified_at', 'review')
     search_fields = ('user__username', 'review__course__code', 'review__id')
     readonly_fields = ('user', 'review',)
 
 
 @admin.register(Announcement)
 class AnnouncementAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'title', 'message', 'created', 'url', 'available')
+    list_display = ('id', 'title', 'message', 'created_at', 'url', 'available')
 
 
 class DepartmentResource(resources.ModelResource):
@@ -199,7 +199,7 @@ class UserPointAdmin(ImportExportModelAdmin):
 
 @admin.register(EnrollCourse)
 class EnrollCourseAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'user', 'course', 'semester', 'created')
+    list_display = ('id', 'user', 'course', 'semester', 'created_at')
     search_fields = ('user__username', 'course__code')
     readonly_fields = ('user', 'course', 'semester')
 
@@ -218,7 +218,7 @@ class ApiKeyAdmin(admin.ModelAdmin):
 class NotificationAdmin(ImportExportModelAdmin):
     autocomplete_fields = ('recipient',)
     list_display = ('id', 'type', 'recipient', 'read', 'public')
-    list_filter = ('public', 'created', 'read_at', 'type')
+    list_filter = ('public', 'created_at', 'read_at', 'type')
     actions = ['mark_as_read', 'mark_as_unread']
 
     @admin.action(description='设为已读')
@@ -232,7 +232,7 @@ class NotificationAdmin(ImportExportModelAdmin):
 
 @admin.register(CourseNotificationLevel)
 class CourseNotificationLevelAdmin(ImportExportModelAdmin):
-    list_display = ('id', 'course', 'user', 'notification_level', 'modified')
+    list_display = ('id', 'course', 'user', 'notification_level', 'modified_at')
     list_filter = ('notification_level',)
     search_fields = ('course__code', 'user__username')
     search_help_text = '输入课程代码或用户名'

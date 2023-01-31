@@ -33,9 +33,9 @@ class ReviewTest(TestCase):
         self.assertEqual(review['comment'], 'TEST')
         self.assertEqual(review['score'], 'W')
         self.assertEqual(review['moderator_remark'], None)
-        self.assertIsNotNone(review['created'])
-        self.assertIsNotNone(review['modified'])
-        self.assertEqual(review['modified'], review['created'])
+        self.assertIsNotNone(review['created_at'])
+        self.assertIsNotNone(review['modified_at'])
+        self.assertEqual(review['modified_at'], review['created_at'])
 
     def test_order_by(self):
         review = create_review('test2')
@@ -66,9 +66,9 @@ class ReviewTest(TestCase):
         self.assertEqual(review['comment'], 'TEST')
         self.assertEqual(review['score'], 'W')
         self.assertEqual(review['moderator_remark'], None)
-        self.assertIsNotNone(review['created'])
-        self.assertIsNotNone(review['modified'])
-        self.assertEqual(review['modified'], review['created'])
+        self.assertIsNotNone(review['created_at'])
+        self.assertIsNotNone(review['modified_at'])
+        self.assertEqual(review['modified_at'], review['created_at'])
 
     def test_course_avg_count(self):
         course = Course.objects.get(code='CS1500')
@@ -105,7 +105,7 @@ class ReviewTest(TestCase):
         response = self.client.put(self.endpoint + f'{self.review.id}/', data)
         review = response.json()
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(review['modified'])
+        self.assertIsNotNone(review['modified_at'])
 
     def test_put_others_review(self):
         review = create_review('test2', 'CS1500', 5)
@@ -200,7 +200,7 @@ class ReviewRevisionTest(TestCase):
         response = self.client.put(f'{self.endpoint}/{self.review.id}/', data)
         review = response.json()
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(review['modified'])
+        self.assertIsNotNone(review['modified_at'])
         revision = ReviewRevision.objects.filter(review_id=self.review.id)
         self.assertIsNotNone(revision)
         revision = revision.first()
@@ -317,7 +317,7 @@ class FilterTest(TestCase):
 
         self.review1 = Review.objects.create(user=self.user, course=self.course1, comment='TEST', rating=5, score='W',
                                              semester=Semester.objects.get(name='2021-2022-1'),
-                                             modified=timezone.now() - timezone.timedelta(days=1),
+                                             modified_at=timezone.now() - timezone.timedelta(days=1),
                                              approve_count=2)
         self.review2 = Review.objects.create(user=self.user, course=self.course2, comment='TEST', rating=3, score='W',
                                              semester=Semester.objects.get(name='2021-2022-2'))
@@ -328,13 +328,13 @@ class FilterTest(TestCase):
 
         self.review5 = Review.objects.create(user=self.user2, course=self.course1, comment='TEST', rating=3, score='W',
                                              semester=Semester.objects.get(name='2021-2022-2'),
-                                             modified=timezone.now() - timezone.timedelta(days=2),
+                                             modified_at=timezone.now() - timezone.timedelta(days=2),
                                              approve_count=3)
         self.review6 = Review.objects.create(user=self.user2, course=self.course4, comment='TEST', rating=3, score='W',
                                              semester=Semester.objects.get(name='2021-2022-1'))
         self.review7 = Review.objects.create(user=self.user3, course=self.course1, comment='TEST', rating=1, score='W',
                                              semester=Semester.objects.get(name='2021-2022-1'),
-                                             modified=timezone.now() - timezone.timedelta(days=3),
+                                             modified_at=timezone.now() - timezone.timedelta(days=3),
                                              approve_count=1)
 
         self.semester1 = Semester.objects.get(name='2021-2022-1')

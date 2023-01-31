@@ -8,29 +8,29 @@ from jcourse_api.models import *
 
 class NotificationTest(TestCase):
     def create_env(self):
-        report = Report.objects.create(user=self.user, comment='test', created=timezone.now())
+        report = Report.objects.create(user=self.user, comment='test', created_at=timezone.now())
         self.notification1 = Notification.objects.create(recipient=self.user2,
                                                          type=7,
                                                          content_type=ContentType.objects.get_for_model(report),
                                                          object_id=report.id,
-                                                         created=timezone.now() - datetime.timedelta(days=1)
+                                                         created_at=timezone.now() - datetime.timedelta(days=1)
                                                          )
         self.notification2 = Notification.objects.create(recipient=self.user,
                                                          type=1,
-                                                         created=timezone.now() - datetime.timedelta(days=2)
+                                                         created_at=timezone.now() - datetime.timedelta(days=2)
                                                          )
         self.notification3 = Notification.objects.create(recipient=self.user,
                                                          type=1,
                                                          public=False,
                                                          read_at=timezone.now() - datetime.timedelta(hours=3),
-                                                         created=timezone.now() - datetime.timedelta(hours=4)
+                                                         created_at=timezone.now() - datetime.timedelta(hours=4)
                                                          )
         self.notification4 = Notification.objects.create(recipient=self.user,
                                                          type=2,
                                                          content_type=ContentType.objects.get_for_model(report),
                                                          object_id=report.id,
                                                          read_at=timezone.now(),
-                                                         created=timezone.now() - datetime.timedelta(hours=2)
+                                                         created_at=timezone.now() - datetime.timedelta(hours=2)
                                                          )
 
     def setUp(self) -> None:
@@ -42,10 +42,10 @@ class NotificationTest(TestCase):
 
     def test_report_replied_notification(self):
         """
-        Test if notification is created when a report is replied.
+        Test if notification is created_at when a report is replied.
         """
         from jcourse_api.models import Report
-        report = Report.objects.create(user=self.user, comment='test', created=timezone.now())
+        report = Report.objects.create(user=self.user, comment='test', created_at=timezone.now())
         self.assertEqual(Notification.objects.count(), 0)
         report.reply = 'TEST'
         report.save()

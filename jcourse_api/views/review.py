@@ -49,7 +49,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
             reviews = reviews.exclude(course_id__in=ignored_course_ids)
         if 'order' in self.request.query_params:
             if self.request.query_params['order'] == 'approves':
-                return reviews.order_by(F('approve_count').desc(nulls_last=True), F('created').desc(nulls_last=True))
+                return reviews.order_by(F('approve_count').desc(nulls_last=True), F('created_at').desc(nulls_last=True))
         return reviews
 
     def get_serializer_class(self):
@@ -62,7 +62,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer: serializers.ModelSerializer):
         created_time = timezone.now()
-        serializer.save(user=self.request.user, modified=created_time, created=created_time)
+        serializer.save(user=self.request.user, modified_at=created_time, created_at=created_time)
 
     def perform_update(self, serializer: serializers.ModelSerializer):
         modified_time = timezone.now()
@@ -72,8 +72,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
                                           review_id=review.id, course_id=review.course_id,
                                           semester_id=review.semester_id, score=review.score,
                                           rating=review.rating, comment=review.comment,
-                                          created=modified_time, )
-            serializer.save(modified=modified_time)
+                                          created_at=modified_time, )
+            serializer.save(modified_at=modified_time)
 
     @action(detail=True, methods=['POST'], throttle_classes=[UserRateThrottle, ReactionRateThrottle])
     def reaction(self, request: Request, pk=None):
@@ -103,7 +103,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['GET'])
     def location(self, request, pk):
         review = Review.objects.get(pk=pk)
-        location = Review.objects.filter(course_id=review.course_id, modified__gt=review.modified).count()
+        location = Review.objects.filter(course_id=review.course_id, modified_at__gt=review.modified_at).count()
         return Response({"location": location, "course": review.course_id})
 
 
@@ -115,7 +115,7 @@ class ReviewRevisionView(ListAPIView):
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
         return ReviewRevision.objects.select_related('semester').filter(review_id=review_id).order_by(
-            F('created').desc(nulls_last=True))
+            F('created_at').desc(nulls_last=True))
 
 
 class ReviewInCourseView(ListAPIView):
@@ -137,9 +137,9 @@ class ReviewInCourseView(ListAPIView):
             if order not in ReviewInCourseView.OrderType:
                 return Review.objects.none()
             if order == ReviewInCourseView.OrderType.LATEST_MODIFIED:
-                reviews = reviews.order_by(F('modified').desc())
+                reviews = reviews.order_by(F('modified_at').desc())
             elif order == ReviewInCourseView.OrderType.OLDEST_MODIFIED:
-                reviews = reviews.order_by(F('modified').asc())
+                reviews = reviews.order_by(F('modified_at').asc())
             elif order == ReviewInCourseView.OrderType.APPROVE_FROM_HIGH_TO_LOW:
                 reviews = reviews.order_by(F('approve_count').desc())
             elif order == ReviewInCourseView.OrderType.RATING_FROM_HIGH_TO_LOW:

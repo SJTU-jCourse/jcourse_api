@@ -47,6 +47,6 @@ def create_review(username: str = 'test', code: str = 'CS1500', rating: int = 3)
     now = timezone.now()
     review = Review.objects.create(user=user, course=course, comment='TEST', rating=rating, score='W',
                                    semester=Semester.objects.get(name='2021-2022-1'),
-                                   created=now, modified=now)
+                                   created_at=now, modified_at=now)
     ReviewReaction.objects.create(review=review, user=user, reaction=1)
     return review

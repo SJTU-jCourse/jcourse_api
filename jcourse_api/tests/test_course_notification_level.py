@@ -37,25 +37,25 @@ class CourseNotificationLevelTest(TestCase):
             user=self.user,
             course=self.course1,
             notification_level=CourseNotificationLevel.NotificationLevelType.FOLLOW,
-            modified=timezone.now() - timezone.timedelta(days=3)
+            modified_at=timezone.now() - timezone.timedelta(days=3)
         )
         CourseNotificationLevel.objects.create(
             user=self.user,
             course=self.course2,
             notification_level=CourseNotificationLevel.NotificationLevelType.IGNORE,
-            modified=timezone.now() - timezone.timedelta(days=2)
+            modified_at=timezone.now() - timezone.timedelta(days=2)
         )
         CourseNotificationLevel.objects.create(
             user=self.user,
             course=self.course4,
             notification_level=CourseNotificationLevel.NotificationLevelType.FOLLOW,
-            modified=timezone.now() - timezone.timedelta(days=1)
+            modified_at=timezone.now() - timezone.timedelta(days=1)
         )
         CourseNotificationLevel.objects.create(
             user=self.user,
             course=self.course5,
             notification_level=CourseNotificationLevel.NotificationLevelType.FOLLOW,
-            modified=timezone.now()
+            modified_at=timezone.now()
         )
 
         Review.objects.create(user=self.user, course=self.course1, comment='TEST', rating=3, score='W',

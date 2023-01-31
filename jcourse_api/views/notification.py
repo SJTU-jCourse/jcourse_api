@@ -10,7 +10,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
-        return Notification.objects.filter(recipient=self.request.user, public=True).order_by('-created')
+        return Notification.objects.filter(recipient=self.request.user, public=True).order_by('-created_at')
 
     @action(detail=True, methods=['POST'])
     def read(self, request: Request, pk=None):

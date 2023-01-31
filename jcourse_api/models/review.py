@@ -11,7 +11,7 @@ class Review(models.Model):
     class Meta:
         verbose_name = '点评'
         verbose_name_plural = verbose_name
-        ordering = ['-modified']
+        ordering = ['-modified_at']
         constraints = [models.UniqueConstraint(fields=['user', 'course'], name='unique_review')]
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
@@ -19,8 +19,8 @@ class Review(models.Model):
     semester = models.ForeignKey(Semester, verbose_name='上课学期', on_delete=models.SET_NULL, null=True)
     rating = models.IntegerField(verbose_name='推荐指数', validators=[MaxValueValidator(5), MinValueValidator(1)])
     comment = models.TextField(verbose_name='详细点评', max_length=9681)
-    created = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
-    modified = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True)
+    created_at = models.DateTimeField(verbose_name='发布时间', default=timezone.now, db_index=True)
+    modified_at = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True)
     score = models.CharField(verbose_name='成绩', null=True, blank=True, max_length=10)
     moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
     approve_count = models.IntegerField(verbose_name='获赞数', null=True, blank=True, default=0, db_index=True)
@@ -62,7 +62,7 @@ class ReviewRevision(models.Model):
     semester = models.ForeignKey(Semester, verbose_name='上课学期', on_delete=models.SET_NULL, null=True)
     rating = models.IntegerField(verbose_name='推荐指数', validators=[MaxValueValidator(5), MinValueValidator(1)])
     comment = models.TextField(verbose_name='详细点评', max_length=9681)
-    created = models.DateTimeField(verbose_name='修订时间', default=timezone.now, db_index=True)
+    created_at = models.DateTimeField(verbose_name='修订时间', default=timezone.now, db_index=True)
     score = models.CharField(verbose_name='成绩', null=True, blank=True, max_length=10)
 
     def comment_validity(self):
@@ -80,13 +80,13 @@ class ReviewReaction(models.Model):
     class Meta:
         verbose_name = '点评回应'
         verbose_name_plural = verbose_name
-        ordering = ['-modified']
+        ordering = ['-modified_at']
         constraints = [models.UniqueConstraint(fields=['user', 'review'], name='unique_reaction')]
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.CASCADE, db_index=True)
     reaction = models.IntegerField(choices=ReactionType.choices, verbose_name='操作', default=0, db_index=True)
-    modified = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True, auto_now=True)
+    modified_at = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True, auto_now=True)
 
     def __str__(self):
         return f"{self.user} {self.get_reaction_display()} {self.review.id}"

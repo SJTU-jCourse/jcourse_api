@@ -29,7 +29,7 @@ class ReportViewSet(mixins.CreateModelMixin,
         serializer.save(user=self.request.user)
         if not settings.DEBUG:
             data = serializer.data
-            email_body = f"内容：\n{data['comment']}\n时间：{data['created']}"
+            email_body = f"内容：\n{data['comment']}\n时间：{data['created_at']}"
             send_mail('选课社区反馈', email_body, from_email=settings.DEFAULT_FROM_EMAIL,
                       recipient_list=[settings.ADMIN_EMAIL])
 
@@ -51,7 +51,7 @@ def get_user_point_with_reviews(user: User, reviews):
         approves_count = 0
     reviews_count = reviews.count()
 
-    first_reviews = Review.objects.filter(course__in=courses).order_by('course_id', 'created').distinct(
+    first_reviews = Review.objects.filter(course__in=courses).order_by('course_id', 'created_at').distinct(
         'course_id').values_list('id', flat=True)
     first_reviews = first_reviews.intersection(reviews)
     first_reviews_count = first_reviews.count()

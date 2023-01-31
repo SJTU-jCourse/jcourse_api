@@ -125,7 +125,7 @@ class ReportTest(TestCase):
     def test_create(self):
         response = self.client.post(self.endpoint, {'comment': 'TEST'}).json()
         self.assertEqual(response['comment'], 'TEST')
-        self.assertIn('created', response)
+        self.assertIn('created_at', response)
         self.assertIn('reply', response)
         self.assertEqual(response['user'], self.user.id)
 

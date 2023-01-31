@@ -25,20 +25,20 @@ class UserSerializer(serializers.ModelSerializer):
 class AnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
-        fields = ('title', 'message', 'created', 'url')
+        fields = ('title', 'message', 'created_at', 'url')
 
 
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         exclude = ('solved',)
-        read_only_fields = ('user', 'created', 'reply')
+        read_only_fields = ('user', 'created_at', 'reply')
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ('id', 'recipient', 'type', 'description', 'created', 'read_at')
+        fields = ('id', 'recipient', 'type', 'description', 'created_at', 'read_at')
 
 
 class CategorySerializer(serializers.ModelSerializer):

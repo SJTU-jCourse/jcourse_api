@@ -43,7 +43,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
             notification_level = int(self.request.query_params['notification_level'])
             filtered_course_ids = CourseNotificationLevel.objects.filter(user=self.request.user,
                                                                          notification_level=notification_level) \
-                .order_by('modified').values('course_id')
+                .order_by('modified_at').values('course_id')
             courses = courses.filter(id__in=filtered_course_ids)
         if 'onlyhasreviews' in self.request.query_params:
             courses = courses.filter(review_count__gt=0). \
@@ -74,7 +74,7 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
             course_notification, find = CourseNotificationLevel.objects.update_or_create(
                 user=request.user,
                 course=course,
-                defaults={'notification_level': notification_level, 'modified': timezone.now()}
+                defaults={'notification_level': notification_level, 'modified_at': timezone.now()}
             )
         except Course.DoesNotExist:
             return Response({'error': '无指定课程！'}, status=status.HTTP_404_NOT_FOUND)
