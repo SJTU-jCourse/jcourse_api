@@ -5,7 +5,7 @@ from authlib.integrations.base_client import OAuthError
 from authlib.integrations.django_client import OAuth
 from authlib.jose import jwt
 from authlib.oidc.core import CodeIDToken
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.mail import send_mail
@@ -62,6 +62,21 @@ def login_with(request, account: str, user_type: str):
 def logout_auth(request):
     logout(request)
     return JsonResponse({'details': 'logged out'})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@csrf_exempt
+def login_auth(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        login(request, user)
+        return JsonResponse({'account': username})
+    else:
+        return JsonResponse({'details': 'Bad argument!'}, status=400)
+
 
 
 def login_jaccount(request):

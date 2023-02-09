@@ -4,6 +4,7 @@ from oauth.views import *
 
 urlpatterns = [
     path('logout/', logout_auth, name='logout'),
+    path('login/', login_auth, name='login'),
     path('email/send-code/', send_code, name='send_code'),
     path('email/verify/', verify_and_login, name='verify_email'),
     path('jaccount/login/', login_jaccount, name='login_jaccount'),
