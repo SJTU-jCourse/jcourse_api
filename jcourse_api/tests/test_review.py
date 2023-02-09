@@ -94,8 +94,16 @@ class ReviewTest(TestCase):
         self.assertEqual(review['score'], 'W')
         self.assertEqual(review['moderator_remark'], None)
 
-    def write_review(self, course: Course, semester: Semester):
-        data = {'course': course.id, 'semester': semester.id, 'score': '100', 'comment': 'TEST', 'rating': 5}
+    def write_review(self, course: Course | int, semester: Semester | int):
+        data = {'score': '100', 'comment': 'TEST', 'rating': 5}
+        if isinstance(course, Course):
+            data['course'] = course.id
+        else:
+            data['course'] = course
+        if isinstance(semester, Semester):
+            data['semester'] = semester.id
+        else:
+            data['semester'] = semester
         response = self.client.post(self.endpoint, data)
         return response
 
@@ -147,7 +155,36 @@ class ReviewTest(TestCase):
         semester = Semester.objects.get(name='2021-2022-2')
         response = self.write_review(course, semester)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json()['error'], '已经点评过这门课，如需修改请联系管理员')
+        self.assertEqual(response.json()['error'], '已经点评过这门课')
+
+    def test_create_review_on_lock_course(self):
+        course = Course.objects.get(code='CS2500')
+        course.locked = True
+        course.save(update_fields=['locked'])
+        semester = Semester.objects.get(name='2021-2022-2')
+        response = self.write_review(course, semester)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'course': ['课程不再接收新点评']})
+
+    def test_put_review_on_lock_course(self):
+        course = self.review.course
+        course.locked = True
+        course.save(update_fields=['locked'])
+        data = {'course': self.review.course_id, 'semester': self.review.semester_id, 'score': '100',
+                'comment': 'TEST2', 'rating': 3}
+        response = self.client.put(self.endpoint + f'{self.review.id}/', data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'course': ['课程不再接收新点评']})
+
+    def test_wrong_course_id(self):
+        semester = Semester.objects.get(name='2021-2022-2')
+        response = self.write_review(20, semester)
+        self.assertEqual(response.status_code, 400)
+
+    def test_wrong_semester_id(self):
+        course = Course.objects.get(code='CS2500')
+        response = self.write_review(course, 20)
+        self.assertEqual(response.status_code, 400)
 
     def test_mine(self):
         response = self.client.get(self.endpoint + 'mine/').json()

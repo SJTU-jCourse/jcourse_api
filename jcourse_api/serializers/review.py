@@ -1,7 +1,7 @@
 from django.db import IntegrityError
 from rest_framework import serializers
 
-from jcourse_api.models import Review, ReviewRevision
+from jcourse_api.models import Review, ReviewRevision, Course
 from jcourse_api.serializers.base import SemesterSerializer
 from jcourse_api.serializers.course import CourseInReviewListSerializer, CourseInWriteReviewSerializer
 
@@ -12,12 +12,16 @@ class CreateReviewSerializer(serializers.ModelSerializer):
         exclude = ['moderator_remark', 'approve_count', 'disapprove_count']
         read_only_fields = ['user', 'created_at', 'modified_at']
 
+    def validate_course(self, value: Course):
+        if value.locked:
+            raise serializers.ValidationError('课程不再接收新点评')
+        return value
+
     def create(self, validated_data):
         try:
             return super().create(validated_data)
         except IntegrityError:
-            error_msg = {'error': '已经点评过这门课，如需修改请联系管理员'}
-            raise serializers.ValidationError(error_msg)
+            raise serializers.ValidationError({'error': '已经点评过这门课'})
 
 
 def get_review_reactions(obj):

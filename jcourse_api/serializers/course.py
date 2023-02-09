@@ -119,7 +119,7 @@ class CourseInReviewListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ['id', 'code', 'name', 'teacher']
+        fields = ['id', 'code', 'name', 'teacher', 'locked']
 
     @staticmethod
     def get_teacher(obj: Course):
@@ -132,7 +132,7 @@ class CourseInWriteReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ['id', 'code', 'name', 'teacher', 'semester']
+        fields = ['id', 'code', 'name', 'teacher', 'semester', 'locked']
 
     @staticmethod
     def get_teacher(obj: Course):

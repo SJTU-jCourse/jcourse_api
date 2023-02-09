@@ -19,7 +19,7 @@ class CourseResource(resources.ModelResource):
     class Meta:
         model = Course
         import_id_fields = ('code', 'main_teacher')
-        exclude = ('id', 'review_count', 'review_avg')
+        exclude = ('id', 'review_count', 'review_avg', 'locked')
         skip_unchanged = True
         report_skipped = False
         export_order = (
@@ -37,7 +37,7 @@ class CourseAdmin(ImportExportModelAdmin):
     list_display = (
         'id', 'code', 'name', 'credit', 'department', 'category_names', 'main_teacher', 'review_count', 'review_avg',
         'last_semester')
-    list_filter = ('department', 'categories', 'credit', 'last_semester')
+    list_filter = ('department', 'categories', 'credit', 'last_semester', 'locked')
     search_fields = ('id', 'code', 'name')
     autocomplete_fields = ('main_teacher', 'teacher_group', 'department', 'categories')
     resource_class = CourseResource

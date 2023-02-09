@@ -73,6 +73,7 @@ class CourseTest(TestCase):
         self.assertEqual(courses[0]['rating'], {'count': 1, 'avg': 3.0})
         self.assertEqual(courses[0]['code'], 'CS1500')
         self.assertEqual(courses[0]['credit'], 4.0)
+        self.assertEqual(courses[0]['locked'], False)
 
     def test_only_has_review(self):
         response = self.client.get(self.endpoint, {'onlyhasreviews': ''})
@@ -109,6 +110,8 @@ class CourseTest(TestCase):
 
     def test_retrieve(self):
         test_course = Course.objects.get(name='思想道德修养与法律基础', main_teacher=Teacher.objects.get(name='梁女士'))
+        test_course.locked = True
+        test_course.save(update_fields=['locked'])
         response = self.client.get(self.endpoint + f"{test_course.pk}/")
         course = response.json()
         self.assertEqual(course['name'], '思想道德修养与法律基础')
@@ -131,6 +134,7 @@ class CourseTest(TestCase):
         self.assertEqual(len(course['related_courses']), 0)
         self.assertEqual(course['former_codes'], ['TH000'])
         self.assertIsNone(course['moderator_remark'])
+        self.assertEqual(course['locked'], True)
 
     def test_not_found(self):
         response = self.client.get(self.endpoint + '5/')
@@ -231,6 +235,7 @@ class CourseInReviewTest(TestCase):
         self.assertEqual(response[0]['name'], '计算机科学导论')
         self.assertEqual(response[0]['teacher'], '高女士')
         self.assertEqual(response[0]['semester'], None)
+        self.assertEqual(response[0]['locked'], False)
 
     def test_retrieve(self):
         response = self.client.get(self.endpoint + f'{self.course.pk}/').json()
@@ -239,3 +244,4 @@ class CourseInReviewTest(TestCase):
         self.assertEqual(response['name'], '计算机科学导论')
         self.assertEqual(response['teacher'], '高女士')
         self.assertEqual(response['semester'], None)
+        self.assertEqual(response['locked'], False)
