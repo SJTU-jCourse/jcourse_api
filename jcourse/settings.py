@@ -200,7 +200,7 @@ EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 465))
 
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_SSL = int(os.environ.get('EMAIL_USE_SSL', 1))
+EMAIL_USE_SSL = bool(os.environ.get('EMAIL_USE_SSL'))
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', EMAIL_HOST_USER)
 ADMIN_EMAIL = os.environ.get('EMAIL_HOST_USER', EMAIL_HOST_USER)
 
