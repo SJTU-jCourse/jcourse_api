@@ -1,5 +1,5 @@
 Authlib==1.2.0
-Django==4.1.6
+Django==4.1.7
 django-cors-headers==3.13.0
 django-filter==22.1
 django-import-export==3.0.2
@@ -10,6 +10,6 @@ psycopg2-binary==2.9.5
 pypinyin==0.48.0
 coverage==7.1.0
 django-debug-toolbar==3.8.1
-redis==4.4.2
+redis==4.5.1
 django-prometheus==2.2.0
 python-dotenv==0.21.1
