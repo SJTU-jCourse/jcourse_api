@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+import smtplib
 
 from authlib.integrations.base_client import OAuthError
 from authlib.integrations.django_client import OAuth
@@ -142,10 +143,12 @@ def send_code(request):
     email = email.strip().lower()
     if not email.endswith('@sjtu.edu.cn'):
         return JsonResponse({'detail': '请输入 SJTU 邮箱！'}, status=400)
-    if send_code_email(email):
-        return JsonResponse({'detail': '邮件已发送！请查看你的 SJTU 邮箱收件箱（包括垃圾邮件）。'})
-    else:
-        return JsonResponse({'detail': '验证码发送失败，请稍后重试。'}, status=400)
+    try:
+        if send_code_email(email):
+            return JsonResponse({'detail': '邮件已发送！请查看你的 SJTU 邮箱收件箱（包括垃圾邮件）。'})
+    except smtplib.SMTPDataError:
+        pass
+    return JsonResponse({'detail': '验证码发送失败，请稍后重试。'}, status=500)
 
 
 @api_view(['POST'])
