@@ -61,7 +61,7 @@ def login_with(request, account: str, user_type: str):
 
 def logout_auth(request):
     logout(request)
-    return JsonResponse({'details': 'logged out'})
+    return JsonResponse({'detail': 'logged out'})
 
 
 @api_view(['POST'])
@@ -71,12 +71,11 @@ def login_auth(request):
     username = request.data.get('username')
     password = request.data.get('password')
     user = authenticate(request, username=username, password=password)
-    if user is not None:
-        login(request, user)
-        return JsonResponse({'account': username})
-    else:
-        return JsonResponse({'details': 'Bad argument!'}, status=400)
+    if user is None:
+        return JsonResponse({'detail': '参数错误'}, status=400)
 
+    login(request, user)
+    return JsonResponse({'account': username})
 
 
 def login_jaccount(request):
@@ -94,7 +93,7 @@ def auth_jaccount(request):
     try:
         token = jaccount.authorize_access_token(request)
     except OAuthError:
-        return JsonResponse({'details': 'Bad argument!'}, status=400)
+        return JsonResponse({'detail': '参数错误'}, status=400)
     claims = jwt.decode(token.get('id_token'),
                         jaccount.client_secret, claims_cls=CodeIDToken)
     user_type = claims['type']
@@ -115,9 +114,9 @@ def sync_lessons_auth(request):
     try:
         token = jaccount.authorize_access_token(request)
     except OAuthError:
-        return JsonResponse({'details': 'Bad argument!'}, status=400)
+        return JsonResponse({'detail': '参数错误'}, status=400)
     request.session['token'] = token
-    return JsonResponse({'details': 'Sync Status Ready!'})
+    return JsonResponse({'detail': '同步状态就绪'})
 
 
 def send_code_email(email: str):
@@ -139,14 +138,14 @@ def send_code_email(email: str):
 def send_code(request):
     email: str = request.data.get("email", None)
     if email is None:
-        return JsonResponse({'details': 'Bad argument!'}, status=400)
+        return JsonResponse({'detail': '参数错误'}, status=400)
     email = email.strip().lower()
     if not email.endswith('@sjtu.edu.cn'):
-        return JsonResponse({'details': '请输入 SJTU 邮箱！'}, status=400)
+        return JsonResponse({'detail': '请输入 SJTU 邮箱！'}, status=400)
     if send_code_email(email):
-        return JsonResponse({'details': '邮件已发送！请查看你的 SJTU 邮箱收件箱（包括垃圾邮件）。'})
+        return JsonResponse({'detail': '邮件已发送！请查看你的 SJTU 邮箱收件箱（包括垃圾邮件）。'})
     else:
-        return JsonResponse({'details': '验证码发送失败，请稍后重试。'}, status=400)
+        return JsonResponse({'detail': '验证码发送失败，请稍后重试。'}, status=400)
 
 
 @api_view(['POST'])
@@ -157,11 +156,11 @@ def verify_and_login(request):
     email: str = request.data.get("email", None)
     code: str = request.data.get("code", None)
     if email is None or code is None:
-        return JsonResponse({'details': 'Bad argument!'}, status=400)
+        return JsonResponse({'detail': '参数错误'}, status=400)
     email = email.strip().lower()
     code = code.strip()
     if code != cache.get(email):
-        return JsonResponse({'details': '验证码错误，请重试。'}, status=400)
+        return JsonResponse({'detail': '验证码错误，请重试。'}, status=400)
     account = email.split('@')[0]
     login_with(request, account, 'email')
     cache.delete(email)
