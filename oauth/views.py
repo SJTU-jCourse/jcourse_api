@@ -163,8 +163,7 @@ def verify_and_login(request):
     if code != cache.get(email):
         return JsonResponse({'details': '验证码错误，请重试。'}, status=400)
     account = email.split('@')[0]
-    hashed_username = hash_username(account)
-    login_with(request, hashed_username, 'email')
+    login_with(request, account, 'email')
     cache.delete(email)
     response = JsonResponse({'account': account})
     return response
