@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from jcourse import settings
 from jcourse_api.models import *
 from jcourse_api.serializers import ReportSerializer, UserSerializer, UserPointSerializer
-from oauth.views import hash_username
+from oauth.utils import hash_username
 
 
 class ReportViewSet(mixins.CreateModelMixin,

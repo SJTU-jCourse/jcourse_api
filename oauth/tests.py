@@ -6,7 +6,30 @@ from django.core.cache import cache
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from oauth.views import get_or_create_user, hash_username
+from oauth.utils import hash_username, get_or_create_user
+
+
+class LoginTest(TestCase):
+
+    def setUp(self) -> None:
+        self.client = APIClient()
+        user = User.objects.create_user(username="test", password="pass")
+        user.save()
+
+    def test_login(self):
+        resp = self.client.post('/oauth/login/', data={"username": "test", "password": "pass"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json(), {"account": "test"})
+
+    def test_wrong_login(self):
+        resp = self.client.post('/oauth/login/', data={"username": "test", "password": "pass1"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.json(), {'detail': '参数错误'})
+
+    def test_logout(self):
+        resp = self.client.post('/oauth/logout/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json(), {'detail': 'logged out'})
 
 
 class SendCodeTest(TestCase):

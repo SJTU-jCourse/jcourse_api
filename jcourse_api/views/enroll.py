@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from jcourse_api.models import *
 from jcourse_api.serializers import CourseListSerializer
 from jcourse_api.views.course import get_course_list_queryset
-from oauth.views import jaccount
+from oauth.utils import jaccount
 
 
 def parse_jaccount_courses(response: dict):

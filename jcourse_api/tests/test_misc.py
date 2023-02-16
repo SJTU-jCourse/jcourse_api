@@ -2,7 +2,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from jcourse_api.tests import *
-from oauth.views import hash_username
+from oauth.utils import hash_username
 
 
 class AnnouncementTest(TestCase):
