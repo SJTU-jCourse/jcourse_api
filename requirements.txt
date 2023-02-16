@@ -12,3 +12,4 @@ coverage==7.1.0
 django-debug-toolbar==3.8.1
 redis==4.4.2
 django-prometheus==2.2.0
+python-dotenv==0.21.1
