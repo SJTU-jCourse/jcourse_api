@@ -35,10 +35,15 @@ class StatisticTest(TestCase):
 
     def test_get(self):
         response = self.client.get('/api/statistic/').json()
-        self.assertEqual(response['courses'], 4)
-        self.assertEqual(response['users'], 1)
-        self.assertEqual(response['reviews'], 1)
-        self.assertEqual(response['courses_with_review'], 1)
+        self.assertEqual(response['course_count'], 4)
+        self.assertEqual(response['user_count'], 1)
+        self.assertEqual(response['review_count'], 1)
+        self.assertEqual(response['course_with_review_count'], 1)
+        self.assertEqual(response['course_review_count_dist'], [{"value": 1, "count": 1}])
+        self.assertEqual(response['course_review_avg_dist'], [{"value": 3.0, "count": 1}])
+        self.assertEqual(response['review_rating_dist'], [{"value": 3, "count": 1}])
+        self.assertIsNotNone(response['user_join_time'])
+        self.assertIsNotNone(response['review_create_time'])
 
 
 class ApiKeyTest(TestCase):
