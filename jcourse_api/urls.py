@@ -1,7 +1,6 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-# from jcourse_api.upload import FileUploadView
 from jcourse_api.views import *
 
 router = DefaultRouter()

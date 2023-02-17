@@ -43,7 +43,7 @@ def create_test_env() -> None:
 
 def create_review(username: str = 'test', code: str = 'CS1500', rating: int = 3) -> Review:
     user, _ = User.objects.get_or_create(username=username)
-    course = Course.objects.get(code=code)
+    course = Course.objects.filter(code=code).first()
     now = timezone.now()
     review = Review.objects.create(user=user, course=course, comment='TEST', rating=rating, score='W',
                                    semester=Semester.objects.get(name='2021-2022-1'),
