@@ -60,7 +60,10 @@ def get_or_create_user(account: str):
     return user
 
 
-def login_with(request, account: str, user_type: str):
+def login_with(request, account: str, user_type: str | None = None):
     user = get_or_create_user(account)
-    UserProfile.objects.update_or_create(user=user, defaults={'user_type': user_type, 'lowercase': True})
+    if user_type:
+        UserProfile.objects.update_or_create(user=user, defaults={'user_type': user_type, 'lowercase': True})
+    else:
+        UserProfile.objects.update_or_create(user=user, defaults={'lowercase': True})
     login(request, user)

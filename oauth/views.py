@@ -104,7 +104,7 @@ def auth_email_verify(request):
     if code != cache.get(email):
         return JsonResponse({'detail': '验证码错误，请重试。'}, status=400)
     account = email.split('@')[0]
-    login_with(request, account, 'email')
+    login_with(request, account)
     cache.delete(email)
     response = JsonResponse({'account': account})
     return response
