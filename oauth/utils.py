@@ -45,15 +45,16 @@ def get_or_create_user(account: str):
     former_username = hash_username(account)
     username = hash_username(lower)
 
+    # 查找旧号存在情况
     user = User.objects.filter(username=former_username)
-    if not user.exists():
+    if not user.exists():  # 如果旧号不存在，建新号
         user, _ = User.objects.get_or_create(username=username)
         return user
-
+    # 如果旧号存在，查找新号存在情况
     user = User.objects.filter(username=username)
-    if user.exists():
+    if user.exists():  # 如果新号存在，直接返回新号（未合并旧号，可以管理员操作）
         return user.first()
-
+    # 如果新号不存在，把修改旧号用户名为新用户名
     user = User.objects.get(username=former_username)
     user.username = username
     user.save()

@@ -113,7 +113,7 @@ class GetOrCreateUserTest(TestCase):
         user = User.objects.get()
         self.assertEqual(user.username, username)
 
-    def test_exactly_the_same(self):
+    def test_exactly_the_same_lower(self):
         username = hash_username("abc")
 
         get_or_create_user("abc")
@@ -123,6 +123,15 @@ class GetOrCreateUserTest(TestCase):
         get_or_create_user("abc")
         user = User.objects.get()
         self.assertEqual(user.username, username)
+
+    def test_exactly_the_same_upper(self):
+        User.objects.create(username=hash_username("Abc"))
+        username = hash_username("abc")
+        get_or_create_user("Abc")
+        self.assertEqual(User.objects.count(), 1)
+        user = User.objects.get()
+        self.assertEqual(user.username, username)
+
 
     def test_upper_first_low_last(self):
         User.objects.create(username=hash_username("Abc"))
