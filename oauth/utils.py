@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+import string
 
 from authlib.integrations.django_client import OAuth
 from django.contrib.auth import login
@@ -28,8 +29,13 @@ def hash_username(username: str):
     return hashlib.blake2b((username + HASH_SALT).encode('ascii'), digest_size=16).hexdigest()
 
 
+def generate_code(length: int = 6):
+    code = ''.join(secrets.choice(string.digits) for _ in range(length))
+    return code
+
+
 def send_code_email(email: str):
-    code = secrets.token_hex(3)
+    code = generate_code()
     email_title = "选课社区验证码"
     email_body = f"您好！\n\n" \
                  f"请使用以下验证码完成登录，{LOGIN_VERIFICATION_TIMEOUT}分钟内有效：\n\n" \
