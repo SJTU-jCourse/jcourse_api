@@ -202,7 +202,7 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_SSL = bool(os.environ.get('EMAIL_USE_SSL'))
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', EMAIL_HOST_USER)
-ADMIN_EMAIL = os.environ.get('EMAIL_HOST_USER', EMAIL_HOST_USER)
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', EMAIL_HOST_USER)
 
 if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']

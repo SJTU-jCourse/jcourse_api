@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.core import mail
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -127,6 +128,8 @@ class ReportTest(TestCase):
         self.assertEqual(response['comment'], 'TEST')
         self.assertIn('created_at', response)
         self.assertIn('reply', response)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, '选课社区反馈')
         self.assertEqual(response['user'], self.user.id)
 
     def test_list(self):

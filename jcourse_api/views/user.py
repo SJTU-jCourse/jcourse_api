@@ -1,4 +1,3 @@
-from django.core.mail import send_mail
 from django.db.models import Sum, F
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -10,9 +9,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from jcourse import settings
 from jcourse_api.models import *
 from jcourse_api.serializers import ReportSerializer, UserSerializer, UserPointSerializer
+from jcourse_api.utils.email import send_report_email
 from oauth.utils import hash_username
 
 
@@ -27,11 +26,8 @@ class ReportViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer: serializer_class):
         serializer.save(user=self.request.user)
-        if not settings.DEBUG:
-            data = serializer.data
-            email_body = f"内容：\n{data['comment']}\n时间：{data['created_at']}"
-            send_mail('选课社区反馈', email_body, from_email=settings.DEFAULT_FROM_EMAIL,
-                      recipient_list=[settings.ADMIN_EMAIL])
+        data = serializer.data
+        send_report_email(data['comment'], data['created_at'])
 
 
 class UserView(APIView):
