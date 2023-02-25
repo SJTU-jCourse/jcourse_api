@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 
 from jcourse import settings
-from jcourse.settings import HASH_SALT, LOGIN_VERIFICATION_TIMEOUT
+from jcourse.settings import HASH_SALT, EMAIL_VERIFICATION_TIMEOUT, EMAIL_VERIFICATION_MAX_TIMES
 from oauth.models import UserProfile
 
 oauth = OAuth()
@@ -34,15 +34,50 @@ def generate_code(length: int = 6):
     return code
 
 
-def send_code_email(email: str):
-    code = generate_code()
+def build_email_auth_cache_key(email: str):
+    return f"email_auth_code_{email}"
+
+
+def build_email_auth_times_cache_key(email: str):
+    return f"email_auth_times_{email}"
+
+
+def store_email_code(email: str, code: str):
+    cache.set(build_email_auth_cache_key(email), code, EMAIL_VERIFICATION_TIMEOUT * 60)
+
+
+def get_email_code(email: str):
+    return cache.get(build_email_auth_cache_key(email))
+
+
+def get_email_tries(email: str):
+    return cache.get(build_email_auth_times_cache_key(email))
+
+
+def verify_email_times(email: str):
+    times_key = build_email_auth_times_cache_key(email)
+    times = cache.get_or_set(times_key, 0, EMAIL_VERIFICATION_TIMEOUT * 60)
+    cache.incr(times_key)
+    return times < EMAIL_VERIFICATION_MAX_TIMES
+
+
+def verify_email_code(email: str, code: str):
+    email = email.strip().lower()
+    code = code.strip()
+    return code == cache.get(build_email_auth_cache_key(email))
+
+
+def clean_email_code(email: str):
+    cache.delete_many([build_email_auth_cache_key(email), build_email_auth_times_cache_key(email)])
+
+
+def send_code_email(email: str, code: str):
     email_title = "选课社区验证码"
     email_body = f"您好！\n\n" \
-                 f"请使用以下验证码完成登录，{LOGIN_VERIFICATION_TIMEOUT}分钟内有效：\n\n" \
+                 f"请使用以下验证码完成登录，{EMAIL_VERIFICATION_TIMEOUT}分钟内有效：\n\n" \
                  f"{code}\n\n" \
                  f"如非本人操作请忽略该邮件。\n\n" \
                  f"选课社区"
-    cache.set(email, code, LOGIN_VERIFICATION_TIMEOUT * 60)
     return send_mail(email_title, email_body, settings.DEFAULT_FROM_EMAIL, [email])
 
 

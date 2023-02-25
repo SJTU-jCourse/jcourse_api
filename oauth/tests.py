@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from oauth.utils import hash_username, get_or_create_user
+from oauth.utils import hash_username, get_or_create_user, get_email_code, get_email_tries
 
 
 class LoginTest(TestCase):
@@ -66,6 +66,7 @@ class VerifyCodeTest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.endpoint = '/oauth/email/verify/'
+        cache.clear()
 
     @patch('rest_framework.throttling.UserRateThrottle.allow_request')
     @patch('jcourse.throttles.VerifyEmailRateThrottle.allow_request')
@@ -87,6 +88,28 @@ class VerifyCodeTest(TestCase):
 
     @patch('rest_framework.throttling.UserRateThrottle.allow_request')
     @patch('jcourse.throttles.VerifyEmailRateThrottle.allow_request')
+    def test_max_tries(self, email_throttle, user_throttle):
+        email_throttle.return_value = True
+        user_throttle.return_value = True
+        email = "xxx@sjtu.edu.cn"
+        resp = self.client.post('/oauth/email/send-code/', data={"email": email})
+        self.assertEqual(resp.status_code, 200)
+        # 1st try
+        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        self.assertEqual(resp.status_code, 400)
+        # 2nd try
+        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        self.assertEqual(resp.status_code, 400)
+        # 3rd try
+        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        self.assertEqual(resp.status_code, 400)
+        # 4th try
+        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        self.assertEqual(resp.status_code, 429)
+        print(get_email_tries(email))
+
+    @patch('rest_framework.throttling.UserRateThrottle.allow_request')
+    @patch('jcourse.throttles.VerifyEmailRateThrottle.allow_request')
     def test_valid(self, email_throttle, user_throttle):
         email_throttle.return_value = True
         user_throttle.return_value = True
@@ -95,7 +118,7 @@ class VerifyCodeTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '选课社区验证码')
-        code = cache.get(email)
+        code = get_email_code(email)
         self.assertIsNotNone(code)
         resp = self.client.post(self.endpoint, data={"email": email, "code": code})
         self.assertEqual(resp.status_code, 200)
@@ -131,7 +154,6 @@ class GetOrCreateUserTest(TestCase):
         self.assertEqual(User.objects.count(), 1)
         user = User.objects.get()
         self.assertEqual(user.username, username)
-
 
     def test_upper_first_low_last(self):
         User.objects.create(username=hash_username("Abc"))
