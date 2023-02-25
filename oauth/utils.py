@@ -55,6 +55,8 @@ def get_email_tries(email: str):
 
 
 def verify_email_times(email: str):
+    if get_email_code(email) is None:  # 没申请过的直接通过次数验证，因为下一个验证本来就过不了
+        return True
     times_key = build_email_auth_times_cache_key(email)
     times = cache.get_or_set(times_key, 0, EMAIL_VERIFICATION_TIMEOUT * 60)
     cache.incr(times_key)

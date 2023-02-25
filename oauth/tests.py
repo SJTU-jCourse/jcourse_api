@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from oauth.utils import hash_username, get_or_create_user, get_email_code, get_email_tries
+from oauth.utils import hash_username, get_or_create_user, get_email_code
 
 
 class LoginTest(TestCase):
@@ -106,7 +106,20 @@ class VerifyCodeTest(TestCase):
         # 4th try
         resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
         self.assertEqual(resp.status_code, 429)
-        print(get_email_tries(email))
+        # 没有申请过
+        email = "xxx2@sjtu.edu.cn"
+        # 1st try
+        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        self.assertEqual(resp.status_code, 400)
+        # 2nd try
+        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        self.assertEqual(resp.status_code, 400)
+        # 3rd try
+        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        self.assertEqual(resp.status_code, 400)
+        # 4th try
+        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        self.assertEqual(resp.status_code, 400)
 
     @patch('rest_framework.throttling.UserRateThrottle.allow_request')
     @patch('jcourse.throttles.VerifyEmailRateThrottle.allow_request')
