@@ -11,7 +11,7 @@ from rest_framework.throttling import UserRateThrottle
 from jcourse import settings
 from jcourse.throttles import ReactionRateThrottle
 from jcourse_api.models import *
-from jcourse_api.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
+from jcourse_api.permissions import IsAdminOrReadOnly, IsOwnerOrAdminOrReadOnly
 from jcourse_api.serializers import ReviewRevisionSerializer, CreateReviewSerializer, ReviewItemSerializer, \
     ReviewListSerializer, ReviewInCourseSerializer
 
@@ -32,7 +32,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if settings.REVIEW_READ_ONLY:
             return [IsAdminOrReadOnly()]
         else:
-            return [IsOwnerOrReadOnly()]
+            return [IsOwnerOrAdminOrReadOnly()]
 
     def get_queryset(self):
         reviews = get_reviews(self.request.user, self.action)

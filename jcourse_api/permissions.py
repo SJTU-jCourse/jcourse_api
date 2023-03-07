@@ -1,14 +1,14 @@
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 
 
-class IsOwnerOrReadOnly(IsAuthenticated):
+class IsOwnerOrAdminOrReadOnly(IsAuthenticated):
     message = '您只能修改自己发表的内容。'
 
     def has_object_permission(self, request, view, obj):
         if self.has_permission(request, view):
             if request.method in SAFE_METHODS:
                 return True
-            return obj.user == request.user
+            return obj.user == request.user or request.user.is_staff
         else:
             return False
 
