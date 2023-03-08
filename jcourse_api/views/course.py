@@ -64,20 +64,17 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     def notification_level(self, request: Request, pk=None):
         if 'level' not in request.data:
             return Response({'error': '未指定操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
-        # if pk is None:
-        #     return Response({'error': '未指定课程id！'}, status=status.HTTP_400_BAD_REQUEST)
         notification_level = int(request.data['level'])
         if notification_level not in CourseNotificationLevel.NotificationLevelType:
             return Response({'error': '无效的操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            course = Course.objects.get(id=pk)
-            course_notification, find = CourseNotificationLevel.objects.update_or_create(
-                user=request.user,
-                course=course,
-                defaults={'notification_level': notification_level, 'modified_at': timezone.now()}
-            )
-        except Course.DoesNotExist:
-            return Response({'error': '无指定课程！'}, status=status.HTTP_404_NOT_FOUND)
+
+        course: Course = self.get_object()
+        course_notification, find = CourseNotificationLevel.objects.update_or_create(
+            user=request.user,
+            course=course,
+            defaults={'notification_level': notification_level, 'modified_at': timezone.now()}
+        )
+
         return Response({'id': pk,
                          'notification_level': course_notification.notification_level},
                         status=status.HTTP_200_OK)

@@ -79,14 +79,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def reaction(self, request: Request, pk=None):
         if 'reaction' not in request.data:
             return Response({'error': '未指定操作类型！'}, status=status.HTTP_400_BAD_REQUEST)
-        if pk is None:
-            return Response({'error': '未指定点评id！'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            ReviewReaction.objects.update_or_create(user=request.user, review_id=pk,
-                                                    defaults={'reaction': request.data.get('reaction')})
-            review = Review.objects.get(pk=pk)
-        except (ReviewReaction.DoesNotExist, Review.DoesNotExist):
-            return Response({'error': '无指定点评！'}, status=status.HTTP_404_NOT_FOUND)
+        review: Review = self.get_object()
+        ReviewReaction.objects.update_or_create(user=request.user, review=review,
+                                                defaults={'reaction': request.data.get('reaction')})
+        review.refresh_from_db()
         return Response({'id': pk,
                          'reaction': request.data.get('reaction'),
                          'approves': review.approve_count,
@@ -102,7 +98,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['GET'])
     def location(self, request, pk):
-        review = Review.objects.get(pk=pk)
+        review: Review = self.get_object()
         location = Review.objects.filter(course_id=review.course_id, modified_at__gt=review.modified_at).count()
         return Response({"location": location, "course": review.course_id})
 
