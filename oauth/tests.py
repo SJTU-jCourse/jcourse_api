@@ -44,21 +44,17 @@ class SendCodeTest(TestCase):
         user_throttle.return_value = True
         resp = self.client.get(self.endpoint)
         self.assertEqual(resp.status_code, 405)
-        resp = self.client.post(self.endpoint, data={"email": "xxx@fdu.edu.cn"})
-        self.assertEqual(resp.status_code, 400)
-        resp = self.client.post(self.endpoint, data={"email": "xxx"})
-        self.assertEqual(resp.status_code, 400)
         resp = self.client.post(self.endpoint)
         self.assertEqual(resp.status_code, 400)
-        resp = self.client.post(self.endpoint, data={"email": "xxx@sjtu.edu.cn"})
+        resp = self.client.post(self.endpoint, data={"account": "xxx"})
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '选课社区验证码')
 
     def test_throttle(self):
-        resp = self.client.post(self.endpoint, data={"email": "xxx@sjtu.edu.cn"})
+        resp = self.client.post(self.endpoint, data={"account": "xxx@sjtu.edu.cn"})
         self.assertEqual(resp.status_code, 200)
-        resp = self.client.post(self.endpoint, data={"email": "xxx@sjtu.edu.cn"})
+        resp = self.client.post(self.endpoint, data={"account": "xxx@sjtu.edu.cn"})
         self.assertEqual(resp.status_code, 429)
 
 
@@ -75,7 +71,7 @@ class VerifyCodeTest(TestCase):
         user_throttle.return_value = True
         resp = self.client.post(self.endpoint, data={"code": "xxx"})
         self.assertEqual(resp.status_code, 400)
-        resp = self.client.post(self.endpoint, data={"email": "xxx@sjtu.edu.cn"})
+        resp = self.client.post(self.endpoint, data={"account": "xxx@sjtu.edu.cn"})
         self.assertEqual(resp.status_code, 400)
         resp = self.client.post(self.endpoint)
         self.assertEqual(resp.status_code, 400)
@@ -83,7 +79,7 @@ class VerifyCodeTest(TestCase):
         self.assertEqual(resp.status_code, 405)
 
     def test_not_sent_code(self):
-        resp = self.client.post(self.endpoint, data={"email": "xxx@sjtu.edu.cn", "code": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": "xxx@sjtu.edu.cn", "code": "123456"})
         self.assertEqual(resp.status_code, 400)
 
     @patch('rest_framework.throttling.UserRateThrottle.allow_request')
@@ -91,34 +87,34 @@ class VerifyCodeTest(TestCase):
     def test_max_tries(self, email_throttle, user_throttle):
         email_throttle.return_value = True
         user_throttle.return_value = True
-        email = "xxx@sjtu.edu.cn"
-        resp = self.client.post('/oauth/email/send-code/', data={"email": email})
+        account = "xxx"
+        resp = self.client.post('/oauth/email/send-code/', data={"account": account})
         self.assertEqual(resp.status_code, 200)
         # 1st try
-        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": account, "code": "123456"})
         self.assertEqual(resp.status_code, 400)
         # 2nd try
-        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": account, "code": "123456"})
         self.assertEqual(resp.status_code, 400)
         # 3rd try
-        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": account, "code": "123456"})
         self.assertEqual(resp.status_code, 400)
         # 4th try
-        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": account, "code": "123456"})
         self.assertEqual(resp.status_code, 429)
         # 没有申请过
-        email = "xxx2@sjtu.edu.cn"
+        account = "xxx2"
         # 1st try
-        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": account, "code": "123456"})
         self.assertEqual(resp.status_code, 400)
         # 2nd try
-        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": account, "code": "123456"})
         self.assertEqual(resp.status_code, 400)
         # 3rd try
-        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": account, "code": "123456"})
         self.assertEqual(resp.status_code, 400)
         # 4th try
-        resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": account, "code": "123456"})
         self.assertEqual(resp.status_code, 429)
 
     @patch('rest_framework.throttling.UserRateThrottle.allow_request')
@@ -127,13 +123,13 @@ class VerifyCodeTest(TestCase):
         email_throttle.return_value = True
         user_throttle.return_value = True
         email = "xxx@sjtu.edu.cn"
-        resp = self.client.post('/oauth/email/send-code/', data={"email": email})
+        resp = self.client.post('/oauth/email/send-code/', data={"account": email})
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '选课社区验证码')
         code = auth_get_email_code(email)
         self.assertIsNotNone(code)
-        resp = self.client.post(self.endpoint, data={"email": email, "code": code})
+        resp = self.client.post(self.endpoint, data={"account": email, "code": code})
         self.assertEqual(resp.status_code, 200)
 
 
@@ -178,7 +174,6 @@ class GetOrCreateUserTest(TestCase):
 class EmailPasswordLoginTest(TestCase):
     def setUp(self) -> None:
         self.username = "example"
-        self.email = self.username + "@sjtu.edu.cn"
         self.password = "test"
         username = hash_username(self.username)
         self.user = User.objects.create_user(username=username, password=self.password)
@@ -187,12 +182,12 @@ class EmailPasswordLoginTest(TestCase):
         cache.clear()
 
     def test_valid(self):
-        resp = self.client.post(self.endpoint, data={"email": self.email, "password": self.password})
+        resp = self.client.post(self.endpoint, data={"account": self.username, "password": self.password})
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["account"], "example")
 
     def test_wrong_password(self):
-        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": self.username, "password": "123456"})
         self.assertEqual(resp.status_code, 400)
 
     @patch('rest_framework.throttling.UserRateThrottle.allow_request')
@@ -201,23 +196,22 @@ class EmailPasswordLoginTest(TestCase):
         email_throttle.return_value = True
         user_throttle.return_value = True
         # 1st try
-        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": self.username, "password": "123456"})
         self.assertEqual(resp.status_code, 400)
         # 2nd try
-        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": self.username, "password": "123456"})
         self.assertEqual(resp.status_code, 400)
         # 3rd try
-        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": self.username, "password": "123456"})
         self.assertEqual(resp.status_code, 400)
         # 4th try
-        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        resp = self.client.post(self.endpoint, data={"account": self.username, "password": "123456"})
         self.assertEqual(resp.status_code, 429)
 
 
 class ResetPasswordTest(TestCase):
     def setUp(self) -> None:
         self.username = "test"
-        self.email = self.username + "@sjtu.edu.cn"
         self.user = User.objects.create_user(username=hash_username(self.username))
         self.client = APIClient()
         self.client.force_login(self.user)
@@ -229,27 +223,27 @@ class ResetPasswordTest(TestCase):
         email_throttle.return_value = True
         resp = self.client.post("/oauth/reset-password/send-code/")
         self.assertEqual(resp.status_code, 400)
-        resp = self.client.post("/oauth/reset-password/send-code/", data={"email": "xxx@example.com"})
+        resp = self.client.post("/oauth/reset-password/send-code/", data={"account": "xxx@example.com"})
         self.assertEqual(resp.status_code, 400)
 
     @patch('jcourse.throttles.EmailCodeRateThrottle.allow_request')
     def test_send_code(self, email_throttle):
         email_throttle.return_value = True
-        resp = self.client.post("/oauth/reset-password/send-code/", data={"email": self.email})
+        resp = self.client.post("/oauth/reset-password/send-code/", data={"account": self.username})
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '选课社区验证码')
 
     def test_input_case(self):
-        resp = self.client.post("/oauth/reset-password/send-code/", data={"email": self.email.upper()})
+        resp = self.client.post("/oauth/reset-password/send-code/", data={"account": self.username.upper()})
         self.assertEqual(resp.status_code, 200)
 
     def test_reset(self):
-        self.client.post("/oauth/reset-password/send-code/", data={"email": self.email})
-        code = reset_get_email_code(self.email)
+        self.client.post("/oauth/reset-password/send-code/", data={"account": self.username})
+        code = reset_get_email_code(self.username)
 
         resp = self.client.post("/oauth/reset-password/reset/",
-                                data={"email": self.email, "code": code, "password": self.password})
+                                data={"account": self.username, "code": code, "password": self.password})
         self.assertEqual(resp.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password(self.password))
@@ -257,5 +251,5 @@ class ResetPasswordTest(TestCase):
     def test_login_after_reset(self):
         self.test_reset()
         client2 = APIClient()
-        resp = client2.post("/oauth/email/login/", data={"email": self.email, "password": self.password})
+        resp = client2.post("/oauth/email/login/", data={"account": self.username, "password": self.password})
         self.assertEqual(resp.status_code, 200)

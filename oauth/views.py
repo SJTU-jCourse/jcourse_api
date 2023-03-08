@@ -78,16 +78,14 @@ def sync_lessons_auth(request):
 @permission_classes([AllowAny])
 @csrf_exempt
 def auth_email_send_code(request):
-    email: str = request.data.get("email", None)
-    if email is None:
+    account: str = request.data.get("account", None)
+    if account is None:
         return JsonResponse({'detail': '参数错误'}, status=400)
-    email = email.strip().lower()
-    if not email.endswith('@sjtu.edu.cn'):
-        return JsonResponse({'detail': '请输入 SJTU 邮箱！'}, status=400)
+    account = account.strip().lower()
     try:
         code = generate_code()
-        auth_store_email_code(email, code)
-        if send_code_email(email, code):
+        auth_store_email_code(account, code)
+        if send_code_email(account + "@sjtu.edu.cn", code):
             return JsonResponse({'detail': '邮件已发送！请查看你的 SJTU 邮箱收件箱（包括垃圾邮件）。'})
     except smtplib.SMTPDataError:
         pass
@@ -99,19 +97,18 @@ def auth_email_send_code(request):
 @permission_classes([AllowAny])
 @csrf_exempt
 def auth_email_verify_code(request):
-    email: str = request.data.get("email", None)
+    account: str = request.data.get("account", None)
     code: str = request.data.get("code", None)
-    if email is None or code is None:
+    if account is None or code is None:
         return JsonResponse({'detail': '参数错误'}, status=400)
-    email = email.strip().lower()
+    account = account.strip().lower()
     code = code.strip()
-    if not verify_email_times(email):
+    if not verify_email_times(account):
         return JsonResponse({'detail': '尝试次数达到上限，请稍后重试。'}, status=429)
-    if not verify_email_code(email, code):
+    if not verify_email_code(account, code):
         return JsonResponse({'detail': '验证码错误，请重试。'}, status=400)
-    account = email.split('@')[0]
     login_with(request, account)
-    clean_email_code(email)
+    clean_email_code(account)
     response = JsonResponse({'account': account})
     return response
 
@@ -121,19 +118,16 @@ def auth_email_verify_code(request):
 @permission_classes([AllowAny])
 @csrf_exempt
 def auth_email_verify_password(request):
-    email = request.data.get('email')
+    account = request.data.get('account')
     password = request.data.get('password')
 
-    if email is None or password is None:
+    if account is None or password is None:
         return JsonResponse({'detail': '参数错误'}, status=400)
-    email = email.strip().lower()
+    account = account.strip().lower()
     password = password.strip()
-    if not email.endswith('@sjtu.edu.cn'):
-        return JsonResponse({'detail': '请输入 SJTU 邮箱！'}, status=400)
-    account = email.split('@')[0]
     username = hash_username(account)
 
-    if not verify_email_times(email):
+    if not verify_email_times(account):
         return JsonResponse({'detail': '尝试次数达到上限，请稍后重试。'}, status=429)
 
     user = authenticate(request, username=username, password=password)
@@ -141,26 +135,23 @@ def auth_email_verify_password(request):
         return JsonResponse({'detail': '参数错误'}, status=400)
 
     login(request, user)
-    clean_email_code(email)
+    clean_email_code(account)
     return JsonResponse({'account': account})
 
 
 @api_view(['POST'])
 @throttle_classes([EmailCodeRateThrottle])
 def reset_password_send_code(request):
-    email: str = request.data.get("email", None)
-    if email is None:
+    account: str = request.data.get("account", None)
+    if account is None:
         return JsonResponse({'detail': '参数错误'}, status=400)
-    email = email.strip().lower()
-    if not email.endswith('@sjtu.edu.cn'):
-        return JsonResponse({'detail': '请输入 SJTU 邮箱！'}, status=400)
-    account = email.split("@")[0]
+    account = account.strip().lower()
     if request.user.username != hash_username(account):
         return JsonResponse({'detail': '请输入本账号对应的邮箱！'}, status=400)
     try:
         code = generate_code()
-        reset_store_email_code(email, code)
-        if reset_send_code_email(email, code):
+        reset_store_email_code(account, code)
+        if reset_send_code_email(account + "@sjtu.edu.cn", code):
             return JsonResponse({'detail': '邮件已发送！请查看你的 SJTU 邮箱收件箱（包括垃圾邮件）。'})
     except smtplib.SMTPDataError:
         pass
@@ -170,24 +161,21 @@ def reset_password_send_code(request):
 @api_view(['POST'])
 @throttle_classes([VerifyAuthRateThrottle])
 def reset_password_reset(request):
-    email: str = request.data.get("email", None)
+    account: str = request.data.get("account", None)
     code: str = request.data.get("code", None)
     password: str = request.data.get("password", None)
-    if email is None or code is None or password is None:
+    if account is None or code is None or password is None:
         return JsonResponse({'detail': '参数错误'}, status=400)
-    email = email.strip().lower()
-    if not email.endswith('@sjtu.edu.cn'):
-        return JsonResponse({'detail': '请输入 SJTU 邮箱！'}, status=400)
-    account = email.split("@")[0]
+    account = account.strip().lower()
     if request.user.username != hash_username(account):
         return JsonResponse({'detail': '请输入本账号对应的邮箱！'}, status=400)
-    if not reset_verify_email_code(email, code):
+    if not reset_verify_email_code(account, code):
         return JsonResponse({'detail': '验证码错误，请重试。'}, status=400)
     try:
         validate_password(password, request.user)
     except ValidationError:
         return JsonResponse({'detail': "密码太弱！请至少9位以上，并包含字母和数字。"}, status=400)
-    reset_clean_email_code(email)
+    reset_clean_email_code(account)
     request.user.set_password(password)
     request.user.save()
     return JsonResponse({"detail": "更改密码成功"})
