@@ -69,7 +69,7 @@ class VerifyCodeTest(TestCase):
         cache.clear()
 
     @patch('rest_framework.throttling.UserRateThrottle.allow_request')
-    @patch('jcourse.throttles.VerifyEmailRateThrottle.allow_request')
+    @patch('jcourse.throttles.VerifyAuthRateThrottle.allow_request')
     def test_wrong_input(self, email_throttle, user_throttle):
         email_throttle.return_value = True
         user_throttle.return_value = True
@@ -87,7 +87,7 @@ class VerifyCodeTest(TestCase):
         self.assertEqual(resp.status_code, 400)
 
     @patch('rest_framework.throttling.UserRateThrottle.allow_request')
-    @patch('jcourse.throttles.VerifyEmailRateThrottle.allow_request')
+    @patch('jcourse.throttles.VerifyAuthRateThrottle.allow_request')
     def test_max_tries(self, email_throttle, user_throttle):
         email_throttle.return_value = True
         user_throttle.return_value = True
@@ -119,10 +119,10 @@ class VerifyCodeTest(TestCase):
         self.assertEqual(resp.status_code, 400)
         # 4th try
         resp = self.client.post(self.endpoint, data={"email": email, "code": "123456"})
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 429)
 
     @patch('rest_framework.throttling.UserRateThrottle.allow_request')
-    @patch('jcourse.throttles.VerifyEmailRateThrottle.allow_request')
+    @patch('jcourse.throttles.VerifyAuthRateThrottle.allow_request')
     def test_valid(self, email_throttle, user_throttle):
         email_throttle.return_value = True
         user_throttle.return_value = True
@@ -173,3 +173,41 @@ class GetOrCreateUserTest(TestCase):
         get_or_create_user("abc")
         get_or_create_user("Abc")
         self.assertEqual(User.objects.count(), 2)
+
+
+class EmailPasswordLoginTest(TestCase):
+    def setUp(self) -> None:
+        self.email = "example@example.com"
+        self.password = "test"
+        username = hash_username(self.email)
+        self.user = User.objects.create_user(username=username, password=self.password)
+        self.client = APIClient()
+        self.endpoint = '/oauth/email/login/'
+        cache.clear()
+
+    def test_valid(self):
+        resp = self.client.post(self.endpoint, data={"email": self.email, "password": self.password})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["account"], "example")
+
+    def test_wrong_password(self):
+        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        self.assertEqual(resp.status_code, 400)
+
+    @patch('rest_framework.throttling.UserRateThrottle.allow_request')
+    @patch('jcourse.throttles.VerifyAuthRateThrottle.allow_request')
+    def test_throttle(self, email_throttle, user_throttle):
+        email_throttle.return_value = True
+        user_throttle.return_value = True
+        # 1st try
+        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        self.assertEqual(resp.status_code, 400)
+        # 2nd try
+        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        self.assertEqual(resp.status_code, 400)
+        # 3rd try
+        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        self.assertEqual(resp.status_code, 400)
+        # 4th try
+        resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
+        self.assertEqual(resp.status_code, 429)

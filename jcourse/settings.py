@@ -169,7 +169,7 @@ REST_FRAMEWORK = {
         'user': '10/second',
         'review_reaction': '50/day',
         'email_code': '1/minute',
-        'verify_email': '5/minute',
+        'verify_auth': '5/minute',
     },
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',

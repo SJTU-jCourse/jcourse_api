@@ -10,9 +10,9 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, throttle_classes, permission_classes
 from rest_framework.permissions import AllowAny
 
-from jcourse.throttles import EmailCodeRateThrottle, VerifyEmailRateThrottle
+from jcourse.throttles import EmailCodeRateThrottle, VerifyAuthRateThrottle
 from oauth.utils import send_code_email, login_with, jaccount, generate_code, store_email_code, verify_email_code, \
-    clean_email_code, verify_email_times
+    clean_email_code, verify_email_times, hash_username
 
 
 def auth_logout(request):
@@ -21,6 +21,7 @@ def auth_logout(request):
 
 
 @api_view(['POST'])
+@throttle_classes([VerifyAuthRateThrottle])
 @permission_classes([AllowAny])
 @csrf_exempt
 def auth_login(request):
@@ -93,10 +94,10 @@ def auth_email_send_code(request):
 
 
 @api_view(['POST'])
-@throttle_classes([VerifyEmailRateThrottle])
+@throttle_classes([VerifyAuthRateThrottle])
 @permission_classes([AllowAny])
 @csrf_exempt
-def auth_email_verify(request):
+def auth_email_verify_code(request):
     email: str = request.data.get("email", None)
     code: str = request.data.get("code", None)
     if email is None or code is None:
@@ -112,3 +113,29 @@ def auth_email_verify(request):
     clean_email_code(email)
     response = JsonResponse({'account': account})
     return response
+
+
+@api_view(['POST'])
+@throttle_classes([VerifyAuthRateThrottle])
+@permission_classes([AllowAny])
+@csrf_exempt
+def auth_email_verify_password(request):
+    email = request.data.get('email')
+    password = request.data.get('password')
+
+    if email is None or password is None:
+        return JsonResponse({'detail': '参数错误'}, status=400)
+    email = email.strip().lower()
+    password = password.strip()
+    username = hash_username(email)
+
+    if not verify_email_times(email):
+        return JsonResponse({'detail': '尝试次数达到上限，请稍后重试。'}, status=429)
+
+    user = authenticate(request, username=username, password=password)
+    if user is None:
+        return JsonResponse({'detail': '参数错误'}, status=400)
+    account = email.split('@')[0]
+    login(request, user)
+    clean_email_code(email)
+    return JsonResponse({'account': account})

@@ -5,8 +5,8 @@ class ReactionRateThrottle(UserRateThrottle):
     scope = 'review_reaction'
 
 
-class VerifyEmailRateThrottle(UserRateThrottle):
-    scope = 'verify_email'
+class VerifyAuthRateThrottle(UserRateThrottle):
+    scope = 'verify_auth'
 
 
 class EmailCodeRateThrottle(UserRateThrottle):
