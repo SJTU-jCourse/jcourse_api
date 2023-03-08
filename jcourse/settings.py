@@ -288,3 +288,18 @@ EMAIL_VERIFICATION_TIMEOUT = int(os.environ.get('EMAIL_VERIFICATION_TIMEOUT', 10
 EMAIL_VERIFICATION_MAX_TIMES = int(os.environ.get('EMAIL_VERIFICATION_MAX_TIMES', 3))
 
 REVIEW_READ_ONLY = bool(os.environ.get("REVIEW_READ_ONLY", False))
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]

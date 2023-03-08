@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from oauth.utils import hash_username, get_or_create_user, get_email_code
+from oauth.utils import hash_username, get_or_create_user, auth_get_email_code, reset_get_email_code
 
 
 class LoginTest(TestCase):
@@ -131,7 +131,7 @@ class VerifyCodeTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, '选课社区验证码')
-        code = get_email_code(email)
+        code = auth_get_email_code(email)
         self.assertIsNotNone(code)
         resp = self.client.post(self.endpoint, data={"email": email, "code": code})
         self.assertEqual(resp.status_code, 200)
@@ -177,9 +177,10 @@ class GetOrCreateUserTest(TestCase):
 
 class EmailPasswordLoginTest(TestCase):
     def setUp(self) -> None:
-        self.email = "example@example.com"
+        self.username = "example"
+        self.email = self.username + "@sjtu.edu.cn"
         self.password = "test"
-        username = hash_username(self.email)
+        username = hash_username(self.username)
         self.user = User.objects.create_user(username=username, password=self.password)
         self.client = APIClient()
         self.endpoint = '/oauth/email/login/'
@@ -211,3 +212,50 @@ class EmailPasswordLoginTest(TestCase):
         # 4th try
         resp = self.client.post(self.endpoint, data={"email": self.email, "password": "123456"})
         self.assertEqual(resp.status_code, 429)
+
+
+class ResetPasswordTest(TestCase):
+    def setUp(self) -> None:
+        self.username = "test"
+        self.email = self.username + "@sjtu.edu.cn"
+        self.user = User.objects.create_user(username=hash_username(self.username))
+        self.client = APIClient()
+        self.client.force_login(self.user)
+        self.password = "new-password"
+        cache.clear()
+
+    @patch('jcourse.throttles.EmailCodeRateThrottle.allow_request')
+    def test_wrong_input(self, email_throttle):
+        email_throttle.return_value = True
+        resp = self.client.post("/oauth/reset-password/send-code/")
+        self.assertEqual(resp.status_code, 400)
+        resp = self.client.post("/oauth/reset-password/send-code/", data={"email": "xxx@example.com"})
+        self.assertEqual(resp.status_code, 400)
+
+    @patch('jcourse.throttles.EmailCodeRateThrottle.allow_request')
+    def test_send_code(self, email_throttle):
+        email_throttle.return_value = True
+        resp = self.client.post("/oauth/reset-password/send-code/", data={"email": self.email})
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, '选课社区验证码')
+
+    def test_input_case(self):
+        resp = self.client.post("/oauth/reset-password/send-code/", data={"email": self.email.upper()})
+        self.assertEqual(resp.status_code, 200)
+
+    def test_reset(self):
+        self.client.post("/oauth/reset-password/send-code/", data={"email": self.email})
+        code = reset_get_email_code(self.email)
+
+        resp = self.client.post("/oauth/reset-password/reset/",
+                                data={"email": self.email, "code": code, "password": self.password})
+        self.assertEqual(resp.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password(self.password))
+
+    def test_login_after_reset(self):
+        self.test_reset()
+        client2 = APIClient()
+        resp = client2.post("/oauth/email/login/", data={"email": self.email, "password": self.password})
+        self.assertEqual(resp.status_code, 200)

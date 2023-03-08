@@ -42,15 +42,15 @@ def build_email_auth_times_cache_key(email: str):
     return f"email_auth_times_{email}"
 
 
-def store_email_code(email: str, code: str):
+def auth_store_email_code(email: str, code: str):
     cache.set(build_email_auth_cache_key(email), code, EMAIL_VERIFICATION_TIMEOUT * 60)
 
 
-def get_email_code(email: str):
+def auth_get_email_code(email: str):
     return cache.get(build_email_auth_cache_key(email))
 
 
-def get_email_tries(email: str):
+def auth_get_email_tries(email: str):
     return cache.get(build_email_auth_times_cache_key(email))
 
 
@@ -109,3 +109,35 @@ def login_with(request, account: str, user_type: str | None = None):
     else:
         UserProfile.objects.update_or_create(user=user, defaults={'lowercase': True})
     login(request, user)
+
+
+def build_email_reset_cache_key(email: str):
+    return f"email_reset_code_{email}"
+
+
+def reset_store_email_code(email: str, code: str):
+    cache.set(build_email_reset_cache_key(email), code, EMAIL_VERIFICATION_TIMEOUT * 60)
+
+
+def reset_send_code_email(email: str, code: str):
+    email_title = "选课社区验证码"
+    email_body = f"您好！\n\n" \
+                 f"请使用以下验证码完成密码重置，{EMAIL_VERIFICATION_TIMEOUT}分钟内有效：\n\n" \
+                 f"{code}\n\n" \
+                 f"如非本人操作请忽略该邮件。\n\n" \
+                 f"选课社区"
+    return send_mail(email_title, email_body, settings.DEFAULT_FROM_EMAIL, [email])
+
+
+def reset_verify_email_code(email: str, code: str):
+    email = email.strip().lower()
+    code = code.strip()
+    return code == cache.get(build_email_reset_cache_key(email))
+
+
+def reset_get_email_code(email: str):
+    return cache.get(build_email_reset_cache_key(email))
+
+
+def reset_clean_email_code(email: str):
+    cache.delete_many([build_email_reset_cache_key(email)])
