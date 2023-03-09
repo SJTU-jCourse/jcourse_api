@@ -30,12 +30,13 @@ def auth_login(request):
     password = request.data.get('password')
     if username is None or password is None:
         return JsonResponse({'detail': '参数错误。'}, status=400)
-
+    if not auth_verify_times(username):
+        return JsonResponse({'detail': '尝试次数达到上限，请稍后重试。'}, status=429)
     user = authenticate(request, username=username, password=password)
     if user is None:
         return JsonResponse({'detail': '用户名或密码错误。'}, status=400)
-
     login(request, user)
+    clean_email_code(username)
     return JsonResponse({'account': username})
 
 
@@ -106,9 +107,9 @@ def auth_email_verify_code(request):
         return JsonResponse({'detail': '参数错误。'}, status=400)
     account = account.strip().lower()
     code = code.strip()
-    if not verify_email_times(account):
+    if not auth_verify_times(account):
         return JsonResponse({'detail': '尝试次数达到上限，请稍后重试。'}, status=429)
-    if not verify_email_code(account, code):
+    if not auth_verify_email_code(account, code):
         return JsonResponse({'detail': '验证码错误，请重试。'}, status=400)
     login_with(request, account)
     clean_email_code(account)
@@ -130,7 +131,7 @@ def auth_email_verify_password(request):
     password = password.strip()
     username = hash_username(account)
 
-    if not verify_email_times(account):
+    if not auth_verify_times(account):
         return JsonResponse({'detail': '尝试次数达到上限，请稍后重试。'}, status=429)
 
     user = authenticate(request, username=username, password=password)
