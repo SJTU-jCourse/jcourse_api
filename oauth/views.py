@@ -174,7 +174,7 @@ def reset_password_reset(request):
     try:
         validate_password(password, request.user)
     except ValidationError:
-        return JsonResponse({'detail': "密码太弱！请至少9位以上，并包含字母和数字。"}, status=400)
+        return JsonResponse({'detail': "密码太弱！请至少9位长度，包含字母和数字，并且不是常见密码。"}, status=400)
     reset_clean_email_code(account)
     request.user.set_password(password)
     request.user.save()
