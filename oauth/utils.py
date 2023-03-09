@@ -34,41 +34,41 @@ def generate_code(length: int = 6):
     return code
 
 
-def build_email_auth_cache_key(email: str):
-    return f"email_auth_code_{email}"
+def build_email_auth_cache_key(account: str):
+    return f"email_auth_code_{account}"
 
 
-def build_email_auth_times_cache_key(email: str):
-    return f"email_auth_times_{email}"
+def build_email_auth_times_cache_key(account: str):
+    return f"email_auth_times_{account}"
 
 
-def auth_store_email_code(email: str, code: str):
-    cache.set(build_email_auth_cache_key(email), code, EMAIL_VERIFICATION_TIMEOUT * 60)
+def auth_store_email_code(account: str, code: str):
+    cache.set(build_email_auth_cache_key(account), code, EMAIL_VERIFICATION_TIMEOUT * 60)
 
 
-def auth_get_email_code(email: str):
-    return cache.get(build_email_auth_cache_key(email))
+def auth_get_email_code(account: str):
+    return cache.get(build_email_auth_cache_key(account))
 
 
-def auth_get_email_tries(email: str):
-    return cache.get(build_email_auth_times_cache_key(email))
+def auth_get_email_tries(account: str):
+    return cache.get(build_email_auth_times_cache_key(account))
 
 
-def verify_email_times(email: str):
-    times_key = build_email_auth_times_cache_key(email)
+def auth_verify_times(account: str):
+    times_key = build_email_auth_times_cache_key(account)
     times = cache.get_or_set(times_key, 0, EMAIL_VERIFICATION_TIMEOUT * 60)
     cache.incr(times_key)
     return times < EMAIL_VERIFICATION_MAX_TIMES
 
 
-def verify_email_code(email: str, code: str):
-    email = email.strip().lower()
+def auth_verify_email_code(account: str, code: str):
+    account = account.strip().lower()
     code = code.strip()
-    return code == cache.get(build_email_auth_cache_key(email))
+    return code == cache.get(build_email_auth_cache_key(account))
 
 
-def clean_email_code(email: str):
-    cache.delete_many([build_email_auth_cache_key(email), build_email_auth_times_cache_key(email)])
+def clean_email_code(account: str):
+    cache.delete_many([build_email_auth_cache_key(account), build_email_auth_times_cache_key(account)])
 
 
 def send_code_email(email: str, code: str):
@@ -111,12 +111,12 @@ def login_with(request, account: str, user_type: str | None = None):
     login(request, user)
 
 
-def build_email_reset_cache_key(email: str):
-    return f"email_reset_code_{email}"
+def build_email_reset_cache_key(account: str):
+    return f"email_reset_code_{account}"
 
 
-def reset_store_email_code(email: str, code: str):
-    cache.set(build_email_reset_cache_key(email), code, EMAIL_VERIFICATION_TIMEOUT * 60)
+def reset_store_email_code(account: str, code: str):
+    cache.set(build_email_reset_cache_key(account), code, EMAIL_VERIFICATION_TIMEOUT * 60)
 
 
 def reset_send_code_email(email: str, code: str):
@@ -129,15 +129,15 @@ def reset_send_code_email(email: str, code: str):
     return send_mail(email_title, email_body, settings.DEFAULT_FROM_EMAIL, [email])
 
 
-def reset_verify_email_code(email: str, code: str):
-    email = email.strip().lower()
+def reset_verify_email_code(account: str, code: str):
+    account = account.strip().lower()
     code = code.strip()
-    return code == cache.get(build_email_reset_cache_key(email))
+    return code == cache.get(build_email_reset_cache_key(account))
 
 
-def reset_get_email_code(email: str):
-    return cache.get(build_email_reset_cache_key(email))
+def reset_get_email_code(account: str):
+    return cache.get(build_email_reset_cache_key(account))
 
 
-def reset_clean_email_code(email: str):
-    cache.delete_many([build_email_reset_cache_key(email)])
+def reset_clean_email_code(account: str):
+    cache.delete_many([build_email_reset_cache_key(account)])
