@@ -24,12 +24,12 @@ class LoginTest(TestCase):
     def test_wrong_login(self):
         resp = self.client.post('/oauth/login/', data={"username": "test", "password": "pass1"})
         self.assertEqual(resp.status_code, 400)
-        self.assertEqual(resp.json(), {'detail': '参数错误'})
+        self.assertEqual(resp.json(), {'detail': '用户名或密码错误。'})
 
     def test_logout(self):
         resp = self.client.post('/oauth/logout/')
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json(), {'detail': 'logged out'})
+        self.assertEqual(resp.json(), {'detail': '已登出。'})
 
 
 class SendCodeTest(TestCase):
