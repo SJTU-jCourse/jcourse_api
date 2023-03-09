@@ -18,7 +18,7 @@ from oauth.utils import *
 
 def auth_logout(request):
     logout(request)
-    return JsonResponse({'detail': 'logged out'})
+    return JsonResponse({'detail': '已登出。'})
 
 
 @api_view(['POST'])
@@ -28,9 +28,12 @@ def auth_logout(request):
 def auth_login(request):
     username = request.data.get('username')
     password = request.data.get('password')
+    if username is None or password is None:
+        return JsonResponse({'detail': '参数错误。'}, status=400)
+
     user = authenticate(request, username=username, password=password)
     if user is None:
-        return JsonResponse({'detail': '参数错误'}, status=400)
+        return JsonResponse({'detail': '用户名或密码错误。'}, status=400)
 
     login(request, user)
     return JsonResponse({'account': username})
@@ -47,7 +50,7 @@ def auth_jaccount(request):
     try:
         token = jaccount.authorize_access_token(request)
     except OAuthError:
-        return JsonResponse({'detail': '参数错误'}, status=400)
+        return JsonResponse({'detail': '参数错误。'}, status=400)
     claims = jwt.decode(token.get('id_token'),
                         jaccount.client_secret, claims_cls=CodeIDToken)
     user_type = claims['type']
@@ -68,9 +71,9 @@ def sync_lessons_auth(request):
     try:
         token = jaccount.authorize_access_token(request)
     except OAuthError:
-        return JsonResponse({'detail': '参数错误'}, status=400)
+        return JsonResponse({'detail': '参数错误。'}, status=400)
     request.session['token'] = token
-    return JsonResponse({'detail': '同步状态就绪'})
+    return JsonResponse({'detail': '同步状态就绪。'})
 
 
 @api_view(['POST'])
@@ -80,7 +83,7 @@ def sync_lessons_auth(request):
 def auth_email_send_code(request):
     account: str = request.data.get("account", None)
     if account is None:
-        return JsonResponse({'detail': '参数错误'}, status=400)
+        return JsonResponse({'detail': '参数错误。'}, status=400)
     account = account.strip().lower()
     try:
         code = generate_code()
@@ -100,7 +103,7 @@ def auth_email_verify_code(request):
     account: str = request.data.get("account", None)
     code: str = request.data.get("code", None)
     if account is None or code is None:
-        return JsonResponse({'detail': '参数错误'}, status=400)
+        return JsonResponse({'detail': '参数错误。'}, status=400)
     account = account.strip().lower()
     code = code.strip()
     if not verify_email_times(account):
@@ -122,7 +125,7 @@ def auth_email_verify_password(request):
     password = request.data.get('password')
 
     if account is None or password is None:
-        return JsonResponse({'detail': '参数错误'}, status=400)
+        return JsonResponse({'detail': '参数错误。'}, status=400)
     account = account.strip().lower()
     password = password.strip()
     username = hash_username(account)
@@ -132,7 +135,7 @@ def auth_email_verify_password(request):
 
     user = authenticate(request, username=username, password=password)
     if user is None:
-        return JsonResponse({'detail': '参数错误'}, status=400)
+        return JsonResponse({'detail': '邮箱或者密码错误。'}, status=400)
 
     login(request, user)
     clean_email_code(account)
@@ -144,7 +147,7 @@ def auth_email_verify_password(request):
 def reset_password_send_code(request):
     account: str = request.data.get("account", None)
     if account is None:
-        return JsonResponse({'detail': '参数错误'}, status=400)
+        return JsonResponse({'detail': '参数错误。'}, status=400)
     account = account.strip().lower()
     if request.user.username != hash_username(account):
         return JsonResponse({'detail': '请输入本账号对应的邮箱！'}, status=400)
@@ -165,7 +168,7 @@ def reset_password_reset(request):
     code: str = request.data.get("code", None)
     password: str = request.data.get("password", None)
     if account is None or code is None or password is None:
-        return JsonResponse({'detail': '参数错误'}, status=400)
+        return JsonResponse({'detail': '参数错误。'}, status=400)
     account = account.strip().lower()
     if request.user.username != hash_username(account):
         return JsonResponse({'detail': '请输入本账号对应的邮箱！'}, status=400)
@@ -178,4 +181,4 @@ def reset_password_reset(request):
     reset_clean_email_code(account)
     request.user.set_password(password)
     request.user.save()
-    return JsonResponse({"detail": "更改密码成功"})
+    return JsonResponse({"detail": "更改密码成功。"})
