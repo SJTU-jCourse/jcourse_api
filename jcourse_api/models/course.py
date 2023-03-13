@@ -20,6 +20,7 @@ class FormerCode(models.Model):
         verbose_name = '曾用课号'
         verbose_name_plural = verbose_name
         ordering = ['old_code']
+        constraints = [models.UniqueConstraint(fields=['old_code', 'new_code'], name='unique_record')]
 
     old_code = models.CharField(verbose_name='旧课号', max_length=32, unique=True, db_index=True)
     new_code = models.CharField(verbose_name='新课号', max_length=32, db_index=True)
