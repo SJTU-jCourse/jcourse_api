@@ -241,7 +241,7 @@ class ReviewReactionTest(TestCase):
         create_test_env()
         self.review = create_review()
         self.client = APIClient()
-        self.user = User.objects.get(username='test')
+        self.user = User.objects.create(username='test2')
         self.client.force_login(self.user)
         self.endpoint = f'/api/review/{self.review.id}/reaction/'
 
@@ -266,20 +266,26 @@ class ReviewReactionTest(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_approve(self):
-        response = self.client.post(self.endpoint, {'reaction': 1}).json()
+        response = self.client.post(self.endpoint, {'reaction': 1})
+        self.assertEqual(response.status_code, 200)
+        response = response.json()
         self.assertEqual(response['reaction'], '1')
-        self.assertEqual(response['approves'], 1)
+        self.assertEqual(response['approves'], 2)
         self.assertEqual(response['disapproves'], 0)
-        self.check_review_action(1, 1, 0)
+        self.check_review_action(1, 2, 0)
 
     def test_disapprove(self):
-        response = self.client.post(self.endpoint, {'reaction': -1}).json()
+        response = self.client.post(self.endpoint, {'reaction': -1})
+        self.assertEqual(response.status_code, 200)
+        response = response.json()
         self.assertEqual(response['reaction'], '-1')
-        self.assertEqual(response['approves'], 0)
+        self.assertEqual(response['approves'], 1)
         self.assertEqual(response['disapproves'], 1)
-        self.check_review_action(-1, 0, 1)
+        self.check_review_action(-1, 1, 1)
 
     def test_unset(self):
+        self.user = User.objects.get(username='test')
+        self.client.force_login(self.user)
         response = self.client.post(self.endpoint, {'reaction': 0}).json()
         self.assertEqual(response['reaction'], '0')
         self.assertEqual(response['approves'], 0)

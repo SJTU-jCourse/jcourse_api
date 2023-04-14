@@ -3,7 +3,7 @@ from django.db.models import Subquery, OuterRef, F
 from rest_framework import viewsets, serializers, status
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
@@ -31,6 +31,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if settings.REVIEW_READ_ONLY:
             return [IsAdminOrReadOnly()]
+        elif self.action == 'reaction':
+            return [IsAuthenticated()]
         else:
             return [IsOwnerOrAdminOrReadOnly()]
 
