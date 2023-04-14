@@ -1,3 +1,5 @@
+import datetime
+
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -10,8 +12,12 @@ class AnnouncementTest(TestCase):
         self.client = APIClient()
         self.user = User.objects.create(username='test')
         self.client.force_login(self.user)
-        Announcement.objects.create(title='TEST3', message='Just a test notice', available=True)
-        Announcement.objects.create(title='TEST1', message='Just a test notice', available=True,
+        Announcement.objects.create(title='TEST3', message='Just a test notice',
+                                    created_at=timezone.now() - datetime.timedelta(days=1),
+                                    available=True)
+        Announcement.objects.create(title='TEST1', message='Just a test notice',
+                                    created_at=timezone.now(),
+                                    available=True,
                                     url='https://example.com')
         Announcement.objects.create(title='TEST2', message='Just a test notice', available=False)
 
