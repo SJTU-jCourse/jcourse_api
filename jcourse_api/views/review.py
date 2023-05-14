@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Subquery, OuterRef, F
 from rest_framework import viewsets, serializers, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.request import Request
@@ -14,6 +15,7 @@ from jcourse_api.models import *
 from jcourse_api.permissions import IsAdminOrReadOnly, IsOwnerOrAdminOrReadOnly
 from jcourse_api.serializers import ReviewRevisionSerializer, CreateReviewSerializer, ReviewItemSerializer, \
     ReviewListSerializer, ReviewInCourseSerializer
+from jcourse_api.utils import check_spam, deal_with_spam
 
 
 def get_reviews(user: User, action: str):
@@ -64,6 +66,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer: serializers.ModelSerializer):
         created_time = timezone.now()
+        if check_spam(self.request.user, serializer.initial_data, created_time):
+            deal_with_spam(self.request.user)
+            raise ValidationError({'error': "由于大量刷点评，您已被封号，如有疑问请邮件联系"})
         serializer.save(user=self.request.user, modified_at=created_time, created_at=created_time)
 
     def perform_update(self, serializer: serializers.ModelSerializer):

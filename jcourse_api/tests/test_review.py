@@ -184,6 +184,32 @@ class ReviewTest(TestCase):
         self.assertEqual(response.status_code, 201)  # 允许学期为空
 
 
+class SpamTest(TestCase):
+
+    def setUp(self) -> None:
+        create_test_env()
+        self.client = APIClient()
+        self.user = User.objects.get(username='test')
+        self.client.force_login(self.user)
+        self.endpoint = '/api/review/'
+
+    def test_spam(self):
+        courses = Course.objects.all()
+        course = courses[0]
+        response = self.client.post(self.endpoint,
+                                    {'course': course.id, 'score': '100', 'comment': 'TEST', 'rating': 5})
+        self.assertEqual(response.status_code, 201)
+        course = courses[1]
+        response = self.client.post(self.endpoint,
+                                    {'course': course.id, 'score': '100', 'comment': 'TEST', 'rating': 5})
+        self.assertEqual(response.status_code, 201)
+        course = courses[2]
+        response = self.client.post(self.endpoint,
+                                    {'course': course.id, 'score': '100', 'comment': 'TEST', 'rating': 5})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "由于大量刷点评，您已被封号，如有疑问请邮件联系")
+
+
 class ReviewRevisionTest(TestCase):
     def setUp(self) -> None:
         create_test_env()
