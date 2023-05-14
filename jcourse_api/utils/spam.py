@@ -8,7 +8,7 @@ from jcourse_api.utils import send_antispam_email
 
 SPAM_MAX_REVIEWS = 3
 SPAM_PERIOD_MINUTES = 5
-SPAM_SIMILAR_RATIO = 0.75
+SPAM_SIMILAR_RATIO = 0.85
 
 
 def check_spam(user: User, data, time: datetime.datetime):
