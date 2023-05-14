@@ -147,7 +147,7 @@ class ReviewTest(TestCase):
         semester = Semester.objects.get(name='2021-2022-2')
         response = self.write_review(course, semester)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json()['error'], '已经点评过这门课，如需修改请联系管理员')
+        self.assertEqual(response.json()['error'], '已经点评过这门课，如需修改，请从“修改点评”入口进入')
 
     def test_mine(self):
         response = self.client.get(self.endpoint + 'mine/').json()

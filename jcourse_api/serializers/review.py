@@ -16,7 +16,7 @@ class CreateReviewSerializer(serializers.ModelSerializer):
         try:
             return super().create(validated_data)
         except IntegrityError:
-            error_msg = {'error': '已经点评过这门课，如需修改请联系管理员'}
+            error_msg = {'error': '已经点评过这门课，如需修改，请从“修改点评”入口进入'}
             raise serializers.ValidationError(error_msg)
 
 
