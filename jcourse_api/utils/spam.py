@@ -52,7 +52,7 @@ def check_spam(user: User, data, time: datetime.datetime):
     return False
 
 
-def deal_with_spam(user: User):
+def deal_with_spam(user: User, data: dict):
     user.is_active = False
     user.save(update_fields=["is_active"])
-    send_antispam_email(user.username)
+    send_antispam_email(user.username, data)

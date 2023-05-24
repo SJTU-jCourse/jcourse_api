@@ -67,7 +67,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer: serializers.ModelSerializer):
         created_time = timezone.now()
         if check_spam(self.request.user, serializer.initial_data, created_time):
-            deal_with_spam(self.request.user)
+            deal_with_spam(self.request.user, serializer.initial_data)
             raise ValidationError({'error': "由于大量刷点评，您已被封号，如有疑问请邮件联系"})
         serializer.save(user=self.request.user, modified_at=created_time, created_at=created_time)
 
