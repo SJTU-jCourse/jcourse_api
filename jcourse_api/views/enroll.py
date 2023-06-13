@@ -67,6 +67,33 @@ def sync_lessons(request: Request, term: str = '2018-2019-2'):
     return Response(serializer.data)
 
 
+def find_existing_course_v2(data: dict):
+    codes = [item["code"] for item in data]
+    former_codes = FormerCode.objects.filter(old_code__in=codes).values('old_code', 'new_code')
+    former_codes_dict = {}
+    for former_code in former_codes:
+        former_codes_dict[former_code['old_code']] = former_code['new_code']
+    conditions = Q(pk=None)
+    for item in data:
+        teacher = item["teachers"].split(",")[0]
+        if former_codes_dict.get(item["code"], None):
+            conditions = conditions | (
+                    (Q(code=former_codes_dict[item["code"]]) | Q(code=item["code"])) & Q(main_teacher__name=teacher))
+        else:
+            conditions = conditions | (Q(code=item["code"]) & Q(main_teacher__name=teacher))
+    return Course.objects.filter(conditions).values_list('id', flat=True)
+
+
+@api_view(['POST'])
+def sync_lessons_v2(request: Request):
+    if len(request.data) == 0:
+        return Response({'detail': '至少需要提交一条课表信息'}, status=status.HTTP_400_BAD_REQUEST)
+    semester = request.data[0]["semester"]
+    existed_courses_ids = find_existing_course_v2(request.data)
+    sync_enroll_course(request.user, existed_courses_ids, semester)
+    return Response({'detail': 'ok'})
+
+
 class EnrollCourseViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CourseListSerializer
     pagination_class = None

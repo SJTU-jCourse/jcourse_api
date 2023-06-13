@@ -23,6 +23,7 @@ urlpatterns = [
     path('points/', UserPointView.as_view(), name='user-points'),
     path('sync-lessons/<str:term>/', sync_lessons, name='sync-lessons'),
     path('sync-lessons/', sync_lessons, name='sync-lessons'),
+    path('sync-lessons-v2/', sync_lessons_v2, name='sync-lessons-v2'),
     path('course/<int:course_id>/review/', ReviewInCourseView.as_view(), name='review-in-course'),
     path('review/<int:review_id>/revision/', ReviewRevisionView.as_view(), name='review-revision'),
     # path('upload/', FileUploadView.as_view(), name='upload'),
