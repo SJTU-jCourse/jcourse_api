@@ -157,7 +157,7 @@ class SyncTest(TestCase):
              'organize': {'id': '03000', 'name': '电子信息与电气工程学院'}, 'hours': 32, 'credits': 3},
             {'name': '(2019-2020-1)-TH000-1', 'kind': 'sjtu.lesson', 'bsid': '',
              'code': '(2019-2020-1)-TH000-1',
-             'course': {'code': 'TH000', 'name': '思想道德修养与法律基础', 'kind': 'sjtu.course'},
+             'course': {'code': 'MARX1001', 'name': '思想道德修养与法律基础', 'kind': 'sjtu.course'},
              'teachers': [{'name': '梁女士', 'kind': 'canvas.profile'}],
              'organize': {'id': '03000', 'name': '马克思主义学院'}, 'hours': 32, 'credits': 2}]}
 
@@ -167,11 +167,11 @@ class SyncTest(TestCase):
 
     def test_parse(self):
         codes, teachers = parse_jaccount_courses(SyncTest.jaccount_api())
-        self.assertEqual(codes, ['CS1500', 'TH000'])
+        self.assertEqual(codes, ['CS1500', 'MARX1001'])
         self.assertEqual(teachers, ['高女士', '梁女士'])
 
     def test_find_exist(self):
-        ids = find_exist_course_ids(['TH000'], ['梁女士'])
+        ids = find_exist_course_ids(['MARX1001'], ['梁女士'])
         target = Course.objects.get(code='MARX1001', main_teacher__name='梁女士')
         self.assertEqual(target.id, ids[0])
 
@@ -231,7 +231,7 @@ class SyncV2Test(TestCase):
     def test_e2e(self):
         response = self.client.post(self.endpoint, data=json.dumps([
             {'code': 'CS1500', 'name': '计算机科学导论', 'teachers': '高女士', 'semester': '2021-2022-1'},
-            {'code': 'TH000', 'name': '思想道德修养与法律基础', 'teachers': '梁女士', 'semester': '2021-2022-1'}
+            {'code': 'MARX1001', 'name': '思想道德修养与法律基础', 'teachers': '梁女士', 'semester': '2021-2022-1'}
         ]), content_type='application/json')
         self.assertEqual(response.status_code, 200)
         enrolled = EnrollCourse.objects.filter(user=self.user)

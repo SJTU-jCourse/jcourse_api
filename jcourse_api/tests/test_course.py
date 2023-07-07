@@ -129,7 +129,6 @@ class CourseTest(TestCase):
         self.assertEqual(related_teachers[0]['avg'], 0)
         self.assertEqual(related_teachers[0]['count'], 0)
         self.assertEqual(len(course['related_courses']), 0)
-        self.assertEqual(course['former_codes'], ['TH000'])
         self.assertIsNone(course['moderator_remark'])
 
     def test_not_found(self):

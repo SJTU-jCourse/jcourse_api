@@ -19,17 +19,9 @@ def parse_jaccount_courses(response: dict):
 
 
 def find_exist_course_ids(codes: list, teachers: list):
-    former_codes = FormerCode.objects.filter(old_code__in=codes).values('old_code', 'new_code')
-    former_codes_dict = {}
-    for former_code in former_codes:
-        former_codes_dict[former_code['old_code']] = former_code['new_code']
     conditions = Q(pk=None)
     for code, teacher in zip(codes, teachers):
-        if former_codes_dict.get(code, None):
-            conditions = conditions | (
-                    (Q(code=former_codes_dict[code]) | Q(code=code)) & Q(main_teacher__name=teacher))
-        else:
-            conditions = conditions | (Q(code=code) & Q(main_teacher__name=teacher))
+        conditions = conditions | (Q(code=code) & Q(main_teacher__name=teacher))
     return Course.objects.filter(conditions).values_list('id', flat=True)
 
 
@@ -69,18 +61,10 @@ def sync_lessons(request: Request, term: str = '2018-2019-2'):
 
 def find_existing_course_v2(data: dict):
     codes = [item["code"] for item in data]
-    former_codes = FormerCode.objects.filter(old_code__in=codes).values('old_code', 'new_code')
-    former_codes_dict = {}
-    for former_code in former_codes:
-        former_codes_dict[former_code['old_code']] = former_code['new_code']
     conditions = Q(pk=None)
     for item in data:
         teacher = item["teachers"].split(",")[0]
-        if former_codes_dict.get(item["code"], None):
-            conditions = conditions | (
-                    (Q(code=former_codes_dict[item["code"]]) | Q(code=item["code"])) & Q(main_teacher__name=teacher))
-        else:
-            conditions = conditions | (Q(code=item["code"]) & Q(main_teacher__name=teacher))
+        conditions = conditions | (Q(code=item["code"]) & Q(main_teacher__name=teacher))
     return Course.objects.filter(conditions).values_list('id', flat=True)
 
 

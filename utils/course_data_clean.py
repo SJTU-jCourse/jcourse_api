@@ -157,7 +157,6 @@ class UploadData:
                  main_teacher, ";".join(teacher_ids)))
 
     def clean_data_for_jwc(self, csv_reader, base_dir: str):
-        new_codes = get_former_codes(base_dir)
 
         for line in csv_reader:
             department = line['开课院系']
@@ -171,8 +170,6 @@ class UploadData:
 
             name = line['课程名称']
             code = line['课程号']
-            if len(categories) == 0 and code in new_codes:
-                code = new_codes[code]
             try:
                 main_teacher = line['任课教师'].split('|')[0] if line['任课教师'] else teacher_ids[0]
             except IndexError:

@@ -27,7 +27,6 @@ class CourseSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     related_teachers = serializers.SerializerMethodField()
     related_courses = serializers.SerializerMethodField()
-    former_codes = serializers.SerializerMethodField()
     semester = serializers.SerializerMethodField()
     is_reviewed = serializers.SerializerMethodField()
     notification_level = serializers.SerializerMethodField()
@@ -35,10 +34,6 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         exclude = ['review_count', 'review_avg', 'last_semester']
-
-    @staticmethod
-    def get_former_codes(obj: Course):
-        return FormerCode.objects.filter(new_code=obj.code).values_list('old_code', flat=True)
 
     @staticmethod
     def get_rating(obj: Course):

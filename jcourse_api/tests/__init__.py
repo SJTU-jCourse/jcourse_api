@@ -30,10 +30,6 @@ def create_test_env() -> None:
     c4.teacher_group.add(teacher_zhao)
     c4.categories.add(category)
 
-    FormerCode.objects.create(old_code='CS250', new_code='CS2500')
-    FormerCode.objects.create(old_code='CS251', new_code='CS2500')
-    FormerCode.objects.create(old_code='CS150', new_code='CS1500')
-    FormerCode.objects.create(old_code='TH000', new_code='MARX1001')
     Semester.objects.create(name='2021-2022-1')
     Semester.objects.create(name='2021-2022-2')
     Semester.objects.create(name='2021-2022-3')
