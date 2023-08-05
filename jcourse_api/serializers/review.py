@@ -34,8 +34,6 @@ def is_my_review(serializer: serializers.Serializer, obj: Review):
 
 class ReviewCommonSerializer(serializers.ModelSerializer):
     reactions = serializers.SerializerMethodField()
-    is_mine = serializers.SerializerMethodField()
-    semester = serializers.SerializerMethodField()
 
     class Meta:
         model = Review
@@ -70,7 +68,7 @@ class ReviewItemSerializer(ReviewCommonSerializer):
 
     @staticmethod
     def get_course(obj):
-        serializer = CourseInWriteReviewSerializer(obj.course, context={'semester': obj.my_enroll_semester})
+        serializer = CourseInWriteReviewSerializer(obj.course)
         return serializer.data
 
 

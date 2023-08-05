@@ -1,7 +1,7 @@
 from django.db.models import F
 from rest_framework import serializers
 
-from jcourse_api.models import Course, Department, Category, FormerCode, CourseNotificationLevel
+from jcourse_api.models import Course, Department, Category, CourseNotificationLevel
 from jcourse_api.serializers.base import TeacherSerializer
 
 
@@ -27,8 +27,6 @@ class CourseSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     related_teachers = serializers.SerializerMethodField()
     related_courses = serializers.SerializerMethodField()
-    semester = serializers.SerializerMethodField()
-    is_reviewed = serializers.SerializerMethodField()
     notification_level = serializers.SerializerMethodField()
 
     class Meta:
@@ -51,14 +49,6 @@ class CourseSerializer(serializers.ModelSerializer):
         return Course.objects.filter(main_teacher=obj.main_teacher).exclude(code=obj.code) \
             .values('id', 'code', 'name', avg=F('review_avg'),
                     count=F('review_count')).order_by(F('avg').desc(nulls_last=True), F('count').desc(nulls_last=True))
-
-    @staticmethod
-    def get_semester(obj):
-        return obj.semester
-
-    @staticmethod
-    def get_is_reviewed(obj):
-        return obj.is_reviewed if obj.is_reviewed else None
 
     def get_notification_level(self, obj):
         request = self.context.get("request")
@@ -85,8 +75,6 @@ class CourseListSerializer(serializers.ModelSerializer):
     )
     teacher = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
-    is_reviewed = serializers.SerializerMethodField()
-    semester = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -99,14 +87,6 @@ class CourseListSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_teacher(obj: Course):
         return obj.main_teacher.name
-
-    @staticmethod
-    def get_is_reviewed(obj):
-        return obj.is_reviewed if obj.is_reviewed else None
-
-    @staticmethod
-    def get_semester(obj):
-        return obj.semester
 
 
 class CourseInReviewListSerializer(serializers.ModelSerializer):
@@ -123,19 +103,11 @@ class CourseInReviewListSerializer(serializers.ModelSerializer):
 
 class CourseInWriteReviewSerializer(serializers.ModelSerializer):
     teacher = serializers.SerializerMethodField()
-    semester = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ['id', 'code', 'name', 'teacher', 'semester']
+        fields = ['id', 'code', 'name', 'teacher']
 
     @staticmethod
     def get_teacher(obj: Course):
         return obj.main_teacher.name
-
-    def get_semester(self, obj):
-        if hasattr(obj, 'semester'):
-            semester = obj.semester
-        else:
-            semester = self.context.get('semester', None)
-        return semester

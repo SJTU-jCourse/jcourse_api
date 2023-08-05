@@ -19,7 +19,6 @@ class ReviewTest(TestCase):
         self.assertEqual(response['count'], 1)
         review = response['results'][0]
         self.assertEqual(review['id'], self.review.id)
-        self.assertEqual(review['semester'], self.semester.name)
         course = review['course']
         self.assertEqual(course['code'], 'CS1500')
         self.assertEqual(course['teacher'], '高女士')
@@ -28,7 +27,6 @@ class ReviewTest(TestCase):
         self.assertEqual(reactions['approves'], 1)
         self.assertEqual(reactions['disapproves'], 0)
         self.assertEqual(reactions['reaction'], 1)
-        self.assertEqual(review['is_mine'], True)
         self.assertEqual(review['rating'], 3)
         self.assertEqual(review['comment'], 'TEST')
         self.assertEqual(review['score'], 'W')
@@ -54,14 +52,12 @@ class ReviewTest(TestCase):
         course = review['course']
         self.assertEqual(course['code'], 'CS1500')
         self.assertEqual(course['teacher'], '高女士')
-        self.assertEqual(course['semester'], None)
         self.assertEqual(course['name'], '计算机科学导论')
         self.assertEqual(course['id'], self.review.course_id)
         reactions = review['reactions']
         self.assertEqual(reactions['approves'], 1)
         self.assertEqual(reactions['disapproves'], 0)
         self.assertEqual(reactions['reaction'], 1)
-        self.assertEqual(review['is_mine'], True)
         self.assertEqual(review['rating'], 3)
         self.assertEqual(review['comment'], 'TEST')
         self.assertEqual(review['score'], 'W')
@@ -83,12 +79,10 @@ class ReviewTest(TestCase):
         self.assertEqual(len(response), 1)
         self.assertNotIn('course', response[0].keys())
         review = response[0]
-        self.assertEqual(review['semester'], self.semester.name)
         reactions = review['reactions']
         self.assertEqual(reactions['approves'], 1)
         self.assertEqual(reactions['disapproves'], 0)
         self.assertEqual(reactions['reaction'], 1)
-        self.assertEqual(review['is_mine'], True)
         self.assertEqual(review['rating'], 3)
         self.assertEqual(review['comment'], 'TEST')
         self.assertEqual(review['score'], 'W')

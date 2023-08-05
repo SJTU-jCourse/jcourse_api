@@ -68,8 +68,6 @@ class CourseTest(TestCase):
         self.assertEqual(courses[0]['categories'], [])
         self.assertEqual(courses[0]['department'], 'SEIEE')
         self.assertEqual(courses[0]['teacher'], '高女士')
-        self.assertTrue(courses[0]['is_reviewed'])
-        self.assertIsNone(courses[0]['semester'], False)
         self.assertEqual(courses[0]['rating'], {'count': 1, 'avg': 3.0})
         self.assertEqual(courses[0]['code'], 'CS1500')
         self.assertEqual(courses[0]['credit'], 4.0)
@@ -135,14 +133,6 @@ class CourseTest(TestCase):
         response = self.client.get(self.endpoint + '5/')
         self.assertEqual(response.status_code, 404)
 
-    def test_course_list_status(self):
-        response = self.client.get(self.endpoint).json()
-        courses = response['results']
-        for course in courses:
-            if course['id'] == self.review.course_id:
-                self.assertTrue(course['is_reviewed'])
-                break
-
 
 class FilterTest(TestCase):
     def setUp(self) -> None:
@@ -204,14 +194,6 @@ class SearchTest(TestCase):
         names = [course['name'] for course in response['results']]
         self.assertIn('思想道德修养与法律基础', names)
 
-    def test_search_status(self):
-        response = self.client.get(self.endpoint, {'q': 'CS'}).json()
-        courses = response['results']
-        for course in courses:
-            if course['id'] == self.review.course_id:
-                self.assertTrue(course['is_reviewed'])
-                break
-
 
 class CourseInReviewTest(TestCase):
     def setUp(self) -> None:
@@ -229,7 +211,6 @@ class CourseInReviewTest(TestCase):
         self.assertEqual(response[0]['code'], 'CS1500')
         self.assertEqual(response[0]['name'], '计算机科学导论')
         self.assertEqual(response[0]['teacher'], '高女士')
-        self.assertEqual(response[0]['semester'], None)
 
     def test_retrieve(self):
         response = self.client.get(self.endpoint + f'{self.course.pk}/').json()
@@ -237,4 +218,3 @@ class CourseInReviewTest(TestCase):
         self.assertEqual(response['code'], 'CS1500')
         self.assertEqual(response['name'], '计算机科学导论')
         self.assertEqual(response['teacher'], '高女士')
-        self.assertEqual(response['semester'], None)

@@ -30,7 +30,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return [IsOwnerOrAdminOrReadOnly()]
 
     def get_queryset(self):
-        reviews = get_reviews(self.request.user, self.action)
+        reviews = get_reviews(self.request.user)
         if 'notification_level' in self.request.query_params:
             notification_level = int(self.request.query_params['notification_level'])
             filtered_course_ids = CourseNotificationLevel.objects.filter(user=self.request.user,
@@ -89,7 +89,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET'])
     def mine(self, request: Request):
-        reviews = get_reviews(self.request.user, 'list').filter(user=request.user)
+        reviews = get_reviews(self.request.user).filter(user=request.user)
         serializer = self.get_serializer_class()
         data = serializer(reviews, many=True, context={'request': request}).data
         return Response(data)
@@ -125,7 +125,7 @@ class ReviewInCourseView(ListAPIView):
 
     def get_queryset(self):
         pk = self.kwargs.get('course_id')
-        reviews = get_reviews(self.request.user, 'list').select_related('semester').filter(course_id=pk)
+        reviews = get_reviews(self.request.user).select_related('semester').filter(course_id=pk)
         if 'order' in self.request.query_params:
             order = int(self.request.query_params['order'])
             if order not in ReviewInCourseView.OrderType:

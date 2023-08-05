@@ -12,12 +12,7 @@ def get_announcements():
 
 
 def get_course_list_queryset(user: User):
-    my_review = Review.objects.filter(user=user, course_id=OuterRef('pk')).values('pk')
-    my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('pk')).values('semester')
-
-    return Course.objects.select_related('main_teacher').prefetch_related('categories', 'department').annotate(
-        semester=Subquery(my_enroll_semester[:1]),
-        is_reviewed=Subquery(my_review[:1]))
+    return Course.objects.select_related('main_teacher').prefetch_related('categories', 'department')
 
 
 def get_search_course_queryset(q: str, user: User):
@@ -30,13 +25,9 @@ def get_search_course_queryset(q: str, user: User):
     return courses
 
 
-def get_reviews(user: User, action: str):
+def get_reviews(user: User):
     my_reaction = ReviewReaction.objects.filter(user=user, review_id=OuterRef('pk')).values('reaction')
     reviews = Review.objects.select_related('course', 'course__main_teacher', 'semester')
-    if action == 'retrieve':
-        my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('course_id')).values('semester')
-        return reviews.annotate(
-            my_reaction=Subquery(my_reaction[:1]), my_enroll_semester=Subquery(my_enroll_semester[:1]))
     return reviews.annotate(my_reaction=Subquery(my_reaction[:1]))
 
 
