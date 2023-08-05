@@ -7,11 +7,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from jcourse_api.models import *
+from jcourse_api.repository import get_semesters
 from jcourse_api.serializers import SemesterSerializer, CategorySerializer, DepartmentSerializer
 
 
 class SemesterViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Semester.objects.all()
+    queryset = get_semesters()
     serializer_class = SemesterSerializer
     pagination_class = None
 

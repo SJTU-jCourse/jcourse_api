@@ -8,12 +8,13 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from jcourse_api.models import Announcement, Review, Course
+from jcourse_api.models import Review, Course
+from jcourse_api.repository import get_announcements
 from jcourse_api.serializers import AnnouncementSerializer
 
 
 class AnnouncementViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Announcement.objects.filter(available=True)
+    queryset = get_announcements()
     serializer_class = AnnouncementSerializer
     pagination_class = None
 

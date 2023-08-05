@@ -89,3 +89,34 @@ class ApiKeyTest(TestCase):
         data = {'account': 'test'}
         response = self.client.post(self.endpoint, data, HTTP_API_KEY="123457")
         self.assertEqual(response.status_code, 400)
+
+
+class CommonInfoTestCase(TestCase):
+
+    def setUp(self) -> None:
+        create_test_env()
+        create_review()
+        self.client = APIClient()
+        self.endpoint = '/api/common/'
+        self.user = User.objects.get(username='test')
+        self.client.force_login(self.user)
+
+        self.announcement = Announcement.objects.create(title='TEST3', message='Just a test notice',
+                                                        created_at=timezone.now(),
+                                                        available=True)
+        self.semester = Semester.objects.first()
+        self.course = Course.objects.first()
+        self.enroll = EnrollCourse.objects.create(course=self.course, semester=self.semester, user=self.user)
+        self.review = Review.objects.get(user=self.user)
+
+    def test_request_body(self):
+        resp = self.client.get(self.endpoint).json()
+        self.assertEqual(resp["user"],
+                         {"id": self.user.id, "username": self.user.username, "is_staff": self.user.is_staff})
+        self.assertEqual(len(resp["announcements"]), 1)
+        self.assertEqual(len(resp["semesters"]), 4)
+        self.assertEqual(len(resp["enrolled_courses"]), 1)
+        self.assertEqual(resp["enrolled_courses"][0], {"semester_id": self.semester.id, "course_id": self.course.id})
+        self.assertEqual(resp["my_reviews"][0],
+                         {"semester_id": self.review.semester_id, "course_id": self.review.course_id,
+                          "id": self.review.id})

@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Subquery, OuterRef, F
+from django.db.models import F
 from rest_framework import viewsets, serializers, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -13,19 +13,10 @@ from jcourse import settings
 from jcourse.throttles import ReactionRateThrottle
 from jcourse_api.models import *
 from jcourse_api.permissions import IsAdminOrReadOnly, IsOwnerOrAdminOrReadOnly
+from jcourse_api.repository import get_reviews
 from jcourse_api.serializers import ReviewRevisionSerializer, CreateReviewSerializer, ReviewItemSerializer, \
     ReviewListSerializer, ReviewInCourseSerializer
 from jcourse_api.utils import check_spam, deal_with_spam
-
-
-def get_reviews(user: User, action: str):
-    my_reaction = ReviewReaction.objects.filter(user=user, review_id=OuterRef('pk')).values('reaction')
-    reviews = Review.objects.select_related('course', 'course__main_teacher', 'semester')
-    if action == 'retrieve':
-        my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('course_id')).values('semester')
-        return reviews.annotate(
-            my_reaction=Subquery(my_reaction[:1]), my_enroll_semester=Subquery(my_enroll_semester[:1]))
-    return reviews.annotate(my_reaction=Subquery(my_reaction[:1]))
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

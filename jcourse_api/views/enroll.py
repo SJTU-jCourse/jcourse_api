@@ -4,8 +4,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from jcourse_api.models import *
+from jcourse_api.repository import get_course_list_queryset
 from jcourse_api.serializers import CourseListSerializer
-from jcourse_api.views.course import get_course_list_queryset
 from oauth.utils import jaccount
 
 

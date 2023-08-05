@@ -1,5 +1,5 @@
 import django_filters
-from django.db.models import Subquery, F, OuterRef
+from django.db.models import F
 from django_filters import BaseInFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status, mixins
@@ -8,6 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from jcourse_api.models import *
+from jcourse_api.repository import get_course_list_queryset, get_search_course_queryset
 from jcourse_api.serializers import CourseListSerializer, CourseSerializer, CourseInWriteReviewSerializer
 
 
@@ -22,15 +23,6 @@ class CourseFilter(django_filters.FilterSet):
     class Meta:
         model = Course
         fields = ['categories', 'department']
-
-
-def get_course_list_queryset(user: User):
-    my_review = Review.objects.filter(user=user, course_id=OuterRef('pk')).values('pk')
-    my_enroll_semester = EnrollCourse.objects.filter(user=user, course_id=OuterRef('pk')).values('semester')
-
-    return Course.objects.select_related('main_teacher').prefetch_related('categories', 'department').annotate(
-        semester=Subquery(my_enroll_semester[:1]),
-        is_reviewed=Subquery(my_review[:1]))
 
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -78,16 +70,6 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({'id': pk,
                          'notification_level': course_notification.notification_level},
                         status=status.HTTP_200_OK)
-
-
-def get_search_course_queryset(q: str, user: User):
-    courses = get_course_list_queryset(user)
-    if q == '':
-        return courses.none()
-    courses = courses.filter(
-        Q(code__icontains=q) | Q(name__icontains=q) | Q(main_teacher__name__icontains=q) |
-        Q(main_teacher__pinyin__iexact=q) | Q(main_teacher__abbr_pinyin__icontains=q))
-    return courses
 
 
 class SearchViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
