@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'huey.contrib.djhuey',
     'jcourse_api',
     'rest_framework',
     'oauth',
@@ -303,3 +305,21 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+
+HUEY = {
+    'huey_class': 'huey.RedisHuey',  # Huey implementation to use.
+    'name': DATABASES['default']['NAME'],  # Use db name for huey.
+    'immediate': DEBUG or TESTING,  # If DEBUG=True, run synchronously.
+    'immediate_use_memory': True,
+    'connection': {
+        'host': REDIS_HOST,
+        'port': 6379,
+    },
+    'consumer': {
+        'workers': 1,
+        'worker_type': 'thread',
+        'periodic': True,  # Enable crontab feature.
+    },
+}

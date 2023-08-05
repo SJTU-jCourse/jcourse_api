@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models import QuerySet
 
 from jcourse_api.models import Review, Course
-from jcourse_api.utils import send_antispam_email
+from jcourse_api.tasks import send_antispam_email
 
 SPAM_MAX_REVIEWS = 3
 SPAM_PERIOD_MINUTES = 5

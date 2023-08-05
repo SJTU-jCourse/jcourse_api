@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 
 from jcourse_api.models import *
 from jcourse_api.serializers import ReportSerializer, UserSerializer, UserPointSerializer
-from jcourse_api.utils.email import send_report_email
+from jcourse_api.tasks import send_report_email
 from oauth.utils import hash_username
 
 
