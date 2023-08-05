@@ -6,7 +6,7 @@ from oauth.models import UserProfile
 from utils.common import get_time_now
 
 
-@db_periodic_task(crontab(day='*'))
+@db_periodic_task(crontab(day='*/1'))
 def release_banned_users():
     now = get_time_now()
     should_release_users = UserProfile.objects.filter(suspended_till__isnull=False,
