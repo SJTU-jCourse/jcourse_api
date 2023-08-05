@@ -4,8 +4,10 @@ import difflib
 from django.contrib.auth.models import User
 from django.db.models import QuerySet
 
+import utils.common
 from jcourse_api.models import Review, Course
 from jcourse_api.tasks import send_antispam_email
+from oauth.utils import get_user_profile
 
 SPAM_MAX_REVIEWS = 3
 SPAM_PERIOD_MINUTES = 5
@@ -53,6 +55,8 @@ def check_spam(user: User, data, time: datetime.datetime):
 
 
 def deal_with_spam(user: User, data: dict):
-    user.is_active = False
-    user.save(update_fields=["is_active"])
+    suspended_till = utils.common.get_time_now() + datetime.timedelta(days=SPAM_MAX_REVIEWS * 30)
+    userprofile = get_user_profile(user)
+    userprofile.suspended_till = suspended_till
+    userprofile.save(update_fields=['suspended_till'])
     send_antispam_email(user.username, data)

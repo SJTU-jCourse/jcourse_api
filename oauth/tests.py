@@ -6,7 +6,9 @@ from django.core.cache import cache
 from django.test import TestCase
 from rest_framework.test import APIClient
 
+from oauth.models import UserProfile
 from oauth.utils import hash_username, get_or_create_user, auth_get_email_code, reset_get_email_code
+from utils.common import get_time_now
 
 
 class LoginTest(TestCase):
@@ -253,3 +255,24 @@ class ResetPasswordTest(TestCase):
         client2 = APIClient()
         resp = client2.post("/oauth/email/login/", data={"account": self.username, "password": self.password})
         self.assertEqual(resp.status_code, 200)
+
+
+class UserProfileTestCase(TestCase):
+
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(username='test1')
+        self.user_profile, _ = UserProfile.objects.get_or_create(user=self.user)
+
+    def test_auto_ban(self):
+        self.user_profile.suspended_till = get_time_now()
+        self.user_profile.save()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.is_active, False)
+
+    def test_auto_release(self):
+        self.user.is_active = False
+        self.user.save()
+        self.user_profile.save()
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.is_active, True)
+

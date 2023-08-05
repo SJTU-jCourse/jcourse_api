@@ -141,3 +141,8 @@ def reset_get_email_code(account: str):
 
 def reset_clean_email_code(account: str):
     cache.delete_many([build_email_reset_cache_key(account)])
+
+
+def get_user_profile(user: User):
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    return profile
