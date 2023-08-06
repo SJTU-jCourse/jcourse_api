@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from ad.views import PromotionViewSet
 from jcourse_api.views import *
 from jcourse_api.views.common import get_common_info
 
@@ -14,6 +15,7 @@ router.register('search', SearchViewSet, basename='search')
 router.register('lesson', EnrollCourseViewSet, basename='lesson')
 router.register('report', ReportViewSet, basename='report')
 router.register('notification', NotificationViewSet, basename='notification')
+router.register('promotion', PromotionViewSet, basename='promotion')
 
 urlpatterns = [
     path('', include(router.urls)),

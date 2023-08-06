@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django_filters',
     'import_export',
     'corsheaders',
+    'ad'
     # 'django_prometheus'
 ]
 
@@ -176,7 +177,8 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
-    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated']
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
+    'UPLOADED_FILES_USE_URL': False
 }
 
 if DEBUG:
@@ -323,3 +325,6 @@ HUEY = {
         'periodic': True,  # Enable crontab feature.
     },
 }
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "upload")
+MEDIA_URL = '/upload/'

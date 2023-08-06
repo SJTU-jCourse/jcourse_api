@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userprofile',
             name='suspended_till',
-            field=models.DateTimeField(db_index=True, default=None, null=True, verbose_name='封禁到'),
+            field=models.DateTimeField(db_index=True, default=None, blank=True, null=True, verbose_name='封禁到'),
         ),
         migrations.RunPython(add_suspended_till, reverse_code=migrations.RunPython.noop)
     ]
