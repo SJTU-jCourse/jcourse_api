@@ -327,4 +327,4 @@ HUEY = {
 }
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "upload")
-MEDIA_URL = '/upload/'
+MEDIA_URL = 'upload/'
