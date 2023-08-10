@@ -32,7 +32,7 @@ class QiniuStorage(Storage):
                              file_data if isinstance(file_data, bytes) else file_data.read())
 
         if info.status_code == 200:
-            return ret.get("key")
+            return f"{self.base_url}/{ret.get('key')}"
         else:
             raise Exception("Upload Qiniu Error")
 
@@ -40,7 +40,7 @@ class QiniuStorage(Storage):
         return False
 
     def url(self, name):
-        return os.path.join(self.base_url, name)
+        return self.auth.private_download_url(name)
 
     def delete(self, name):
         bucket = BucketManager(self.auth)
