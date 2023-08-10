@@ -326,5 +326,7 @@ HUEY = {
     },
 }
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "upload")
-MEDIA_URL = 'upload/'
+QINIU_ACCESS_KEY = os.environ.get("QINIU_ACCESS_KEY", 'AK')
+QINIU_SECRET_KEY = os.environ.get("QINIU_SECRET_KEY", 'SK')
+QINIU_BUCKET_NAME = os.environ.get("QINIU_BUCKET_NAME", 'bucket_name')
+QINIU_BASE_URL = os.environ.get("QINIU_BASE_URL", 'https://qiniu.com')
