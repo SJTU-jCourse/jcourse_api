@@ -11,4 +11,5 @@ class TouchpointAdmin(admin.ModelAdmin):
 
 @admin.register(Promotion)
 class PromotionAdmin(admin.ModelAdmin):
-    list_display = ('touchpoint', 'available', 'description', 'created_at')
+    list_display = ('touchpoint', 'available', 'description', 'created_at', 'click_times')
+    readonly_fields = ('click_times', )

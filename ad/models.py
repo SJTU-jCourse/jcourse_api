@@ -28,3 +28,4 @@ class Promotion(models.Model):
     created_at = models.DateTimeField(verbose_name='创建时间', default=timezone.now, db_index=True)
     available = models.BooleanField(verbose_name='启用', default=False, db_index=True)
     description = models.TextField(verbose_name='描述', null=True, blank=True)
+    click_times = models.IntegerField(verbose_name='点击次数', default=0, null=False, blank=False)
