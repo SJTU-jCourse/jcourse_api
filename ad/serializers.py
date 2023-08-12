@@ -11,4 +11,6 @@ class PromotionSerializer(serializers.ModelSerializer):
         fields = ('id', 'touchpoint', 'image', 'text', 'jump_link')
 
     def get_image(self, obj: Promotion):
+        if obj.external_image is not None and obj.external_image != "":
+            return obj.external_image
         return obj.image.url

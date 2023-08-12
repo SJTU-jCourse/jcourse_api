@@ -17,7 +17,8 @@ class Promotion(models.Model):
 
     touchpoint = models.IntegerField(choices=TouchPointType.choices, verbose_name='触点',
                                      db_index=True, null=True, blank=True)
-    image = models.ImageField(verbose_name='图片地址', null=True, blank=True, storage=QiniuStorage(child_name='upload'))
+    image = models.ImageField(verbose_name='内部图片', null=True, blank=True, storage=QiniuStorage(child_name='upload'))
+    external_image = models.URLField(verbose_name='外部图片地址', null=True, blank=True)
     text = models.TextField(verbose_name='展示文字', null=True, blank=True)
     jump_link = models.URLField(verbose_name='跳转链接', null=True, blank=True)
     created_at = models.DateTimeField(verbose_name='创建时间', default=timezone.now, db_index=True)
