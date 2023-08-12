@@ -9,7 +9,7 @@ from jcourse_api.serializers.course import CourseInReviewListSerializer, CourseI
 class CreateReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        exclude = ['moderator_remark', 'approve_count', 'disapprove_count']
+        exclude = ['moderator_remark', 'approve_count', 'disapprove_count', 'search_vector']
         read_only_fields = ['user', 'created_at', 'modified_at']
 
     def create(self, validated_data):
@@ -57,7 +57,7 @@ class ReviewListSerializer(ReviewCommonSerializer):
 
     class Meta:
         model = Review
-        exclude = ['user', 'approve_count', 'disapprove_count']
+        exclude = ['user', 'approve_count', 'disapprove_count', 'search_vector']
 
 
 class ReviewItemSerializer(ReviewCommonSerializer):
@@ -66,7 +66,7 @@ class ReviewItemSerializer(ReviewCommonSerializer):
 
     class Meta:
         model = Review
-        exclude = ['user', 'approve_count', 'disapprove_count']
+        exclude = ['user', 'approve_count', 'disapprove_count', 'search_vector']
 
     @staticmethod
     def get_course(obj):
@@ -77,7 +77,7 @@ class ReviewItemSerializer(ReviewCommonSerializer):
 class ReviewInCourseSerializer(ReviewCommonSerializer):
     class Meta:
         model = Review
-        exclude = ('user', 'course', 'approve_count', 'disapprove_count')
+        exclude = ('user', 'course', 'approve_count', 'disapprove_count', 'search_vector')
 
 
 class ReviewRevisionSerializer(serializers.ModelSerializer):
