@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import UniqueConstraint, Q
 from django.utils import timezone
 
 from ad.storage import QiniuStorage
@@ -11,8 +12,11 @@ class Promotion(models.Model):
     class Meta:
         verbose_name = '推广内容'
         verbose_name_plural = verbose_name
+        constraints = [
+            UniqueConstraint(fields=["touchpoint"], condition=Q(available=True), name="touchpoint_one_online")]
 
-    touchpoint = models.IntegerField(choices=TouchPointType.choices, verbose_name='触点', db_index=True, null=True, blank=True)
+    touchpoint = models.IntegerField(choices=TouchPointType.choices, verbose_name='触点',
+                                     db_index=True, null=True, blank=True)
     image = models.ImageField(verbose_name='图片地址', null=True, blank=True, storage=QiniuStorage(child_name='upload'))
     text = models.TextField(verbose_name='展示文字', null=True, blank=True)
     jump_link = models.URLField(verbose_name='跳转链接', null=True, blank=True)
