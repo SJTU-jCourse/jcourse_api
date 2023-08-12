@@ -1,10 +1,13 @@
 from django.contrib.auth.models import User
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
 
 from jcourse_api.models import constrain_text, Course, Semester
+from utils.cut_word import get_cut_word_search_vector
 
 
 class Review(models.Model):
@@ -13,6 +16,7 @@ class Review(models.Model):
         verbose_name_plural = verbose_name
         ordering = ['-modified_at']
         constraints = [models.UniqueConstraint(fields=['user', 'course'], name='unique_review')]
+        indexes = [GinIndex(fields=['search_vector'])]
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     course = models.ForeignKey(Course, verbose_name='课程', on_delete=models.CASCADE, db_index=True)
@@ -25,6 +29,7 @@ class Review(models.Model):
     moderator_remark = models.TextField(verbose_name='管理员批注', null=True, blank=True, max_length=817)
     approve_count = models.IntegerField(verbose_name='获赞数', null=True, blank=True, default=0, db_index=True)
     disapprove_count = models.IntegerField(verbose_name='获踩数', null=True, blank=True, default=0, db_index=True)
+    search_vector = SearchVectorField(null=True, editable=False)
 
     def __str__(self):
         return f"{self.user} 点评 {self.course}：{constrain_text(self.comment)}"
@@ -44,6 +49,8 @@ class Review(models.Model):
             if previous.course_id != self.course_id or previous.rating != self.rating:
                 need_to_update = True
                 old_course = previous.course
+            if previous.comment != self.comment:
+                self.search_vector = get_cut_word_search_vector(self.comment)
         super().save(force_insert, force_update, using, update_fields)
         if need_to_update:
             update_course_reviews(self.course)

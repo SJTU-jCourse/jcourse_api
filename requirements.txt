@@ -17,3 +17,4 @@ python-dotenv==1.0.0
 huey==2.4.5
 Pillow==10.0.0
 qiniu==7.10.0
+jieba==0.42.1
