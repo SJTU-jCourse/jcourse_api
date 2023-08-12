@@ -1,5 +1,3 @@
-import os.path
-
 from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 from qiniu import Auth, put_data, BucketManager
