@@ -25,6 +25,7 @@ urlpatterns = [
     path('oauth/', include('oauth.urls')),
     path('api/promotion/', include('ad.urls')),
     path('prometheus/', include('django_prometheus.urls')),
+    path('silk/', include('silk.urls', namespace='silk'))
 ]
 
 if DEBUG:

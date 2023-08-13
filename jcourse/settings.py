@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'django_filters',
     'import_export',
     'corsheaders',
-    'ad'
+    'ad',
+    'silk'
     # 'django_prometheus'
 ]
 
@@ -65,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'silk.middleware.SilkyMiddleware'
     # 'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
@@ -330,3 +332,8 @@ QINIU_ACCESS_KEY = os.environ.get("QINIU_ACCESS_KEY", 'AK')
 QINIU_SECRET_KEY = os.environ.get("QINIU_SECRET_KEY", 'SK')
 QINIU_BUCKET_NAME = os.environ.get("QINIU_BUCKET_NAME", 'bucket_name')
 QINIU_BASE_URL = os.environ.get("QINIU_BASE_URL", 'https://qiniu.com')
+
+SILKY_PYTHON_PROFILER = True
+SILKY_AUTHENTICATION = True  # User must login
+SILKY_AUTHORISATION = True  # User must have permissions
+SILKY_META = True
