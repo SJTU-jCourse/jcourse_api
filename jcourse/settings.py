@@ -333,6 +333,7 @@ QINIU_SECRET_KEY = os.environ.get("QINIU_SECRET_KEY", 'SK')
 QINIU_BUCKET_NAME = os.environ.get("QINIU_BUCKET_NAME", 'bucket_name')
 QINIU_BASE_URL = os.environ.get("QINIU_BASE_URL", 'https://qiniu.com')
 
+SILKY_PYTHON_PROFILER = True
 SILKY_AUTHENTICATION = True  # User must login
 SILKY_AUTHORISATION = True  # User must have permissions
 SILKY_META = True
