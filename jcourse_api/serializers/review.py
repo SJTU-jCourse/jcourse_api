@@ -21,7 +21,10 @@ class CreateReviewSerializer(serializers.ModelSerializer):
 
 
 def get_review_reactions(obj):
-    return {'approves': obj.approve_count, 'disapproves': obj.disapprove_count, 'reaction': obj.my_reaction}
+    reactions = {'approves': obj.approve_count, 'disapproves': obj.disapprove_count}
+    if hasattr(obj, "my_reaction"):
+        reactions["reaction"] = obj.my_reaction
+    return reactions
 
 
 def is_my_review(serializer: serializers.Serializer, obj: Review):

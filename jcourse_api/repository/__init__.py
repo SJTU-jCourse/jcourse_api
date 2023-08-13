@@ -26,8 +26,10 @@ def get_search_course_queryset(q: str, user: User):
 
 
 def get_reviews(user: User):
-    my_reaction = ReviewReaction.objects.filter(user=user, review_id=OuterRef('pk')).values('reaction')
     reviews = Review.objects.select_related('course', 'course__main_teacher', 'semester')
+    if not user.is_authenticated:
+        return reviews
+    my_reaction = ReviewReaction.objects.filter(user=user, review_id=OuterRef('pk')).values('reaction')
     return reviews.annotate(my_reaction=Subquery(my_reaction[:1]))
 
 
