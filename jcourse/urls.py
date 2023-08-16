@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from jcourse.settings import DEBUG
+from jcourse.settings import DEBUG, TESTING
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,9 +24,11 @@ urlpatterns = [
     path('api/', include('jcourse_api.urls')),
     path('oauth/', include('oauth.urls')),
     path('api/promotion/', include('ad.urls')),
-    path('prometheus/', include('django_prometheus.urls')),
-    path('silk/', include('silk.urls', namespace='silk'))
+    path('prometheus/', include('django_prometheus.urls'))
 ]
 
 if DEBUG:
     urlpatterns += [path('__debug__/', include('debug_toolbar.urls')), ]
+
+if not TESTING:
+    urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

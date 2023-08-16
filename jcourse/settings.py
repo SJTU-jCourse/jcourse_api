@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     'import_export',
     'corsheaders',
     'ad',
-    'silk'
     # 'django_prometheus'
 ]
 
@@ -66,7 +65,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'silk.middleware.SilkyMiddleware'
     # 'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
@@ -311,6 +309,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+
+if not TESTING:
+    INSTALLED_APPS += ['silk']
+    MIDDLEWARE += ['silk.middleware.SilkyMiddleware']
 
 HUEY = {
     'huey_class': 'huey.RedisHuey',  # Huey implementation to use.
