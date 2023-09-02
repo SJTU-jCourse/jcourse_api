@@ -11,9 +11,16 @@ class UserProfileAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
     list_filter = ('user_type', 'lowercase', 'suspended_till')
     readonly_fields = ('user', 'user_type', 'lowercase')
+    actions = ["reactive_user"]
 
     def get_search_results(self, request, queryset, search_term):
         queryset, may_have_duplicates = super().get_search_results(request, queryset, search_term)
         hashed = hash_username(search_term)
         queryset |= self.model.objects.filter(user__username=hashed)
         return queryset, may_have_duplicates
+
+    @admin.action(description="解封用户")
+    def reactive_user(self, request, queryset):
+        for userprofile in queryset:
+            userprofile.suspended_till = None
+            userprofile.save(update_fields=["suspended_till"])
