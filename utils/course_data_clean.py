@@ -68,6 +68,7 @@ def regulate_categories(line: dict[str, str]) -> set[str]:
     for origin_category in origin_categories:
         category = origin_category.removesuffix("（致远）")
         category = category.removesuffix("（2022）")
+        category = category.removesuffix("（2022，致远）")
         if category == "数学或逻辑学" or category == "自然科学与工程技术":
             continue
         if category != "":
