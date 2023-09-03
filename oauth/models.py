@@ -12,6 +12,7 @@ class UserProfile(models.Model):
     user_type = models.CharField(verbose_name='用户类型', max_length=50, null=True, blank=True)
     lowercase = models.BooleanField(verbose_name='转小写', null=False, default=False)
     suspended_till = models.DateTimeField(verbose_name='封禁到', db_index=True, blank=True, default=None, null=True)
+    last_seen_at = models.DateTimeField(verbose_name='活跃时间', db_index=True, blank=True, default=None, null=True)
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         super().save(force_insert, force_update, using, update_fields)

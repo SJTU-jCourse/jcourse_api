@@ -7,9 +7,9 @@ from oauth.utils import hash_username
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'user_type', 'lowercase', 'suspended_till')
+    list_display = ('user', 'user_type', 'lowercase', 'last_seen_at', 'suspended_till')
     search_fields = ('user__username',)
-    list_filter = ('user_type', 'lowercase', 'suspended_till')
+    list_filter = ('user_type', 'lowercase', 'last_seen_at', 'suspended_till')
     readonly_fields = ('user', 'user_type', 'lowercase')
     actions = ["reactive_user"]
 

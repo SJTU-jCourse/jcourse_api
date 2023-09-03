@@ -65,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'oauth.middlewares.LastSeenAtMiddleware'
     # 'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
@@ -339,3 +340,6 @@ SILKY_PYTHON_PROFILER = True
 SILKY_AUTHENTICATION = True  # User must login
 SILKY_AUTHORISATION = True  # User must have permissions
 SILKY_META = True
+SILKY_IGNORE_PATHS = [
+    '/admin/jsi18n/'
+]

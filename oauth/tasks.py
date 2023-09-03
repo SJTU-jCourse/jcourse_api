@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from huey import crontab
-from huey.contrib.djhuey import db_periodic_task
+from huey.contrib.djhuey import db_periodic_task, task
 
 from oauth.models import UserProfile
 from utils.common import get_time_now
@@ -13,3 +13,10 @@ def release_banned_users():
                                                       suspended_till__lt=now)
     User.objects.filter(userprofile__in=should_release_users).update(is_active=True)
     should_release_users.update(suspended_till=None)
+
+
+@task()
+def update_last_seen_at(user: User):
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile.last_seen_at = get_time_now()
+    profile.save()
