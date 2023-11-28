@@ -126,7 +126,7 @@ class UploadData:
         code_dept = dict()
         for line in gs_csv:
             code = line["KCDM"]
-            dept = regulate_dept_gs(line["KKDW_DISPLAY"])
+            dept = regulate_dept_gs(line["KCKKDWMC"])
             if code_dept.get(code, None) is None:
                 code_dept[code] = dept
             else:

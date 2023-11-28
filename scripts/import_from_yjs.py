@@ -4,7 +4,7 @@ from utils.course_data_clean import UploadData
 
 encoding = 'utf-8'
 data_dir = '../data'
-semester = '2022-2023-1'
+semester = '2023-2024-1'
 
 csv_gs = csv.DictReader(open(f"{data_dir}/yjs-data-1.csv", mode='r', encoding='utf-8-sig'))
 csv_jwc = csv.DictReader(open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig'))
