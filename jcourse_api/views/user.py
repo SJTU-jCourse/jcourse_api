@@ -1,4 +1,4 @@
-from django.db.models import Sum, F
+from django.db.models import Sum
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
@@ -40,35 +40,11 @@ class UserView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-def get_user_point_with_reviews(user: User, reviews):
-    courses = reviews.values_list('course', flat=True)
-    approves_count = reviews.aggregate(count=Sum('approve_count'))['count']
-    if approves_count is None:
-        approves_count = 0
-    reviews_count = reviews.count()
-
-    first_reviews = Review.objects.filter(course__in=courses).order_by('course_id', 'created_at').distinct(
-        'course_id').values_list('id', flat=True)
-    first_reviews = first_reviews.intersection(reviews)
-    first_reviews_count = first_reviews.count()
-    first_reviews_approves_count = Review.objects.filter(pk__in=first_reviews).aggregate(count=Sum('approve_count'))[
-        'count']
-    if first_reviews_approves_count is None:
-        first_reviews_approves_count = 0
-    additional = UserPoint.objects.filter(user=user)
-    additional_point = additional.aggregate(sum=Sum('value'))['sum']
-    if additional_point is None:
-        additional_point = 0
-    addition_details = UserPointSerializer(additional, many=True).data
-    points = additional_point + approves_count + first_reviews_approves_count + reviews_count + first_reviews_count
-    return {'points': points, 'reviews': reviews_count, 'first_reviews': first_reviews_count,
-            'approves': approves_count, 'first_reviews_approves': first_reviews_approves_count,
-            'addition': additional_point, 'details': addition_details}
-
-
 def get_user_point(user: User):
-    reviews = Review.objects.filter(user=user).exclude(disapprove_count__gt=F('approve_count') * 2)
-    return get_user_point_with_reviews(user, reviews)
+    user_points = UserPoint.objects.filter(user=user)
+    points = user_points.aggregate(sum=Sum('value'))['sum']
+    details = UserPointSerializer(user_points, many=True).data
+    return {'points': points, 'details': details}
 
 
 class UserPointView(APIView):

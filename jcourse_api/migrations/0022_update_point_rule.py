@@ -4,7 +4,8 @@ from django.db import migrations
 from django.db.models import F
 
 from jcourse_api.models import Review, UserPoint
-from jcourse_api.views import get_user_point_with_reviews, get_user_point
+from jcourse_api.utils.point import get_user_point_with_reviews
+from jcourse_api.views import get_user_point
 
 
 def get_old_point(user: User):
@@ -17,7 +18,7 @@ def make_up_old_point(apps, schema_editor):
     user_ids = reviews.order_by('user').distinct('user').values_list('user', flat=True)
     for user_id in user_ids:
         user = User.objects.get(pk=user_id)
-        old_point = get_old_point(user)
+        old_point, _ = get_old_point(user)
         new_point = get_user_point(user)
         value = old_point['points'] - new_point['points']
         UserPoint.objects.create(user=user, value=value, description='升级补偿')
