@@ -39,21 +39,11 @@ class UserPointTest(TestCase):
         self.client.force_login(user)
         response = self.client.get(self.endpoint).json()
         self.assertEqual(response['points'], 0)
-        self.assertEqual(response['reviews'], 0)
-        self.assertEqual(response['first_reviews'], 0)
-        self.assertEqual(response['approves'], 0)
-        self.assertEqual(response['first_reviews_approves'], 0)
-        self.assertEqual(response['addition'], 0)
         self.assertEqual(response['details'], [])
 
     def test_points(self):
         response = self.client.get(self.endpoint).json()
-        self.assertEqual(response['points'], 104)
-        self.assertEqual(response['reviews'], 1)
-        self.assertEqual(response['first_reviews'], 1)
-        self.assertEqual(response['approves'], 1)
-        self.assertEqual(response['first_reviews_approves'], 1)
-        self.assertEqual(response['addition'], 100)
+        self.assertEqual(response['points'], 100)
         details = response['details']
         self.assertEqual(len(details), 1)
         self.assertEqual(details[0]['value'], 100)
@@ -67,11 +57,6 @@ class UserPointTest(TestCase):
         ReviewReaction.objects.create(user=user4, review=self.review, reaction=-1)
         response = self.client.get(self.endpoint).json()
         self.assertEqual(response['points'], 100)
-        self.assertEqual(response['reviews'], 0)
-        self.assertEqual(response['first_reviews'], 0)
-        self.assertEqual(response['approves'], 0)
-        self.assertEqual(response['first_reviews_approves'], 0)
-        self.assertEqual(response['addition'], 100)
 
 
 class EnrollLessonTest(TestCase):

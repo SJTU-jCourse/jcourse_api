@@ -43,6 +43,8 @@ class UserView(APIView):
 def get_user_point(user: User):
     user_points = UserPoint.objects.filter(user=user)
     points = user_points.aggregate(sum=Sum('value'))['sum']
+    if points is None:
+        points = 0
     details = UserPointSerializer(user_points, many=True).data
     return {'points': points, 'details': details}
 
