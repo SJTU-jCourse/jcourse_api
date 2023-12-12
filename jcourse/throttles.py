@@ -9,6 +9,11 @@ class SuperUserExemptRateThrottle(UserRateThrottle):
             return True
         return super().allow_request(request, view)
 
+    def get_cache_key(self, request, view):
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        ip_address = self.get_ident(request)
+        return f'{user_agent}_{ip_address}'
+
 
 class ReactionRateThrottle(SuperUserExemptRateThrottle):
     scope = 'review_reaction'
