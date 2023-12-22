@@ -37,10 +37,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
                                                                          notification_level=notification_level) \
                 .values('course_id')
             reviews = reviews.filter(course_id__in=filtered_course_ids)
-        else:
+        elif self.request.user.is_authenticated:
             ignored_course_ids = CourseNotificationLevel.objects.filter(user=self.request.user,
                                                                         notification_level=CourseNotificationLevel.NotificationLevelType.IGNORE) \
-                .values('course_id')
+                    .values('course_id')
             reviews = reviews.exclude(course_id__in=ignored_course_ids)
         if 'order' in self.request.query_params:
             if self.request.query_params['order'] == 'approves':

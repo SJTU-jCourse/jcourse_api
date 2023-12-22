@@ -163,24 +163,30 @@ AUTHLIB_OAUTH_CLIENTS = {
     }
 }
 
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+BENCHMARK = bool(os.environ.get('BENCHMARK'))
+
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'jcourse.paginations.GlobalPageNumberPagination',
     'PAGE_SIZE': 20,
     'DATETIME_FORMAT': "%Y/%m/%d %H:%M",
-    'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.UserRateThrottle'],
-    'DEFAULT_THROTTLE_RATES': {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+    'UPLOADED_FILES_USE_URL': False
+}
+
+if not BENCHMARK:
+    REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = ['rest_framework.throttling.UserRateThrottle']
+    REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
         'user': '10/second',
         'review_reaction': '50/day',
         'email_code': '1/minute',
         'verify_auth': '5/minute',
-    },
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
-    'UPLOADED_FILES_USE_URL': False
-}
+    }
+    REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = ['rest_framework.permissions.IsAuthenticated']
+
 
 if DEBUG:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = (
@@ -309,9 +315,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
-if not TESTING:
+if not TESTING and not BENCHMARK:
     INSTALLED_APPS += ['silk']
     MIDDLEWARE += ['silk.middleware.SilkyMiddleware']
 

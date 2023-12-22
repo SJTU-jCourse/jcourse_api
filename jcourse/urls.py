@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from jcourse.settings import DEBUG, TESTING
+from jcourse.settings import DEBUG, TESTING, BENCHMARK
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,5 +30,5 @@ urlpatterns = [
 if DEBUG:
     urlpatterns += [path('__debug__/', include('debug_toolbar.urls')), ]
 
-if not TESTING:
+if not TESTING and not BENCHMARK:
     urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
