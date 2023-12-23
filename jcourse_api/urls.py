@@ -29,5 +29,6 @@ urlpatterns = [
     path('course/<int:course_id>/review/', ReviewInCourseView.as_view(), name='review-in-course'),
     path('review/<int:review_id>/revision/', ReviewRevisionView.as_view(), name='review-revision'),
     path('common/', get_common_info, name='common-info'),
+    path('debug/', debug_info, name='debug-info'),
     # path('upload/', FileUploadView.as_view(), name='upload'),
 ]
