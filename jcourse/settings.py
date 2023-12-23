@@ -315,11 +315,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-if not TESTING and not BENCHMARK:
-    INSTALLED_APPS += ['silk']
-    MIDDLEWARE += ['silk.middleware.SilkyMiddleware']
-
 HUEY = {
     'huey_class': 'huey.RedisHuey',  # Huey implementation to use.
     'name': DATABASES['default']['NAME'],  # Use db name for huey.
@@ -340,11 +335,3 @@ QINIU_ACCESS_KEY = os.environ.get("QINIU_ACCESS_KEY", 'AK')
 QINIU_SECRET_KEY = os.environ.get("QINIU_SECRET_KEY", 'SK')
 QINIU_BUCKET_NAME = os.environ.get("QINIU_BUCKET_NAME", 'bucket_name')
 QINIU_BASE_URL = os.environ.get("QINIU_BASE_URL", 'https://qiniu.com')
-
-SILKY_PYTHON_PROFILER = True
-SILKY_AUTHENTICATION = True  # User must login
-SILKY_AUTHORISATION = True  # User must have permissions
-SILKY_META = True
-SILKY_IGNORE_PATHS = [
-    '/admin/jsi18n/'
-]
