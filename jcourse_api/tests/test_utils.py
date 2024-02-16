@@ -2,12 +2,11 @@ from io import StringIO
 
 from django.test import TestCase
 
-from jcourse_api.models import Semester
 from jcourse_api.tests import create_test_env, create_review
 from jcourse_api.utils import *
 
 
-class MergeTest(TestCase):
+class MergeCourseTest(TestCase):
     def setUp(self) -> None:
         create_test_env()
         self.user = User.objects.get(username='test')
@@ -73,6 +72,38 @@ class MergeTest(TestCase):
         self.assertEqual(Review.objects.get(pk=self.old_review.pk).course_id, new_course.pk)
         self.assertEqual(new_course.review_count, 1)
         self.assertEqual(new_course.review_avg, 3)
+
+
+class MergeUserTestCase(TestCase):
+    def setUp(self):
+        create_test_env()
+        old_name = hash_username("test1")
+        new_name = hash_username("test2")
+        self.old_user = User.objects.create(username=old_name)
+        self.new_user = User.objects.create(username=new_name)
+        self.review = create_review(old_name, 'CS1500', 3)
+        self.course = Course.objects.get(code='CS1500')
+        self.teacher = Teacher.objects.get(tid=1, name='高女士')
+        self.semester = Semester.objects.get(name='2021-2022-1')
+        self.enroll = EnrollCourse.objects.create(user=self.old_user, course=self.course, semester=self.semester)
+
+    def check(self):
+        self.review.refresh_from_db()
+        self.enroll.refresh_from_db()
+        self.assertEqual(self.review.user_id, self.new_user.id)
+        self.assertEqual(self.enroll.user_id, self.new_user.id)
+
+    def test_merge_user(self):
+        merge_user(self.old_user, self.new_user)
+        self.check()
+
+    def test_merge_user_by_id(self):
+        merge_user_by_id(self.old_user.id, self.new_user.id)
+        self.check()
+
+    def test_merge_user_by_raw_account(self):
+        merge_user_by_raw_account("test1", "test2")
+        self.check()
 
 
 class ExportTest(TestCase):

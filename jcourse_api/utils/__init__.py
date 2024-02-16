@@ -1,4 +1,5 @@
-from .merge import *
+from .merge_course import *
+from .merge_user import *
 from .export import *
 from .email import *
 from .spam import *

@@ -1,6 +1,6 @@
 from typing import Callable
 
-from jcourse_api.models import Course, Review, EnrollCourse, Teacher, update_course_reviews
+from jcourse_api.models import *
 
 
 def merge_course(old_course: Course, new_course: Course) -> bool:
