@@ -106,6 +106,24 @@ class MergeUserTestCase(TestCase):
         self.check()
 
 
+class RenameUserTest(TestCase):
+    def setUp(self):
+        name = hash_username("test")
+        self.user = User.objects.create(username=name)
+
+    def test_rename_user(self):
+        rename_user(self.user, "test2")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "test2")
+
+    def test_rename_user_by_raw(self):
+        result = rename_user_raw_account("test", "test2")
+        self.assertTrue(result)
+        self.user.refresh_from_db()
+        name = hash_username("test2")
+        self.assertEqual(self.user.username, name)
+
+
 class ExportTest(TestCase):
 
     def setUp(self) -> None:
