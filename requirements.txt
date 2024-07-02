@@ -3,7 +3,7 @@ Django==5.0.2
 django-cors-headers==4.3.1
 django-filter==23.5
 django-import-export==3.3.7
-djangorestframework==3.14.0
+djangorestframework==3.15.2
 requests==2.31.0
 gunicorn==21.2.0
 uvicorn[standard]==0.27.1
