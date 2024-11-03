@@ -17,3 +17,4 @@ huey==2.5.2
 jieba==0.42.1
 packaging==24.1
 qiniu==7.15.0
+Pillow==11.0.0
