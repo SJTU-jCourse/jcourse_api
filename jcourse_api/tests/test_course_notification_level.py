@@ -121,8 +121,8 @@ class CourseNotificationLevelTest(TestCase):
         self.assertEqual(response, {'error': '无效的操作类型！'})
         response = self.client1.post(f'/api/course/{self.course1.id}/notification_level/', {'read': '4'}).json()
         self.assertEqual(response, {'error': '未指定操作类型！'})
-        response = self.client1.post(f'/api/course/11111/notification_level/', {'level': '0'}).json()
-        self.assertEqual(response, {'detail': '未找到。'})
+        response = self.client1.post(f'/api/course/11111/notification_level/', {'level': '0'})
+        self.assertEqual(response.status_code, 404)
 
     def test_review_follow_list(self):
         response = self.client1.get('/api/review/?notification_level=1').json()

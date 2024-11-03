@@ -82,8 +82,8 @@ class NotificationTest(TestCase):
         self.assertIsNone(response2['read_at'])
         notification2 = Notification.objects.get(id=self.notification2.id)
         self.assertIsNone(notification2.read_at)
-        response = self.client.post(f'{self.endpoint}{1111}/read/', {'read': '0'}).json()
-        self.assertEqual(response, {'detail': '未找到。'})
+        response = self.client.post(f'{self.endpoint}{1111}/read/', {'read': '0'})
+        self.assertEqual(response.status_code, 404)
         response = self.client.post(f'{self.endpoint}{self.notification2.id}/read/', {'find': '0'}).json()
         self.assertEqual(response, {'error': '未指定操作类型！'})
 
@@ -92,5 +92,5 @@ class NotificationTest(TestCase):
         client = APIClient()
         user8 = User.objects.create(username='test8')
         client.force_login(user8)
-        response = client.post(f'{self.endpoint}{self.notification2.id}/read/', {'read': '1'}).json()
-        self.assertEqual(response, {'detail': '未找到。'})
+        response = client.post(f'{self.endpoint}{self.notification2.id}/read/', {'read': '1'})
+        self.assertEqual(response.status_code, 404)
