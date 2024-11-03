@@ -24,7 +24,7 @@ urlpatterns = [
     path('api/', include('jcourse_api.urls')),
     path('oauth/', include('oauth.urls')),
     path('api/promotion/', include('ad.urls')),
-    path('prometheus/', include('django_prometheus.urls'))
+#    path('prometheus/', include('django_prometheus.urls'))
 ]
 
 if DEBUG:
