@@ -6,8 +6,8 @@ from authlib.integrations.django_client import OAuth
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.core.mail import send_mail
 
+import utils.mail
 from jcourse import settings
 from jcourse.settings import HASH_SALT, EMAIL_VERIFICATION_TIMEOUT, EMAIL_VERIFICATION_MAX_TIMES
 from oauth.models import UserProfile
@@ -78,7 +78,7 @@ def send_code_email(email: str, code: str):
                  f"{code}\n\n" \
                  f"如非本人操作请忽略该邮件。\n\n" \
                  f"选课社区"
-    return send_mail(email_title, email_body, settings.DEFAULT_FROM_EMAIL, [email])
+    return send_mail(email_title, email_body, email)
 
 
 def get_or_create_user(account: str):
@@ -126,7 +126,22 @@ def reset_send_code_email(email: str, code: str):
                  f"{code}\n\n" \
                  f"如非本人操作请忽略该邮件。\n\n" \
                  f"选课社区"
-    return send_mail(email_title, email_body, settings.DEFAULT_FROM_EMAIL, [email])
+    return send_mail(email_title, email_body, email)
+
+def send_mail(title, body, recipient):
+    if settings.TESTING or settings.BENCHMARK:
+        return True
+
+    sender = settings.EMAIL_HOST_USER
+    pwd = settings.EMAIL_HOST_PASSWORD
+    host = settings.EMAIL_HOST
+    port = settings.EMAIL_PORT
+    use_ssl = settings.EMAIL_USE_SSL
+    try:
+        utils.mail.send_mail_inner(sender, sender, pwd, [recipient], title, body, host, port, use_ssl)
+    except Exception as e:
+        return False
+    return True
 
 
 def reset_verify_email_code(account: str, code: str):
