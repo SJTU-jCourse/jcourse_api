@@ -4,7 +4,7 @@ from utils.course_data_clean import UploadData
 
 encoding = 'utf-8'
 data_dir = '../data'
-semester = '2024-2025-1'
+semester = '2024-2025-2'
 
 f = open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig')
 reader = csv.DictReader(f)
