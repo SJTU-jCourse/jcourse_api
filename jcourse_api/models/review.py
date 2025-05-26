@@ -63,7 +63,7 @@ class ReviewRevision(models.Model):
         verbose_name = '点评修订记录'
         verbose_name_plural = verbose_name
 
-    review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.SET_NULL, db_index=True)
+    review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.SET_NULL, db_index=True, null=True)
     user = models.ForeignKey(User, verbose_name='执行用户', on_delete=models.SET_NULL, null=True)
     course = models.ForeignKey(Course, verbose_name='课程', on_delete=models.SET_NULL, null=True)
     semester = models.ForeignKey(Semester, verbose_name='上课学期', on_delete=models.SET_NULL, null=True)
