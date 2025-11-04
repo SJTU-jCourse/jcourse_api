@@ -47,6 +47,7 @@ class CourseAdmin(ImportExportModelAdmin):
 class TeacherResource(resources.ModelResource):
     department = fields.Field(attribute='department', widget=ForeignKeyWidget(Department, 'name'))
     last_semester = fields.Field(attribute='last_semester', widget=ForeignKeyWidget(Semester, 'name'))
+    skip_empty_fields = ["title"]
 
     class Meta:
         model = Teacher
@@ -62,6 +63,12 @@ class TeacherResource(resources.ModelResource):
         except IntegrityError:
             pass
 
+    def import_field(self, field, instance, row, is_m2m=False, **kwargs):
+        field_name = field.attribute
+        value = field.clean(row)
+        if field_name in self.skip_empty_fields and value in ("", None):
+            return
+        super().import_field(field, instance, row, is_m2m, **kwargs)
 
 @admin.register(Teacher)
 class TeacherAdmin(ImportExportModelAdmin):
