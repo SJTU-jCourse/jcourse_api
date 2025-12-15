@@ -10,9 +10,13 @@ class SuperUserExemptRateThrottle(UserRateThrottle):
         return super().allow_request(request, view)
 
     def get_cache_key(self, request, view):
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
-        ip_address = self.get_ident(request)
-        return f'{user_agent}_{ip_address}'
+        if request.user.is_authenticated:
+            ident = f"user_{request.user.pk}"
+        else:
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+            ip_addr = self.get_ident(request)
+            ident = f"{ip_addr}_{user_agent}"
+        return f'throttle_{self.scope}_{ident}'
 
 
 class ReactionRateThrottle(SuperUserExemptRateThrottle):
