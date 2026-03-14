@@ -1,10 +1,12 @@
 import csv
 
+import tablib
+
 from utils.course_data_clean import UploadData
 
 encoding = 'utf-8'
 data_dir = '../data'
-semester = '2025-2026-1'
+semester = '2025-2026-2'
 
 f = open(f'{data_dir}/{semester}.csv', mode='r', encoding='utf-8-sig')
 reader = csv.DictReader(f)
@@ -19,8 +21,19 @@ courses = data.get_courses()
 courses.append_col([semester] * len(courses), header='last_semester')
 print(len(teachers), len(data.departments), len(data.categories), len(courses))
 
-with open(f'{data_dir}/Teachers.csv', mode='w', encoding=encoding, newline='') as f:
-    f.writelines(teachers.export("csv"))
+chunk_size = 1000
+
+
+def export_chunks(dataset, path_prefix):
+    for i, start in enumerate(range(0, len(dataset), chunk_size), 1):
+        chunk = tablib.Dataset(headers=dataset.headers)
+        for row in dataset[start:start + chunk_size]:
+            chunk.append(row)
+        with open(f'{path_prefix}_{i}.csv', mode='w', encoding=encoding, newline='') as f:
+            f.writelines(chunk.export("csv"))
+
+
+export_chunks(teachers, f'{data_dir}/Teachers')
 
 with open(f'{data_dir}/Categories.csv', mode='w', encoding=encoding, newline='') as f:
     writer = csv.writer(f)
@@ -32,5 +45,4 @@ with open(f'{data_dir}/Departments.csv', mode='w', encoding=encoding, newline=''
     writer.writerow(['name'])
     writer.writerows([[department] for department in data.departments])
 
-with open(f'{data_dir}/Courses.csv', mode='w', encoding=encoding, newline='') as f:
-    f.writelines(courses.export("csv"))
+export_chunks(courses, f'{data_dir}/Courses')
