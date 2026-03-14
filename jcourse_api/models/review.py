@@ -39,7 +39,7 @@ class Review(models.Model):
 
     comment_validity.short_description = '详细点评'
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(self, *, force_insert=False, force_update=False, using=None, update_fields=None):
         need_to_update = False
         old_course = None
         if self.pk is None:
@@ -51,7 +51,7 @@ class Review(models.Model):
                 old_course = previous.course
             if previous.comment != self.comment:
                 self.search_vector = get_cut_word_search_vector(self.comment)
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
         if need_to_update:
             update_course_reviews(self.course)
             if old_course and old_course != self.course:
@@ -92,13 +92,13 @@ class ReviewReaction(models.Model):
 
     user = models.ForeignKey(User, verbose_name='用户', on_delete=models.CASCADE, db_index=True)
     review = models.ForeignKey(Review, verbose_name='点评', on_delete=models.CASCADE, db_index=True)
-    reaction = models.IntegerField(choices=ReactionType.choices, verbose_name='操作', default=0, db_index=True)
+    reaction = models.IntegerField(choices=ReactionType, verbose_name='操作', default=0, db_index=True)
     modified_at = models.DateTimeField(verbose_name='修改时间', blank=True, null=True, db_index=True, auto_now=True)
 
     def __str__(self):
         return f"{self.user} {self.get_reaction_display()} {self.review.id}"
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(self, *, force_insert=False, force_update=False, using=None, update_fields=None):
         need_to_update = False
         old_review = None
         if self.pk is None:
@@ -108,7 +108,7 @@ class ReviewReaction(models.Model):
             if previous.review_id != self.review_id or previous.reaction != self.reaction:
                 need_to_update = True
                 old_review = previous.review
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
         if need_to_update:
             update_review_reactions(self.review)
             if old_review and old_review != self.review:

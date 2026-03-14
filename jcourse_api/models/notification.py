@@ -31,7 +31,7 @@ class Notification(models.Model):
         verbose_name='接收者',
         db_index=True
     )
-    type = models.IntegerField(verbose_name='类型', choices=NotificationType.choices,
+    type = models.IntegerField(verbose_name='类型', choices=NotificationType,
                                db_index=True, null=True, blank=True)
     description = models.TextField(blank=True, null=True, verbose_name='内容')
     content_type = models.ForeignKey(ContentType, models.CASCADE, verbose_name='内容类型', null=True)
