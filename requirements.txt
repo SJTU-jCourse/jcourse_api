@@ -1,4 +1,4 @@
-Authlib==1.6.9
+Authlib==1.6.12
 Django==6.0.3
 django-cors-headers==4.9.0
 django-filter==25.2
