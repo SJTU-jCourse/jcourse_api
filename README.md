@@ -1,3 +1,5 @@
+> 自 2026 年 5 月 28 日起，SJTU 选课社区线上版本已全面迁移到新一代架构，不再使用本项目代码。
+
 # jCourse_api: jCourse 的后端
 本项目需要与 [jCourse](https://github.com/dujiajun/jcourse) 前端配合使用。
 
